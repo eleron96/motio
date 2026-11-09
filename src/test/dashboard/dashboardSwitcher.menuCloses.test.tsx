@@ -40,6 +40,7 @@ const Harness = () => {
         canCreateDashboard
         canDeleteDashboard
         dialogs={dialogs}
+        workspaceId="workspace-1"
       />
       <DashboardManageDialogs
         dialogs={dialogs}

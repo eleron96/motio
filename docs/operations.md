@@ -61,11 +61,12 @@ npm run dev:compose       # full dev stack via docker compose
 npm run dev:local         # Supabase CLI mode (fallback → dev:compose)
 npm run build
 npm run lint
-npm run typecheck         # tsc -p tsconfig.app.json --noEmit (CI gate)
+npm run typecheck         # tsc for src/ and e2e/ (CI gate)
 npm run test              # unit + component
 npm run test:watch
 npm run test:integration  # DB integration suite (also gates CI)
 npm run test:backup       # backup-service crons (node:test, also gates CI)
+npm run test:e2e          # browser tests on /demo (Playwright, also gates CI; e2e/README.md)
 npm run lingui:extract    # extract translatable strings
 npm run lingui:compile    # compile .po → .js
 ```
@@ -184,6 +185,11 @@ ssh root@<prod-server> "cd /opt/new_toggl && docker compose -f infra/docker-comp
 - **integration-tests** — `infra/scripts/ci-test-db.sh` provisions the Supabase
   Postgres and applies the Liquibase migrations, then `npm run test:integration`
   runs against it.
+- **e2e** — builds the app (placeholder Supabase values: `/demo` needs no
+  backend), installs Playwright's Chromium and runs `npm run test:e2e`: the
+  `/demo` sandbox served with `vite preview`, mouse drags on the desktop timeline
+  and touch gestures on a phone screen. On failure the report and traces are
+  attached to the run (`playwright-report`). What it covers: `e2e/README.md`.
 
 `.github/workflows/image-scan.yml` runs `infra/scripts/scan-images.sh` every Monday,
 on demand and when an image reference changes: Trivy lists the HIGH and CRITICAL
@@ -339,6 +345,11 @@ no integration tests. Check the pipeline separately after pushing:
 
 - `VERSION` holds the current version; the patch part is bumped automatically on every
   production deploy (or set explicitly via `NEXT_VERSION=X.Y.Z`).
+- Open tabs show «A new version of Motio is available» only when the minor or major
+  number goes up (0.10.x → 0.11.0, `isNotableUpdate` in
+  `src/shared/domain/versionCompare.ts`). Patch releases reach people quietly, on the
+  next page load. So an important release — one everybody should load now — goes out
+  with `NEXT_VERSION=0.11.0` (the next minor), not with the automatic patch bump.
 - The full release path in one command (changelog entry + commit + push + deploy + sync):
 
   ```bash
@@ -438,6 +449,28 @@ The testing environment is fully isolated from production.
   addresses stay out of the repository and survive every rerun. This matters for a
   super admin in particular — one without any workspace is treated as the reserve
   service account and sent straight to the admin console.
+
+## Server settings on testing and production
+
+Optional extras are server settings (**Admin → Settings**, all off by default; see
+[Configuration → Server settings](configuration.md#server-settings)). Besides the
+admin console they can be read and changed over ssh:
+
+```bash
+make settings CONTOUR=testing                          # list
+make settings CONTOUR=testing SET=timeline.density=on
+make settings CONTOUR=testing RESET=timeline.density   # back to the default (off)
+make settings CONTOUR=prod                             # production: asks before changing anything
+```
+
+Who changed what — in the console, from the command line or through the group
+sync — is in **Admin → Activity log** (`/app/admin/activity`, table
+`admin_audit_log`).
+
+`infra/scripts/settings-remote.sh` runs `infra/scripts/motio-settings.sh` in the
+deployed checkout (psql in the `db` container), so the server needs a deploy that
+has it. A change reaches the backend within 30 seconds and people at their next
+visit. No rebuild, no restart.
 
 ---
 

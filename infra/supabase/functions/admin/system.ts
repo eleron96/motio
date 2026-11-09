@@ -2,13 +2,14 @@
 // Nothing here can change the server — updates stay a command on the host
 // (infra/scripts/install.sh update), see docs/self-hosting.md.
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.45.4";
-import { getMailerConfig, sendEmail } from "../_shared/mailer.ts";
+import { getMailerConfig, sendEmail, type MailerConfig } from "../_shared/mailer.ts";
 import {
   createTestEmailThrottle,
   describeMailError,
   isUpdateCheckEnabled,
   parseLatestRelease,
   type LatestRelease,
+  type EmailOffReason,
   type ServiceCheck,
   type SystemServiceKey,
   type SystemStatus,
@@ -97,21 +98,29 @@ export const getSystemStatus = async (
     selfHosted: (Deno.env.get("MOTIO_SELF_HOSTED") ?? "") === "true",
     configured: {
       email: !mailer.dryRun,
+      // Why Motio's own emails are off: no SMTP server at all, or MAILER_DRY_RUN=1
+      // although one is set (an install made without email keeps that flag).
+      emailOffReason: emailOffReason(mailer),
       push: Boolean(Deno.env.get("VAPID_PUBLIC_KEY") && Deno.env.get("VAPID_PRIVATE_KEY")),
       errorTracking: Boolean(Deno.env.get("GLITCHTIP_DSN")),
     },
   };
 };
 
+const emailOffReason = (mailer: MailerConfig): EmailOffReason | null => {
+  if (!mailer.dryRun) return null;
+  return mailer.host ? "dry_run_flag" : "no_host";
+};
+
 export type TestEmailResult =
   | { status: "sent" }
-  | { status: "not_configured" }
+  | { status: "not_configured"; reason: EmailOffReason }
   | { status: "throttled"; retryAfterSeconds: number }
   | { status: "failed"; message: string };
 
 export const sendTestEmail = async (userId: string, email: string | undefined): Promise<TestEmailResult> => {
   const config = getMailerConfig();
-  if (config.dryRun) return { status: "not_configured" };
+  if (config.dryRun) return { status: "not_configured", reason: emailOffReason(config) ?? "no_host" };
   if (!email) return { status: "failed", message: "this account has no email address" };
 
   const wait = throttleTestEmail(userId);

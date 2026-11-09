@@ -10,6 +10,8 @@ import {
   russianStatutoryHolidays,
 } from '@/features/planner/lib/russianHolidays';
 import { isHolidayObservedInRegion } from '@/shared/domain/holidayRegion';
+import { closureDaysByDate, withClosures } from '@/shared/domain/workspaceClosures';
+import { useWorkspaceClosures } from '@/features/planner/hooks/useWorkspaceClosures';
 
 const HOLIDAY_RETRY_DELAY_MS = 30000;
 const DEFAULT_HOLIDAY_COUNTRY_CODE = 'RU';
@@ -131,7 +133,11 @@ export const useHolidayMap = ({
     };
   }, [years, holidayCountryCode, holidayReloadToken]);
 
-  const holidayMap = useMemo(() => {
+  // Days off for the whole workspace (server setting workspaces.closures): an
+  // empty list unless turned on, and then the map below is the holidays alone.
+  const closures = useWorkspaceClosures();
+
+  const publicHolidayMap = useMemo(() => {
     const labels: HolidayLabels = {
       countryCode: holidayCountryCode,
       regionCode: holidayRegionCode,
@@ -147,6 +153,12 @@ export const useHolidayMap = ({
     });
     return map;
   }, [answers, years, holidayCountryCode, holidayRegionCode, fallbackHolidayLabel, holidayLabel]);
+
+  const holidayMap = useMemo(() => {
+    if (closures.length === 0 || years.length === 0) return publicHolidayMap;
+    const window = { startIso: `${Math.min(...years)}-01-01`, endIso: `${Math.max(...years)}-12-31` };
+    return withClosures(publicHolidayMap, closureDaysByDate(closures, window));
+  }, [publicHolidayMap, closures, years]);
 
   const holidayDates = useMemo(() => new Set(Object.keys(holidayMap)), [holidayMap]);
 

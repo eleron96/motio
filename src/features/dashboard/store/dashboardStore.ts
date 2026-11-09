@@ -23,6 +23,8 @@ import {
   EMPTY_TIME_OFF,
 } from '@/features/dashboard/store/dashboardStore.contract';
 import { createDashboardDataActions } from '@/features/dashboard/store/dashboardStore.dataActions';
+import { createDashboardCapacityActions } from '@/features/dashboard/store/dashboardStore.capacityActions';
+import { createDashboardTransferActions } from '@/features/dashboard/store/dashboardStore.transferActions';
 
 export const useDashboardStore = create<DashboardState>((set, get) => ({
   widgets: [],
@@ -36,6 +38,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   heatmap: EMPTY_HEATMAP,
   heatmapAutoCapacity: null,
   timeOff: EMPTY_TIME_OFF,
+  personCapacities: null,
   loading: false,
   saving: false,
   error: null,
@@ -220,6 +223,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     heatmap: EMPTY_HEATMAP,
     heatmapAutoCapacity: null,
     timeOff: EMPTY_TIME_OFF,
+    personCapacities: null,
     loading: false,
     saving: false,
     error: null,
@@ -273,6 +277,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     return { layouts: normalized, dirty: true };
   }),
   ...createDashboardDataActions(set, get),
+  ...createDashboardCapacityActions(set, get),
+  ...createDashboardTransferActions(set, get),
 }));
 
 export { DASHBOARD_BREAKPOINTS, DASHBOARD_COLS, getClosestWidgetSize };

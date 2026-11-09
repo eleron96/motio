@@ -12,6 +12,7 @@ import { LandingTimelineDemo } from '@/features/marketing/components/landing/Lan
 import {
   LandingFeatures,
   LandingFinalCta,
+  LandingGuide,
   LandingHeatmap,
   LandingSelfHosted,
   LandingStory,
@@ -90,6 +91,7 @@ const LandingPage = () => {
         <LandingFeatures />
         <LandingHeatmap />
         <LandingDashboardDemo />
+        <LandingGuide />
         <LandingSelfHosted />
         <LandingTimelineDemo />
         <LandingStory />

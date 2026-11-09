@@ -1,4 +1,17 @@
-import { addDays, format, parseISO, subDays, subMonths, subWeeks } from 'date-fns';
+import {
+  addDays,
+  addMonths,
+  addWeeks,
+  endOfMonth,
+  endOfWeek,
+  format,
+  parseISO,
+  startOfMonth,
+  startOfWeek,
+  subDays,
+  subMonths,
+  subWeeks,
+} from 'date-fns';
 import type { Locale as DateFnsLocale } from 'date-fns';
 import {
   DashboardBarPalette,
@@ -61,8 +74,45 @@ export const createWidgetId = () => {
   return `widget-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 };
 
-export const getPeriodRange = (period: DashboardPeriod) => {
-  const end = new Date();
+export const DASHBOARD_CALENDAR_PERIODS = ['thisWeek', 'nextWeek', 'thisMonth', 'nextMonth'] as const;
+const DASHBOARD_PERIODS: readonly DashboardPeriod[] = ['day', 'week', 'month', ...DASHBOARD_CALENDAR_PERIODS];
+
+export const isDashboardPeriod = (value: unknown): value is DashboardPeriod => (
+  typeof value === 'string' && (DASHBOARD_PERIODS as readonly string[]).includes(value)
+);
+
+export const isCalendarPeriod = (period: DashboardPeriod) => (
+  (DASHBOARD_CALENDAR_PERIODS as readonly string[]).includes(period)
+);
+
+// Calendar weeks start on Monday (ISO 8601) in every language.
+const WEEK = { weekStartsOn: 1 } as const;
+
+const calendarPeriodRange = (period: DashboardPeriod, now: Date): { start: Date; end: Date } | null => {
+  switch (period) {
+    case 'thisWeek': return { start: startOfWeek(now, WEEK), end: endOfWeek(now, WEEK) };
+    case 'nextWeek': {
+      const next = addWeeks(now, 1);
+      return { start: startOfWeek(next, WEEK), end: endOfWeek(next, WEEK) };
+    }
+    case 'thisMonth': return { start: startOfMonth(now), end: endOfMonth(now) };
+    case 'nextMonth': {
+      const next = addMonths(now, 1);
+      return { start: startOfMonth(next), end: endOfMonth(next) };
+    }
+    default: return null;
+  }
+};
+
+export const getPeriodRange = (period: DashboardPeriod, now: Date = new Date()) => {
+  const calendar = calendarPeriodRange(period, now);
+  if (calendar) {
+    return {
+      startDate: format(calendar.start, 'yyyy-MM-dd'),
+      endDate: format(calendar.end, 'yyyy-MM-dd'),
+    };
+  }
+  const end = now;
   const start =
     period === 'day'
       ? subDays(end, 0)

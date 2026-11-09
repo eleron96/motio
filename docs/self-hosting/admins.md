@@ -5,7 +5,7 @@ Three kinds of administrator, for three different things:
 | Who | Can | Where |
 |---|---|---|
 | **Workspace admin** | manage one workspace: members, roles, settings | inside Motio, per workspace |
-| **Super admin** | the admin console: all users and workspaces, backups, announcements, system status | `https://<domain>/app/admin` |
+| **Super admin** | the admin console: all users and workspaces, settings, backups, announcements, system status, the activity log | `https://<domain>/app/admin` |
 | **Keycloak administrator** | Keycloak itself: realms, sign-in providers, password policies | `https://<domain>/admin` |
 
 ## Super admins
@@ -30,7 +30,9 @@ load.
 For example a group your identity provider fills, such as "Motio-Admins" from
 Authentik:
 
-1. Set `KEYCLOAK_SUPER_ADMIN_FROM_GROUPS=true` in `.env` and run `install.sh up`.
+1. Turn on **Super admins from a group** in **Admin → Settings** (or
+   `infra/scripts/install.sh settings set groups.superAdmin on`;
+   `KEYCLOAK_SUPER_ADMIN_FROM_GROUPS=true` in `.env` works too).
 2. Keycloak → realm **timeline** → **Groups** → the group → **Role mapping** →
    **Assign role** → `app_super_admin`.
 3. If the group comes from your identity provider through a mapper, set the

@@ -14,6 +14,8 @@ interface TimelineSidebarRowProps {
   sidebarViewportWidth: number;
   groupMode: GroupMode;
   getMonogram: (name: string) => string;
+  /** Denser timeline (timeline.density): a small photo next to the name. */
+  smallPhotos?: boolean;
   getAvatarInfo: (id: string) => {
     avatarUrl: string | null;
     userId: string;
@@ -58,10 +60,11 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
   groupMode,
   getMonogram,
   getAvatarInfo,
+  smallPhotos = false,
 }) => {
   const isAssignee = groupMode === 'assignee';
   const showAssigneeAvatar = isAssignee && row.id !== 'unassigned';
-  const avatarSize: AvatarSize = resolveAssigneeAvatarSize(sidebarViewportWidth);
+  const avatarSize: AvatarSize = smallPhotos ? 'xs' : resolveAssigneeAvatarSize(sidebarViewportWidth);
 
   return (
     <div
@@ -80,7 +83,9 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
             : cn(
                 'border-b border-border hover:bg-timeline-row-hover',
                 isAssignee
-                  ? cn('flex-col items-center justify-center gap-1 py-2', isMobile ? 'px-2' : 'px-3')
+                  ? (smallPhotos
+                    ? cn('items-center gap-2 py-1', isMobile ? 'px-2' : 'px-3')
+                    : cn('flex-col items-center justify-center gap-1 py-2', isMobile ? 'px-2' : 'px-3'))
                   : cn('items-center gap-2', isMobile ? 'px-3' : 'px-4'),
               ),
         )}
@@ -159,7 +164,8 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
             })() : null}
             <span
               className={cn(
-                'w-full text-center font-medium text-foreground whitespace-normal break-words [overflow-wrap:anywhere] leading-tight',
+                smallPhotos ? 'min-w-0 flex-1 text-left line-clamp-2' : 'w-full text-center',
+                'font-medium text-foreground whitespace-normal break-words [overflow-wrap:anywhere] leading-tight',
                 isMobile ? 'text-[11px]' : 'text-xs',
               )}
               title={row.name}

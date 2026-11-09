@@ -19,6 +19,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shar
 import { useTablePagination } from '@/features/admin/hooks/useTablePagination';
 import { AdminTablePagination } from '@/features/admin/components/AdminTablePagination';
 import { AdminWorkspaceAddMemberDialog } from '@/features/admin/components/AdminWorkspaceAddMemberDialog';
+import { AdminWorkspaceMembersDialog } from '@/features/admin/components/AdminWorkspaceMembersDialog';
 import { t } from '@lingui/macro';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -56,6 +57,7 @@ const AdminWorkspacesPage: React.FC = () => {
   const [workspaceDeleteSubmitting, setWorkspaceDeleteSubmitting] = useState(false);
 
   const [addMemberTarget, setAddMemberTarget] = useState<AdminWorkspace | null>(null);
+  const [membersTarget, setMembersTarget] = useState<AdminWorkspace | null>(null);
 
   useEffect(() => {
     fetchAdminWorkspaces();
@@ -213,6 +215,13 @@ const AdminWorkspacesPage: React.FC = () => {
                             <Button
                               size="sm"
                               variant="outline"
+                              onClick={() => setMembersTarget(workspace)}
+                            >
+                              {t`Members`}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
                               onClick={() => setAddMemberTarget(workspace)}
                             >
                               {t`Add member`}
@@ -258,6 +267,14 @@ const AdminWorkspacesPage: React.FC = () => {
             if (!open) setAddMemberTarget(null);
           }}
           onAdded={() => void fetchAdminWorkspaces()}
+        />
+
+        <AdminWorkspaceMembersDialog
+          workspace={membersTarget}
+          onOpenChange={(open) => {
+            if (!open) setMembersTarget(null);
+          }}
+          onChanged={() => void fetchAdminWorkspaces()}
         />
 
         <Dialog open={workspaceEditOpen} onOpenChange={setWorkspaceEditOpen}>

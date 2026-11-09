@@ -45,6 +45,24 @@ fi
 report_dir="$(mktemp -d)"
 trap 'rm -rf "$report_dir"' EXIT
 
+# Trivy reads the image straight from its registry, without Docker. Registries
+# throttle anonymous reads (public.ecr.aws answers TOOMANYREQUESTS when a run
+# asks too often), so a failed scan waits and tries again before it is reported.
+scan_image() {
+  local image="$1" json="$2" attempt
+  for attempt in 1 2 3; do
+    if docker run --rm -v "$cache_volume:/root/.cache" "$trivy_image" image \
+        --quiet --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed \
+        --format json "$image" > "$json" 2> "$json.err"; then
+      return 0
+    fi
+    if (( attempt < 3 )); then
+      sleep $(( attempt * 30 ))
+    fi
+  done
+  return 1
+}
+
 echo "## Container image vulnerabilities"
 echo
 echo "HIGH and CRITICAL findings that already have a fixed version upstream (Trivy, \`--ignore-unfixed\`)."
@@ -56,9 +74,7 @@ echo "|---|---:|---:|"
 details=""
 for image in "${images[@]}"; do
   json="$report_dir/$(echo "$image" | tr '/:@' '___').json"
-  if ! docker run --rm -v "$cache_volume:/root/.cache" "$trivy_image" image \
-      --quiet --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed \
-      --format json "$image" > "$json" 2> "$json.err"; then
+  if ! scan_image "$image" "$json"; then
     echo "| \`$image\` | scan failed | |"
     details+=$'\n'"<details><summary><code>$image</code>: scan failed</summary>"$'\n\n```\n'"$(tail -n 5 "$json.err")"$'\n```\n</details>\n'
     continue

@@ -113,15 +113,13 @@ const nextIsoDay = (iso: string): string => {
  * twice. Days are keyed by ISO date; a person is counted once per day even if
  * two records somehow cover it.
  */
-export const awayCountByDate = (
+const awayPeopleByDate = (
   records: DashboardTimeOff[],
   activeAssigneeIds: ReadonlySet<string>,
   window: { startIso: string; endIso: string },
-): Map<string, number> => {
-  const counts = new Map<string, number>();
-  if (records.length === 0 || activeAssigneeIds.size === 0) return counts;
-
+): Map<string, Set<string>> => {
   const peopleByDay = new Map<string, Set<string>>();
+  if (records.length === 0 || activeAssigneeIds.size === 0) return peopleByDay;
   for (const record of records) {
     if (!activeAssigneeIds.has(record.assigneeId)) continue;
     const from = record.startDate > window.startIso ? record.startDate : window.startIso;
@@ -133,10 +131,71 @@ export const awayCountByDate = (
       else peopleByDay.set(iso, new Set([record.assigneeId]));
     }
   }
+  return peopleByDay;
+};
 
-  peopleByDay.forEach((people, iso) => counts.set(iso, people.size));
+export const awayCountByDate = (
+  records: DashboardTimeOff[],
+  activeAssigneeIds: ReadonlySet<string>,
+  window: { startIso: string; endIso: string },
+): Map<string, number> => {
+  const counts = new Map<string, number>();
+  awayPeopleByDate(records, activeAssigneeIds, window).forEach((people, iso) => counts.set(iso, people.size));
   return counts;
 };
+
+// ── Each person's share (server setting heatmap.personCapacity) ──────────────
+// With the setting on, a person counts with their share of a full day, 0–100 %
+// (assignees.capacity_percent, migration 0178): the team is the sum of shares.
+// Sums stay in whole percents, so subtracting the away share from the team
+// leaves exactly 0 when nobody is left — no floating-point dust.
+
+export const DEFAULT_CAPACITY_PERCENT = 100;
+
+export const normalizeCapacityPercent = (value: unknown): number => {
+  const number = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(number)) return DEFAULT_CAPACITY_PERCENT;
+  return Math.min(100, Math.max(0, Math.round(number)));
+};
+
+/** Share of every active person; someone missing from `capacities` counts in full. */
+export const capacityPercentByAssignee = (
+  activeAssigneeIds: ReadonlySet<string>,
+  capacities: Readonly<Record<string, number>>,
+): Map<string, number> => {
+  const shares = new Map<string, number>();
+  activeAssigneeIds.forEach((id) => {
+    shares.set(id, id in capacities ? normalizeCapacityPercent(capacities[id]) : DEFAULT_CAPACITY_PERCENT);
+  });
+  return shares;
+};
+
+export const teamCapacityPercent = (shares: ReadonlyMap<string, number>): number => {
+  let total = 0;
+  shares.forEach((share) => { total += share; });
+  return total;
+};
+
+/** The share of the team away on each day, in whole percents (see awayCountByDate). */
+export const awayPercentByDate = (
+  records: DashboardTimeOff[],
+  shares: ReadonlyMap<string, number>,
+  window: { startIso: string; endIso: string },
+): Map<string, number> => {
+  const percents = new Map<string, number>();
+  const activeIds = new Set(shares.keys());
+  awayPeopleByDate(records, activeIds, window).forEach((people, iso) => {
+    let away = 0;
+    people.forEach((id) => { away += shares.get(id) ?? 0; });
+    percents.set(iso, away);
+  });
+  return percents;
+};
+
+/** People's worth of work available that day (may be a fraction). Never negative. */
+export const availableShare = (teamPercent: number, awayPercent: number): number => (
+  Math.max(teamPercent - awayPercent, 0) / 100
+);
 
 /** People who can actually pick up work that day. Never negative. */
 export const availableHeadcount = (headcount: number, awayCount: number): number => (
@@ -195,7 +254,9 @@ export const dayPercent = (
   kernelSum: number,
 ): number => {
   const safeCapacity = capacity > 0 ? capacity : DEFAULT_CAPACITY_PER_PERSON;
-  const safeAvailable = Math.max(available, 1);
+  // With shares a day can have half a person; without them `available` is a
+  // whole number and this is the same divide-by-zero guard as before.
+  const safeAvailable = available > 0 ? available : 1;
   const taskShare = (taskCount / safeAvailable) / safeCapacity;
   const pinnedPeople = Math.min(kernelSum * MILESTONE_CREW, safeAvailable);
   return Math.round((taskShare + pinnedPeople / safeAvailable) * 100);

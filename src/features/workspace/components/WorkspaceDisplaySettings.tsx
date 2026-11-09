@@ -10,6 +10,9 @@ import { Badge } from '@/shared/ui/badge';
 import { t } from '@lingui/macro';
 import { MobileStepper } from '@/shared/ui/mobile-stepper';
 import { Block, SettingRow } from '@/features/workspace/components/settingsBlocks';
+import { WorkspaceHeatmapShares } from '@/features/workspace/components/WorkspaceHeatmapShares';
+import { WorkspaceTimelineDensitySetting } from '@/features/workspace/components/WorkspaceTimelineDensitySetting';
+import { useInstanceSetting } from '@/shared/store/instanceSettingsStore';
 import { useShallow } from 'zustand/react/shallow';
 
 interface WorkspaceDisplaySettingsProps {
@@ -46,6 +49,9 @@ export const WorkspaceDisplaySettings: React.FC<WorkspaceDisplaySettingsProps> =
   const currentWorkspace = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
 
   const heatmapAutoCapacity = useDashboardStore((state) => state.heatmapAutoCapacity);
+  // Each person's share: only where the server allows it (Admin → Settings).
+  const personCapacityOn = useInstanceSetting('heatmap.personCapacity');
+  const densityOn = useInstanceSetting('timeline.density');
   const heatmapCapacityPlaceholder = heatmapAutoCapacity != null
     ? `${t`Auto`} ≈ ${Math.round(heatmapAutoCapacity * 10) / 10}`
     : t`Auto`;
@@ -129,6 +135,9 @@ export const WorkspaceDisplaySettings: React.FC<WorkspaceDisplaySettingsProps> =
             </Button>
           </SettingRow>
         </Block>
+      )}
+      {densityOn && currentWorkspaceId && (
+        <WorkspaceTimelineDensitySetting workspaceId={currentWorkspaceId} isAdmin={isAdmin} />
       )}
       <Block title={t`Tasks`}>
         <SettingRow
@@ -222,6 +231,9 @@ export const WorkspaceDisplaySettings: React.FC<WorkspaceDisplaySettingsProps> =
               {t`This is the load that counts as 100%. Leave empty to auto-tune it from your team's recent history.`}
             </p>
           </div>
+        )}
+        {(currentWorkspace?.heatmapEnabled ?? false) && personCapacityOn && currentWorkspaceId && (
+          <WorkspaceHeatmapShares workspaceId={currentWorkspaceId} isAdmin={isAdmin} isMobile={isMobile} />
         )}
       </Block>
     </div>

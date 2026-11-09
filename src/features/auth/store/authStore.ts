@@ -16,6 +16,7 @@ import {
 import { createWorkspaceListActions } from '@/features/auth/store/authStore.workspaceActions';
 import { createMemberActions } from '@/features/auth/store/authStore.memberActions';
 import { createProfileActions } from '@/features/auth/store/authStore.profileActions';
+import { useInstanceSettingsStore } from '@/shared/store/instanceSettingsStore';
 
 export type {
   DataExportStatusRow,
@@ -93,6 +94,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isSuperAdmin?: boolean;
           groupWorkspaces?: boolean;
           workspacesChanged?: boolean;
+          // Server settings the app needs (Admin → Settings), all off by default.
+          settings?: Record<string, unknown>;
         }>({
           action: ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI,
         });
@@ -108,6 +111,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           // intact — no reset here. The workspace-less service account is
           // steered to the admin console by the pages' redirect instead.
           const isSuperAdmin = Boolean(data?.isSuperAdmin);
+          useInstanceSettingsStore.getState().applyServerValues(data?.settings);
           set({
             isSuperAdmin,
             superAdminLoading: false,

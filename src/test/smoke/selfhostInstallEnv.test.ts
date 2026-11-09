@@ -108,6 +108,13 @@ describe("install.sh --env-only", () => {
     expect(env.VITE_PUSH_VAPID_PUBLIC_KEY).toBe(env.VAPID_PUBLIC_KEY);
   });
 
+  it("leaves Motio's own email on, so adding SMTP later is all it takes", () => {
+    // No SMTP server here, yet MAILER_DRY_RUN is 0: the mailer itself does not
+    // send without a host. A 1 used to survive adding the GOTRUE_SMTP_* settings.
+    expect(env.GOTRUE_SMTP_HOST).toBe("");
+    expect(env.MAILER_DRY_RUN).toBe("0");
+  });
+
   it("keeps the reserve admin apart from the person installing", () => {
     expect(env.RESERVE_ADMIN_EMAIL).toBe("admin@planner.example.com");
     expect(env.RESERVE_ADMIN_PASSWORD.length).toBeGreaterThanOrEqual(12);

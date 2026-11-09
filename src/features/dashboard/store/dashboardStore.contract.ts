@@ -74,6 +74,9 @@ export type DashboardState = {
   heatmap: HeatmapState;
   heatmapAutoCapacity: number | null;
   timeOff: TimeOffState;
+  // Each person's share of a full day, 0–100 (heatmap.personCapacity); null =
+  // not loaded (the setting is off or nobody asked yet).
+  personCapacities: { workspaceId: string; values: Record<string, number> } | null;
   loading: boolean;
   saving: boolean;
   error: string | null;
@@ -102,6 +105,13 @@ export type DashboardState = {
   loadHeatmap: (workspaceId: string, startDate: string, endDate: string) => Promise<void>;
   loadTimeOff: (workspaceId: string, startDate: string, endDate: string) => Promise<void>;
   setHeatmapAutoCapacity: (value: number | null) => void;
+  loadPersonCapacities: (workspaceId: string) => Promise<void>;
+  // A new dashboard with these widgets (copy, import); becomes the current one.
+  createDashboardFrom: (
+    workspaceId: string,
+    input: { name: string; widgets: DashboardWidget[]; layouts: DashboardLayouts },
+  ) => Promise<{ id?: string; name?: string; error?: string }>;
+  setPersonCapacity: (workspaceId: string, assigneeId: string, percent: number) => Promise<{ error?: string }>;
   loadStats: (
     workspaceId: string,
     period: DashboardPeriod,
@@ -131,6 +141,10 @@ export const createEmptyStatsByPeriod = (): Record<DashboardPeriod, DashboardSta
   day: createEmptyStatsVariants(),
   week: createEmptyStatsVariants(),
   month: createEmptyStatsVariants(),
+  thisWeek: createEmptyStatsVariants(),
+  nextWeek: createEmptyStatsVariants(),
+  thisMonth: createEmptyStatsVariants(),
+  nextMonth: createEmptyStatsVariants(),
 });
 
 export const getStatsVariantKey = (includeDisabledAssignees = false): DashboardStatsVariantKey => (

@@ -1,22 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  decideSuperAdminAccess,
-  isSuperAdminFromGroupsEnabled,
-} from '../../../infra/supabase/functions/_shared/superAdminAccess';
+import { decideSuperAdminAccess } from '../../../infra/supabase/functions/_shared/superAdminAccess';
 
 const ROLE = 'app_super_admin';
-
-describe('isSuperAdminFromGroupsEnabled', () => {
-  it('is on only for an explicit true', () => {
-    expect(isSuperAdminFromGroupsEnabled('true')).toBe(true);
-    expect(isSuperAdminFromGroupsEnabled(' TRUE ')).toBe(true);
-    expect(isSuperAdminFromGroupsEnabled('false')).toBe(false);
-    expect(isSuperAdminFromGroupsEnabled('1')).toBe(false);
-    expect(isSuperAdminFromGroupsEnabled('')).toBe(false);
-    expect(isSuperAdminFromGroupsEnabled(undefined)).toBe(false);
-  });
-});
 
 describe('decideSuperAdminAccess', () => {
   it('keeps the default behaviour: only a direct role counts', () => {

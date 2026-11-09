@@ -296,7 +296,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
 
   // ─── Task display ──────────────────────────────────────────────────────────
 
-  const { displayRows, rowTaskElementsById } = useTaskDisplayRows({
+  const { displayRows, rowTaskElementsById, geometry } = useTaskDisplayRows({
     tasks,
     filters,
     assignees,
@@ -504,6 +504,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
                   groupMode={groupMode}
                   getMonogram={getSidebarRowMonogram}
                   getAvatarInfo={getAssigneeAvatarInfo}
+                  smallPhotos={!geometry.tieredAvatars}
                 />
                 <div
                   data-testid={`timeline-task-row-${row.id}`}

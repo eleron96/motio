@@ -6,9 +6,8 @@ import {
   calculateNewDates,
   calculateResizedDates,
   formatDateRange,
-  ROW_TOP_PADDING,
-  TASK_HEIGHT,
 } from '@/features/planner/lib/dateUtils';
+import { NORMAL_TIMELINE_GEOMETRY, type TimelineGeometry } from '@/features/planner/lib/timelineDensity';
 import { findTimeOffConflict } from '@/features/planner/lib/timeOff';
 import { usePlannerStore } from '@/features/planner/store/plannerStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
@@ -26,6 +25,8 @@ export interface TimeOffBarProps {
   /** True when the viewer may edit this record (own record, or workspace admin). */
   canEditOwn: boolean;
   onOpenDetail?: (id: string) => void;
+  /** Bar sizes (timeline density); the usual ones when left out. */
+  geometry?: TimelineGeometry;
 }
 
 type Gesture = {
@@ -62,6 +63,7 @@ const TimeOffBarBase: React.FC<TimeOffBarProps> = ({
   siblings,
   canEditOwn,
   onOpenDetail,
+  geometry = NORMAL_TIMELINE_GEOMETRY,
 }) => {
   const locale = useLocaleStore((state) => state.locale);
   const isMobile = useIsMobile();
@@ -205,8 +207,8 @@ const TimeOffBarBase: React.FC<TimeOffBarProps> = ({
       style={{
         left: position.left,
         width: position.width,
-        top: ROW_TOP_PADDING,
-        height: TASK_HEIGHT,
+        top: geometry.rowTopPadding,
+        height: geometry.taskHeight,
       }}
     >
       {canDrag && (
@@ -217,7 +219,7 @@ const TimeOffBarBase: React.FC<TimeOffBarProps> = ({
       )}
 
       <span className="truncate text-ui-sm font-medium leading-tight">{headline}</span>
-      <span className="truncate text-ui-xs leading-tight opacity-80">{range}</span>
+      {geometry.twoLineBars && <span className="truncate text-ui-xs leading-tight opacity-80">{range}</span>}
 
       {canDrag && (
         <div
@@ -237,6 +239,7 @@ const arePropsEqual = (prev: TimeOffBarProps, next: TimeOffBarProps) => (
   && prev.canEditOwn === next.canEditOwn
   && prev.onOpenDetail === next.onOpenDetail
   && prev.siblings === next.siblings
+  && prev.geometry === next.geometry
 );
 
 export const TimeOffBar = React.memo(TimeOffBarBase, arePropsEqual);

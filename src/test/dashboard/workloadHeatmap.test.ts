@@ -2,7 +2,12 @@ import { describe, it, expect } from 'vitest';
 import {
   autoCapacityPerPerson,
   availableHeadcount,
+  availableShare,
   awayCountByDate,
+  awayPercentByDate,
+  capacityPercentByAssignee,
+  normalizeCapacityPercent,
+  teamCapacityPercent,
   colorForLevel,
   dayPercent,
   DEFAULT_CAPACITY_PER_PERSON,
@@ -273,5 +278,55 @@ describe('colorForLevel', () => {
     for (const level of [1, 2, 3, 4, 5] as const) {
       expect(colorForLevel(level).bg).toMatch(/^#[0-9A-Fa-f]{6}$/);
     }
+  });
+});
+
+describe('each person\'s share (heatmap.personCapacity)', () => {
+  const WINDOW = { startIso: '2026-07-01', endIso: '2026-07-31' };
+  const off = (assigneeId: string, startDate: string, endDate: string): DashboardTimeOff => ({
+    id: `t-${assigneeId}-${startDate}`,
+    assigneeId,
+    startDate,
+    endDate,
+  });
+
+  it('counts everyone in full unless a share is set, and keeps shares within 0–100', () => {
+    const shares = capacityPercentByAssignee(new Set(['a', 'b', 'c']), { a: 0, b: 50, x: 30 });
+    expect(Object.fromEntries(shares)).toEqual({ a: 0, b: 50, c: 100 });
+    expect(teamCapacityPercent(shares)).toBe(150);
+    expect(normalizeCapacityPercent(140)).toBe(100);
+    expect(normalizeCapacityPercent(-5)).toBe(0);
+    expect(normalizeCapacityPercent('abc')).toBe(100);
+    expect(normalizeCapacityPercent(33.4)).toBe(33);
+  });
+
+  it('gives the same numbers as whole people when everyone is at 100%', () => {
+    const ids = new Set(['a', 'b', 'c', 'd']);
+    const records = [off('a', '2026-07-10', '2026-07-11'), off('b', '2026-07-11', '2026-07-11')];
+    const shares = capacityPercentByAssignee(ids, {});
+    const awayPercent = awayPercentByDate(records, shares, WINDOW);
+    const awayCount = awayCountByDate(records, ids, WINDOW);
+    for (const iso of ['2026-07-09', '2026-07-10', '2026-07-11']) {
+      expect(availableShare(teamCapacityPercent(shares), awayPercent.get(iso) ?? 0))
+        .toBe(availableHeadcount(ids.size, awayCount.get(iso) ?? 0));
+    }
+  });
+
+  it('takes away only the share of who is away', () => {
+    const shares = capacityPercentByAssignee(new Set(['coord', 'half', 'full']), { coord: 0, half: 50 });
+    const away = awayPercentByDate([off('half', '2026-07-10', '2026-07-10')], shares, WINDOW);
+    expect(availableShare(teamCapacityPercent(shares), away.get('2026-07-10') ?? 0)).toBe(1);
+    expect(availableShare(teamCapacityPercent(shares), away.get('2026-07-09') ?? 0)).toBe(1.5);
+  });
+
+  it('leaves exactly nobody when everyone with a share is away', () => {
+    const shares = capacityPercentByAssignee(new Set(['a', 'b']), { a: 30, b: 70 });
+    const away = awayPercentByDate([off('a', '2026-07-10', '2026-07-10'), off('b', '2026-07-10', '2026-07-10')], shares, WINDOW);
+    expect(availableShare(100, away.get('2026-07-10') ?? 0)).toBe(0);
+  });
+
+  it('loads half a person twice as heavily as a whole one', () => {
+    expect(dayPercent(5, 0.5, 5, 0)).toBe(200);
+    expect(dayPercent(5, 1, 5, 0)).toBe(100);
   });
 });

@@ -99,3 +99,46 @@ jobs:
       - name: Postgres / migration logs (on failure)
         if: failure()
         run: docker compose -f infra/docker-compose.yml logs db migrate
+
+  e2e:
+    runs-on: ubuntu-latest
+    # The real app in a real browser: the /demo sandbox (data kept in the page,
+    # no backend) built, served with `vite preview` and driven by Playwright —
+    # mouse drags on the desktop timeline, touch gestures on a phone screen.
+    # What it covers and what it cannot: e2e/README.md.
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Headless only, so the headless shell is enough (smaller than full Chromium).
+      - name: Install the browser
+        run: npx playwright install --with-deps --only-shell chromium
+
+      - name: Build the app
+        # /demo never talks to Supabase, but the app refuses to start without
+        # these two values. Placeholders: nothing listens there.
+        env:
+          VITE_SUPABASE_URL: http://127.0.0.1:54321
+          VITE_SUPABASE_ANON_KEY: e2e-placeholder-anon-key
+        run: npm run build
+
+      - name: Browser tests
+        env:
+          E2E_OUTPUT_DIR: ${{ runner.temp }}/e2e
+        run: npm run test:e2e
+
+      - name: Playwright report and traces (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: ${{ runner.temp }}/e2e
+          retention-days: 14

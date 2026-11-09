@@ -322,6 +322,7 @@ const DashboardPage = () => {
       canCreateDashboard={canCreateDashboard}
       canDeleteDashboard={canDeleteDashboard}
       dialogs={dashboardDialogs}
+      workspaceId={currentWorkspaceId}
     />
   );
 

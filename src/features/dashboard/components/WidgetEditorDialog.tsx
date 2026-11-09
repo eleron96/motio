@@ -20,6 +20,8 @@ import {
 } from '@/features/dashboard/types/dashboard';
 import { usesDashboardAssigneeGrouping } from '@/features/dashboard/lib/dashboardAssigneeOptions';
 import { BAR_PALETTES, DEFAULT_BAR_PALETTE, createWidgetId } from '@/features/dashboard/lib/dashboardUtils';
+import { dashboardPeriodOptions } from '@/features/dashboard/lib/dashboardPeriodOptions';
+import { useInstanceSetting } from '@/shared/store/instanceSettingsStore';
 import { t } from '@lingui/macro';
 import { WidgetFilterGroupsEditor } from '@/features/dashboard/components/WidgetFilterGroupsEditor';
 
@@ -49,11 +51,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
   onSave,
   onDelete,
 }) => {
-  const periodOptions: Array<{ value: DashboardPeriod; label: string }> = [
-    { value: 'day', label: t`Day` },
-    { value: 'week', label: t`Week` },
-    { value: 'month', label: t`Month` },
-  ];
+  const calendarPeriodsOn = useInstanceSetting('dashboards.calendarPeriods');
   const primaryTypeOptions: Array<{ value: PrimaryWidgetType; label: string }> = [
     { value: 'kpi', label: t`Text value` },
     { value: 'chart', label: t`Chart` },
@@ -94,6 +92,7 @@ export const WidgetEditorDialog: React.FC<WidgetEditorDialogProps> = ({
   const [chartStyle, setChartStyle] = useState<ChartWidgetType>('bar');
   const [groupBy, setGroupBy] = useState<DashboardGroupBy>('none');
   const [period, setPeriod] = useState<DashboardPeriod>('week');
+  const periodOptions = dashboardPeriodOptions(calendarPeriodsOn, period);
   const [includeUnassigned, setIncludeUnassigned] = useState(true);
   const [includeDisabledAssignees, setIncludeDisabledAssignees] = useState(false);
   const [size, setSize] = useState<'small' | 'medium' | 'large'>('small');

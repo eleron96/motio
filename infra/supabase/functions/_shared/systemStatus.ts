@@ -30,6 +30,8 @@ export interface LatestRelease {
   publishedAt: string | null;
 }
 
+export type EmailOffReason = "no_host" | "dry_run_flag";
+
 export interface SystemStatus {
   services: ServiceCheck[];
   latestRelease: LatestRelease | null;
@@ -39,6 +41,8 @@ export interface SystemStatus {
   /** Server-side settings as yes/no only — never their values. */
   configured: {
     email: boolean;
+    /** Why email is off: no SMTP server, or MAILER_DRY_RUN=1 although one is set. */
+    emailOffReason: EmailOffReason | null;
     push: boolean;
     errorTracking: boolean;
   };

@@ -9,6 +9,12 @@ A workspace can have up to ten dashboards, for example one for the team's load a
 for deliveries. Switch between them in the menu at the top left, where you also create,
 rename and delete them. Everyone in the workspace sees the same dashboards.
 
+Where your server allows it, the dashboard's settings menu (the gear) also has
+**Duplicate dashboard**, **Export to file** and **Import from file**. An export keeps
+the widgets, their filters and layout; an import into another workspace finds the
+statuses, projects, people and groups by name and leaves out the filters that have no
+match there, saying how many.
+
 ![Dashboard widgets: counters, load per person and over time, milestones](images/dashboard.png)
 
 ## Widgets
@@ -20,6 +26,11 @@ empty dashboard), and change one with the pencil in its header or by right-click
 |---|---|
 | **Text value** | one number: active tasks, tasks done in the last 30 days… |
 | **Chart** | **Bar**, **Line**, **Area** or **Pie (Donut)**, grouped **by user**, **by project**, **by status** or **by task type**, over a **day**, **week** or **month** |
+
+A widget's **day**, **week** and **month** are the last day, the last seven days and
+the last month up to today. Where your server allows it there are also **This calendar
+week**, **Next calendar week** (Monday to Sunday), **This calendar month** and **Next
+calendar month**; a milestones list then shows the milestones of that week or month.
 | **Milestones** | the coming milestones as a **List** or a **Calendar (month)** |
 
 Each widget can be narrowed with filters — by person, project or status, and with
@@ -60,6 +71,11 @@ that date and move things around.
 > The heatmap is off by default and marked *experimental*. An admin turns it on in
 > **Workspace settings → Display → Workload heatmap**; the manual "full working day" is
 > set in the same place.
+
+Where your server allows it, an admin can also give each person a share of a full day
+there (**Each person's share**, 0–100%): someone who coordinates and takes no tasks
+counts 0%, a part-timer 50%. The heatmap then measures the team by these shares; days
+off of a person at 0% change nothing.
 
 Two habits keep the picture honest: mark [time off](./timeline.md#time-off), and untick
 **Counts toward department workload** for milestones that don't occupy anyone.

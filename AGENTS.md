@@ -164,7 +164,7 @@ npx vitest run src/test/smoke/localeCatalogs.test.ts
    - Мёрж запускать с запасом по времени (≥4 мин): он зависал на шаге коммита; прерванный оставляет стейл-локи `.git/HEAD.lock` / `.git/refs/heads/main.lock` (`docs/troubleshooting.md`, «`git merge` into `main` hangs»).
    - `main` не защищена настройками GitHub — force-push и удаление ветки агенту **запрещены**.
 
-Гейт деплоя **не заменяет CI**: в нём нет храповика `npm run check:health`, SQL security lint, проверки типов Edge Functions, `npm run build`, `npm run test:backup` и `npm run test:integration`. Успешный деплой ≠ зелёный пайплайн. После пуша проверять `gh run list --branch $(git branch --show-current) --workflow CI --limit 1` (без `--workflow` последним может оказаться Image scan, Self-hosted upgrade или Docs site); красный — чинить сразу.
+Гейт деплоя **не заменяет CI**: в нём нет храповика `npm run check:health`, SQL security lint, проверки типов Edge Functions, `npm run build`, `npm run test:backup`, `npm run test:integration` и `npm run test:e2e`. Успешный деплой ≠ зелёный пайплайн. После пуша проверять `gh run list --branch $(git branch --show-current) --workflow CI --limit 1` (без `--workflow` последним может оказаться Image scan, Self-hosted upgrade или Docs site); красный — чинить сразу.
 
 ## 5.4.1. Remote deploy (testing)
 
@@ -234,6 +234,7 @@ ssh root@72.56.34.157 "docker stats --no-stream"   # память общая с 
 4. Передать текст в `make release ...` / `make release-testing ...`. Нет пользовательских изменений — всё равно выполнить команду с кратким техническим описанием, пометив `[internal]`.
 5. Тот же текст уходит в окно «Последние изменения» в приложении и в публичный GitHub Release — писать для людей, без идентификаторов. При голом `make deploy` release notes = то, что лежит в `Unreleased`: пустой раздел уйдёт как «Нет зафиксированных изменений», поэтому перед деплоем проверить `Unreleased` и при необходимости дописать запись `make logchange`.
 6. `make deploy` и `make release-sync` запускать из рабочего дерева на `codex/main-current` (`release-sync` коммитит и пушит **текущую** ветку). Из worktree агента на своей ветке — нельзя: синк уйдёт не в ту ветку.
+7. Плашка «Вышла новая версия Motio» в открытых вкладках появляется **только при смене второй цифры** версии (0.10.x → 0.11.0; `isNotableUpdate`, решение владельца 2026-11-09 — люди жаловались на плашку после каждого из частых релизов). Обычный релиз (PATCH+1) доходит тихо, при следующем открытии страницы. «Важный релиз» владельца = `NEXT_VERSION=<следующая минорная>.0` в `make release` / `make deploy`; без этих слов версию не поднимать.
 
 ## 5.5. Post-deploy минимум
 
@@ -259,6 +260,7 @@ ssh root@72.56.34.157 "docker stats --no-stream"   # память общая с 
 9. Резервный админ (`RESERVE_ADMIN_*`) — служебная учётка, сразу в `/app/admin`; первый человек на чужой установке регистрируется сам. Не делать почту установщика резервным админом.
 10. **Бэкап-наборы** (`infra/backups/install/<вид>-<время>/`) — холодная копия томов из `set_volumes` в `install.sh` + `.env` + коммит; `update` снимает набор перед миграциями, `rollback`/`restore` кладут тома обратно побайтно и переключают checkout. **Новый том с данными в `docker-compose.prod.yml` — сразу в `set_volumes`**, иначе откат вернёт всё, кроме него. Копирует `tar` из образа `db` (GNU tar: сохраняет владельцев и xattrs файлов storage-api).
 11. **Пожелание чужой установки, которое меняет поведение у нас, — настройкой, по умолчанию «как на проде сейчас»** (решение владельца 2026-11-04). Кому нужно — переключит у себя. Новая настройка: ключ в `.env.example`, в compose с дефолтом `${KEY:-…}` (для `VITE_*` ещё `infra/web/Dockerfile` и `install.sh`), описание в `docs/configuration.md` и таблице `docs/self-hosting/settings.md`. Примеры: `VITE_START_PAGE=landing` (`app` — сразу вход вместо стартовой страницы), `KEYCLOAK_SUPER_ADMIN_FROM_GROUPS=false` (роль `app_super_admin` от группы Keycloak). Это постоянные настройки, не флаги фич §7.5 п.1: имя без `VITE_FEATURE_`, не удаляются. Переводы и чисто добавочные поля настройки не требуют.
+12. **Настройки сервера** (решение владельца 2026-11-09) — для новых опций поведения это путь по умолчанию вместо ключа `.env`/`VITE_*`: ключ в реестре `infra/supabase/functions/_shared/instanceSettingsRegistry.ts` (копия байт-в-байт — `src/shared/contracts/instanceSettingsRegistry.ts`, тест сверяет), умолчание `false` = как сейчас на проде, значения — в таблице `instance_settings` (0176). Меняются без пересборки: админка «Настройки», `install.sh settings`, `make settings CONTOUR=…`; фронт получает их в ответе whoami (`useInstanceSetting`). Выключено = ровно прежнее поведение: ни интерфейса, ни лишних запросов, сохранённые значения не учитываются. Ключ `.env` — только для того, что нужно сервисам при старте; старые `KEYCLOAK_*_FROM_GROUPS=true` закрепляют свои переключатели. Описание — `docs/self-hosting/settings.md` и `docs/configuration.md`, «Server settings».
 
 ## 6. Правила логирования
 
@@ -266,6 +268,7 @@ ssh root@72.56.34.157 "docker stats --no-stream"   # память общая с 
 2. Формат структурный: `module` (`planner.store`, `members.repo`), `action` (`loadWorkspaceData`, `deleteProject`), `workspaceId`/`entityId` (если есть), `result` (`success`/`error`), `errorCode`/`message` при ошибке.
 3. Уровни: `debug` — временная диагностика (не оставлять в долгую); `info` — значимые бизнес-события; `warn` — деградация без падения; `error` — сбой сценария или операции.
 4. Frontend: без `console.log` в финальном UI-коде; `console.error` — только в error-path, где ошибка также обрабатывается; без логов в рендерах и горячих циклах.
+5. Журнал админки (`admin_audit_log`, 0181; «Админка → Журнал»): новое изменяющее действие функции `admin` — строкой в `adminAuditEntry` (`infra/supabase/functions/_shared/adminAudit.ts`, тест рядом). В журнал — id, роли, ключи и значения настроек; без почт, текстов писем, паролей и токенов.
 
 Локализация UI — §4.2.
 
@@ -290,10 +293,11 @@ Conventional Commits: `feat`, `fix`, `refactor`, `test`, `docs`, `chore` со sc
 
 ## 7.4. CI и гейты качества
 
-CI (`.github/workflows/ci.yml`) на каждый push и pull request гоняет два параллельных job:
+CI (`.github/workflows/ci.yml`) на каждый push и pull request гоняет три параллельных job:
 
 - `lint-test-build`: **lint → code health → SQL security lint → typecheck → edge-функции → i18n-каталоги → test → backup-service tests → build**. Code health — храповик §7.5 п.4. SQL security lint (`infra/scripts/lint-security-definer.sh`) падает на `SECURITY DEFINER` без `REVOKE ALL ... FROM public, anon` (§4.1 п.5); «i18n catalogs up to date» — если `npm run lingui:extract` даёт дифф в `src/locales` (§4.2).
 - `integration-tests`: поднимает Supabase-Postgres, прогоняет Liquibase-миграции (`infra/scripts/ci-test-db.sh`) и `npm run test:integration` (каталог `tests/`: RLS, RPC, cron). Локально при изменениях в RPC/RLS/cron — той же схемой: `bash infra/scripts/ci-test-db.sh`, затем `npm run test:integration`.
+- `e2e`: браузерные тесты на Playwright (каталог `e2e/`, `npm run test:e2e`) — собирает приложение с заглушками Supabase, отдаёт `dist/` через `vite preview` и гоняет `/demo` в Chromium: перетаскивание мышью на таймлайне (десктоп) и жесты касанием (телефон, через протокол DevTools — с `touch-action`, нативной прокруткой и `pointercancel`). Совместную работу двух клиентов не покрывает: в `/demo` нет Realtime. Агент локально стенд не поднимает (§5.1), поэтому гоняет набор против тестового стенда: `E2E_BASE_URL=https://test.motio.nikog.net E2E_BROWSER_CHANNEL=chrome npm run test:e2e` (свежий код — после `make deploy-testing`). Меняя перетаскивание, жесты или задачу из сида, которую берут тесты, — запускать; новый тест сначала заставить упасть, сломав поведение нарочно. Подробно — `e2e/README.md`.
 
 Отдельный workflow `Image scan` (`.github/workflows/image-scan.yml`, по понедельникам, вручную и при смене образов) прогоняет `infra/scripts/scan-images.sh`: Trivy по всем образам Motio, HIGH/CRITICAL с готовым исправлением, таблица на странице прогона. Никогда не красный; по расписанию работает только с `main`. Обновление образа — по шагам `docs/operations.md`, «Upgrading a bundled image».
 
@@ -303,7 +307,7 @@ CI (`.github/workflows/ci.yml`) на каждый push и pull request гоня�
 
 CI **не является гейтом мержа и деплоя**: `main` не защищена, прод собирается из рабочего дерева по rsync — красный пайплайн технически не мешает релизу. За зелёным CI следит агент (§5.4).
 
-1. `vite build` НЕ проверяет типы (esbuild) — это делает `npm run typecheck` (`tsc -p tsconfig.app.json --noEmit`).
+1. `vite build` НЕ проверяет типы (esbuild) — это делает `npm run typecheck` (`tsc -p tsconfig.app.json --noEmit`, затем `tsc -p e2e/tsconfig.json --noEmit` для браузерных тестов и `playwright.config.ts`; Playwright сам типы тоже не проверяет).
 2. `tsconfig.app.json` и `infra/supabase/deno.check.json` — полный `strict` (с 2026-11-03): неявный `any`, непроверенный `null` и несовместимые колбэки валят typecheck. Модули без типов (как скомпилированные каталоги Lingui) описывать в `src/vite-env.d.ts`, а не ослаблять конфиг.
 3. Результаты Supabase-запросов со строковым `select` кастовать как `... as unknown as <Row>` (Supabase не выводит тип такого select — принятый паттерн границы).
 4. Edge Functions (`infra/supabase/functions`) в `tsconfig.app.json` не входят — их проверяет шаг «Edge Functions typecheck»: `infra/scripts/check-edge-functions.sh`, Deno 2.1.4 (как в `supabase/edge-runtime:v1.77.4`), строгость как у фронта — полный `strict` (`infra/supabase/deno.check.json`). Любая ошибка типов валит шаг. Строки Supabase без сгенерированных типов кастовать через `as unknown as <Row>` (п. 3), результаты вида «ошибка или успех» — явным типом, а не `return {}` (см. `WriteOutcome` в `_shared/supabaseAuth.ts`). Локально без Deno: `docker run --rm -v "$PWD:/repo:ro" -w /repo denoland/deno:2.1.4 bash infra/scripts/check-edge-functions.sh`.

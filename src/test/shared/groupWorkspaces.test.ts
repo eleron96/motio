@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import {
   groupPathsWithParents,
-  isSettingOn,
   normalizeGroupPath,
   planGroupWorkspaceSync,
   type GroupWorkspaceMapping,
@@ -25,14 +24,7 @@ const plan = (overrides: Partial<Parameters<typeof planGroupWorkspaceSync>[0]> =
     ...overrides,
   });
 
-describe('settings and group paths', () => {
-  it('is off unless set to true', () => {
-    expect(isSettingOn(undefined)).toBe(false);
-    expect(isSettingOn('')).toBe(false);
-    expect(isSettingOn('false')).toBe(false);
-    expect(isSettingOn(' TRUE ')).toBe(true);
-  });
-
+describe('group paths', () => {
   it('writes a group the way Keycloak shows its path', () => {
     expect(normalizeGroupPath('Design')).toBe('/Design');
     expect(normalizeGroupPath(' /Company//Design/ ')).toBe('/Company/Design');
@@ -65,7 +57,7 @@ describe('planGroupWorkspaceSync', () => {
 
   it('only adds by default, even after the person left the group', () => {
     const result = plan({ groupPaths: [], memberWorkspaceIds: ['ws-design'], grantedWorkspaceIds: ['ws-design'] });
-    expect(result).toEqual({ add: [], remove: [], forgetGrants: [] });
+    expect(result).toEqual({ add: [], remove: [], forgetGrants: [], changeRole: [], manualRoles: [], recordGrantRoles: [] });
   });
 
   it('with removal on, takes back only what a group gave', () => {
@@ -106,6 +98,77 @@ describe('planGroupWorkspaceSync', () => {
 
   it('forgets a grant once neither the membership nor a group is left', () => {
     expect(plan({ grantedWorkspaceIds: ['ws-design'] }).forgetGrants).toEqual(['ws-design']);
+  });
+
+  describe('roles with role sync (groups.syncRoles)', () => {
+    // Anna was put into ws-design as an editor by /Design.
+    const given = {
+      memberWorkspaceIds: ['ws-design'],
+      grantedWorkspaceIds: ['ws-design'],
+      memberRoles: { 'ws-design': 'editor' },
+      grantedRoles: { 'ws-design': 'editor' } as Record<string, string | null>,
+    };
+    const roleMappings: GroupWorkspaceMapping[] = [
+      { groupPath: '/Design', workspaceId: 'ws-design', role: 'editor' },
+      { groupPath: '/Staff', workspaceId: 'ws-design', role: 'viewer' },
+      { groupPath: '/Leads', workspaceId: 'ws-design', role: 'admin' },
+    ];
+    const rolePlan = (overrides: Partial<Parameters<typeof planGroupWorkspaceSync>[0]>) =>
+      plan({ mappings: roleMappings, ...given, syncRoles: true, ...overrides });
+
+    it('changes nothing while role sync is off: a member keeps their role, as before', () => {
+      const result = rolePlan({ groupPaths: ['/Staff'], syncRoles: false });
+      expect(result.changeRole).toEqual([]);
+      expect(result.manualRoles).toEqual([]);
+    });
+
+    it('moves the role down when the person moves to a group with a lower role', () => {
+      expect(rolePlan({ groupPaths: ['/Staff'] }).changeRole)
+        .toEqual([{ workspaceId: 'ws-design', role: 'viewer', from: 'editor' }]);
+    });
+
+    it('moves the role up, to the highest role of all their groups', () => {
+      expect(rolePlan({ groupPaths: ['/Staff', '/Leads'] }).changeRole)
+        .toEqual([{ workspaceId: 'ws-design', role: 'admin', from: 'editor' }]);
+    });
+
+    it('leaves the role alone while the groups still give the same role', () => {
+      expect(rolePlan({ groupPaths: ['/Design', '/Staff'] }).changeRole).toEqual([]);
+    });
+
+    it('never overrides a role a workspace admin changed by hand', () => {
+      const result = rolePlan({ groupPaths: ['/Staff'], memberRoles: { 'ws-design': 'admin' } });
+      expect(result.changeRole).toEqual([]);
+      expect(result.manualRoles).toEqual(['ws-design']);
+    });
+
+    it('never touches people added by hand or by an invitation (no grant)', () => {
+      const result = rolePlan({ groupPaths: ['/Staff'], grantedWorkspaceIds: [], grantedRoles: {} });
+      expect(result.changeRole).toEqual([]);
+    });
+
+    it('never touches the workspace the person owns', () => {
+      const result = rolePlan({ groupPaths: ['/Staff'], ownedWorkspaceIds: ['ws-design'] });
+      expect(result.changeRole).toEqual([]);
+    });
+
+    it('leaves a membership no group gives any more to removal', () => {
+      expect(rolePlan({ groupPaths: [] }).changeRole).toEqual([]);
+      const removing = rolePlan({ groupPaths: [], removeEnabled: true });
+      expect(removing.remove).toEqual(['ws-design']);
+      expect(removing.changeRole).toEqual([]);
+    });
+
+    it('records the current role of an older grant first, then follows the groups next time', () => {
+      const result = rolePlan({ groupPaths: ['/Staff'], grantedRoles: { 'ws-design': null } });
+      expect(result.recordGrantRoles).toEqual([{ workspaceId: 'ws-design', role: 'editor' }]);
+      expect(result.changeRole).toEqual([]);
+    });
+
+    it('records the role of an older grant even with role sync off', () => {
+      const result = rolePlan({ groupPaths: ['/Design'], grantedRoles: {}, syncRoles: false });
+      expect(result.recordGrantRoles).toEqual([{ workspaceId: 'ws-design', role: 'editor' }]);
+    });
   });
 
   it('matches typed paths regardless of slashes', () => {

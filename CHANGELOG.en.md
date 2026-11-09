@@ -7,12 +7,33 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.72] - 2026-11-09
+### Security
+- Improved security.
+
+### Changed
+- The new version message now appears only for major updates; smaller ones arrive quietly the next time you open the page.
+
 ### Added
-- “Help” in account settings and in the phone menu opens a detailed guide to Motio, in English or Russian to match the interface. The home page links to the documentation.
+- For self-hosted servers: the admin console has a Settings section — extras are turned on with a switch there or with install.sh settings. Everything is off by default, and Motio works as before.
+- For self-hosted servers, when turned on in Settings: days off for the whole workspace, a denser timeline, each person's share in the workload heatmap, copying, exporting and importing dashboards, calendar weeks and months in widgets, and roles that follow a Keycloak group.
+- The admin console now lists a workspace's members and their roles; a role can be changed and a person taken out.
+- The admin console has an activity log, all unanswered invitations with copy link and revoke, sign-in checks in the user card and in System, and a support report.
 
 ### Fixed
-- “Copy link” on an invitation also works where the browser refuses clipboard access, and where nothing can be copied the link is shown to copy by hand. Once an invitation is revoked, the notice with its link goes away.
-- Comment times (“5 minutes ago”) and the time left before an account is deleted follow the interface language instead of always being in English.
+- For self-hosted servers: when email was set up after the install, the installer and Admin → System now point out MAILER_DRY_RUN=1, which kept welcome emails and broadcasts from going out.
+
+## [0.10.71] - 2026-11-09
+### Changed
+- The home page has a clearer footer with links and a block about the detailed guide.
+
+## [0.10.70] - 2026-11-09
+### Added
+- New: Help — a detailed guide to Motio in English and Russian. You'll find it in account settings and in the phone menu, and the home page links to the documentation.
+
+### Fixed
+- Invitation links can now be copied in any browser.
+- Comment times like “5 minutes ago” now show in your language.
 
 ## [0.10.69] - 2026-11-08
 ### Added

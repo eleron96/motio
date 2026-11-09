@@ -61,9 +61,10 @@ about what's new. Every email has a one-click unsubscribe. What changed in each 
 also in the app: click the version number (such as *v0.10.69*) at the bottom of
 **Account settings**.
 
-When a new version of Motio comes out while you have it open, a message says so with a
-**Refresh** button. Motio never reloads the page by itself, so nothing you are typing is
-lost.
+When an important new version of Motio comes out while you have it open, a message says
+so with an **Update** button. Motio never reloads the page by itself, so nothing you are
+typing is lost. Smaller updates come without a message: you get them the next time you
+open or reload Motio.
 
 ## Next
 

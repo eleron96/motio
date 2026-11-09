@@ -3,6 +3,13 @@
 Environment variables live in `.env` (never committed). Template:
 [`.env.example`](../.env.example).
 
+Optional extras that change how Motio behaves are **server settings**, not
+environment variables: switches a super admin flips in **Admin → Settings** or from
+the command line, kept in the database (`instance_settings`, migration 0176), all
+off by default — off is Motio as it was. The list and the defaults are in
+`infra/supabase/functions/_shared/instanceSettingsRegistry.ts`; how to change them
+is in [Server settings](#server-settings).
+
 See also: [Operations](operations.md) · [Troubleshooting](troubleshooting.md)
 
 ---
@@ -37,6 +44,11 @@ make check-prod-secrets-remote   # check .env on the remote server
 - `GOTRUE_EXTERNAL_KEYCLOAK_*` — OIDC provider for Supabase Auth.
 - `KEYCLOAK_INTERNAL_URL`, `KEYCLOAK_REALM`, `KEYCLOAK_ADMIN_REALM`,
   `KEYCLOAK_ADMIN_CLIENT_ID` — Edge Functions' access to the Keycloak Admin API.
+- `KEYCLOAK_SUPER_ADMIN_FROM_GROUPS`, `KEYCLOAK_WORKSPACES_FROM_GROUPS`,
+  `KEYCLOAK_WORKSPACES_FROM_GROUPS_REMOVE` — the older way to turn on the server
+  settings `groups.superAdmin`, `groups.workspaces` and `groups.removeOnLeave`:
+  `true` turns the setting on and locks it in the admin console; `false` or empty
+  leaves it to the console. What each one does:
 - `KEYCLOAK_SUPER_ADMIN_FROM_GROUPS` — `true` lets the realm role `app_super_admin`
   count when it comes from a Keycloak group or a composite role, not only when it
   is assigned to the user directly. Default `false`. Leaving the group takes the
@@ -189,6 +201,14 @@ default). Old `VITE_FEATURE_TIME_OFF`, `VITE_FEATURE_WORKLOAD_HEATMAP`,
 
 Without both keys the function reports push as not configured, and nothing is sent.
 
+The server only sends to the browsers' own push services: Google FCM (Chrome, Android
+and other Chromium browsers), Mozilla (Firefox), Apple (Safari on macOS and iOS) and
+Microsoft WNS (Edge on Windows). A subscription pointing anywhere else is refused by
+the database and skipped by the `push` function, so nobody can make the server send
+requests to other addresses. A browser on another push service cannot turn push on;
+its host is added in `infra/supabase/functions/_shared/pushEndpoint.ts` and the
+matching migration.
+
 ## Email (`mailer`)
 
 The `mailer` Edge Function sends the welcome email and email broadcasts. Every
@@ -198,7 +218,10 @@ counterpart, so one SMTP account is enough.
 - `MAILER_SMTP_HOST`, `MAILER_SMTP_PORT`, `MAILER_SMTP_USER`, `MAILER_SMTP_PASS`
 - `MAILER_FROM_EMAIL`, `MAILER_FROM_NAME`
 - `MAILER_WELCOME_ENABLED` — welcome email after the first sign-in (`true` by default).
-- `MAILER_DRY_RUN` — `1` logs messages instead of sending them.
+- `MAILER_DRY_RUN` — `1` logs messages instead of sending them. Without an SMTP
+  host Motio sends nothing anyway, so the installer writes `0`; installs made
+  without email by older versions have `1`, which `install.sh up`/`status` and
+  **Admin → System** point out once an SMTP server is set.
 
 ## Site address and analytics
 
@@ -288,3 +311,31 @@ failure is still written to the container log.
 
 - The testing deploy does not fill in `VITE_PLAUSIBLE_*`, so the testing site loads
   no analytics script and its visits stay out of the public site's statistics.
+
+## Server settings
+
+Switches for extras, off by default, changed without a restart: in **Admin →
+Settings**, or from the command line.
+
+```bash
+infra/scripts/install.sh settings                         # self-hosted: list
+infra/scripts/install.sh settings set timeline.density on
+infra/scripts/install.sh settings reset timeline.density
+make settings CONTOUR=testing [SET=key=on|off] [RESET=key]  # the owner's servers, over ssh
+```
+
+| Key | What it allows |
+|---|---|
+| `groups.workspaces` | Keycloak groups put people into workspaces |
+| `groups.removeOnLeave` | leaving a group takes away the access it gave |
+| `groups.syncRoles` | moving to another group changes the role that group gave (never a role set by hand) |
+| `groups.superAdmin` | the super admin role may come from a Keycloak group |
+| `timeline.density` | workspace admins choose the timeline density: normal, small photos, compact (`workspaces.timeline_density`, 0180) |
+| `heatmap.personCapacity` | each person's share of a full day in the workload heatmap (`assignees.capacity_percent`, 0178) |
+| `workspaces.closures` | days off for the whole workspace (`workspace_closures`, 0179) |
+| `dashboards.transfer` | duplicate, export and import dashboards |
+| `dashboards.calendarPeriods` | widget periods: this or next calendar week or month |
+
+The server reads the table with a 30-second cache; whoami hands the app-side values
+to every signed-in person, so people get a change the next time they open Motio.
+When the table cannot be read, every setting is its default.

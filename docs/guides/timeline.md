@@ -33,7 +33,10 @@ Archived projects are hidden in the **Projects** rows.
 ![The Projects rows: the same tasks, one row per project](images/timeline-projects.png)
 
 Move in time with **Previous**, **Today** and **Next**, or scroll sideways. Clicking a
-person's avatar in their row shows a larger photo, their name and email.
+person's avatar in their row shows a larger photo, their name and email. If an admin has
+made the timeline denser ([workspace settings → Display](./workspaces.md#display), where
+your server allows it), a small photo sits next to the name and rows are lower; phones
+keep the usual layout.
 
 ## Add a task
 
@@ -134,7 +137,8 @@ if your admin has set that up.
 The panel on the right decides what is drawn:
 
 - **Holidays** — non-working days of the workspace's country (and region, if one is
-  picked in [workspace settings](./workspaces.md#general)).
+  picked in [workspace settings](./workspaces.md#general)), and the workspace's own
+  **days off for everyone**, if an admin has added any.
 - **Milestones** — coloured by project.
 - **Team time off** — a circle on the day, split when several people are away. Pick
   people in the list, or **Only me**.

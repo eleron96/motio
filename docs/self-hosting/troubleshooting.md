@@ -7,6 +7,11 @@ infra/scripts/install.sh status
 infra/scripts/selfhost-compose.sh logs --since 15m
 ```
 
+For sign-in trouble, **Admin → System → Sign-in checks** and **Admin → Users →
+Details** show what Keycloak thinks of the realm and of one person. When you ask
+for help, attach the **Support report** from **Admin → System**: it has no names,
+addresses or secrets.
+
 Below are the messages people actually run into, with what to do about each.
 Not on the list? Ask in
 [Discussions → Q&A](https://github.com/eleron96/motio/discussions/categories/q-a)
@@ -107,6 +112,22 @@ The backend functions download their packages from the npm registry when they
 start, and keep them in the `motio_deno_cache` volume. Check that the server can
 reach `registry.npmjs.org`, then
 `infra/scripts/selfhost-compose.sh restart functions gateway`.
+
+### Admin → System says "Email (SMTP): off", yet invitations arrive
+
+Invitations and password resets are sent by Keycloak; the welcome email,
+broadcasts and the test email by Motio itself. An install made without email by
+an older version has `MAILER_DRY_RUN=1` in `.env`, and adding the SMTP settings
+later fixed only Keycloak's part. Set `MAILER_DRY_RUN=0` and run
+`infra/scripts/install.sh up`; `install.sh status` warns about this case. See
+[Email](./email.md#add-it-later).
+
+### A switch in Admin → Settings is grey: "On through … in .env"
+
+One of the older `.env` keys (`KEYCLOAK_WORKSPACES_FROM_GROUPS`,
+`KEYCLOAK_WORKSPACES_FROM_GROUPS_REMOVE`, `KEYCLOAK_SUPER_ADMIN_FROM_GROUPS`) is
+`true` and decides the switch. Remove the line or set it to `false`, run
+`install.sh up`, and the console decides again. See [Settings](./settings.md).
 
 ### `connect() failed` in the gateway log
 

@@ -18,6 +18,8 @@ export type GroupWorkspaceMapping = {
 type GroupWorkspacesList = {
   enabled: boolean;
   removeEnabled: boolean;
+  // groups.syncRoles: a group change also changes the role it gave.
+  syncRoles: boolean;
   mappings: GroupWorkspaceMapping[];
   groups: string[];
   groupsError: string | null;
@@ -36,6 +38,7 @@ type GroupWorkspacesState = GroupWorkspacesList & {
 const empty: GroupWorkspacesList = {
   enabled: false,
   removeEnabled: false,
+  syncRoles: false,
   mappings: [],
   groups: [],
   groupsError: null,
@@ -60,6 +63,7 @@ export const useGroupWorkspacesStore = create<GroupWorkspacesState>((set, get) =
       loaded: true,
       enabled: Boolean(data.enabled),
       removeEnabled: Boolean(data.removeEnabled),
+      syncRoles: Boolean(data.syncRoles),
       mappings: data.mappings ?? [],
       groups: data.groups ?? [],
       groupsError: data.groupsError ?? null,

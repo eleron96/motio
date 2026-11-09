@@ -226,13 +226,11 @@ export const createDashboardDataActions = (
         activeOnly: { ...variants.activeOnly, lastLoaded: null },
         includeDisabled: { ...variants.includeDisabled, lastLoaded: null },
       });
-      return {
-        statsByPeriod: {
-          day: stale(state.statsByPeriod.day),
-          week: stale(state.statsByPeriod.week),
-          month: stale(state.statsByPeriod.month),
-        },
-      };
+      const statsByPeriod = { ...state.statsByPeriod };
+      (Object.keys(statsByPeriod) as Array<keyof typeof statsByPeriod>).forEach((period) => {
+        statsByPeriod[period] = stale(statsByPeriod[period]);
+      });
+      return { statsByPeriod };
     });
 
     await get().loadFilterOptions(workspaceId);

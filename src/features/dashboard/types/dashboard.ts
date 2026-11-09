@@ -1,4 +1,9 @@
-export type DashboardPeriod = 'day' | 'week' | 'month';
+// day / week / month: the last day, 7 days or month up to today (as always).
+// The calendar periods (server setting dashboards.calendarPeriods): the
+// calendar week (Monday to Sunday, ISO) or month, this one or the next.
+export type DashboardRollingPeriod = 'day' | 'week' | 'month';
+export type DashboardCalendarPeriod = 'thisWeek' | 'nextWeek' | 'thisMonth' | 'nextMonth';
+export type DashboardPeriod = DashboardRollingPeriod | DashboardCalendarPeriod;
 
 export type DashboardWidgetType =
   | 'kpi'

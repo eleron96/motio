@@ -8,7 +8,7 @@ import {
   DashboardWidget,
   DashboardWidgetSize,
 } from '@/features/dashboard/types/dashboard';
-import { createWidgetId, DEFAULT_BAR_PALETTE } from '@/features/dashboard/lib/dashboardUtils';
+import { createWidgetId, DEFAULT_BAR_PALETTE, isDashboardPeriod } from '@/features/dashboard/lib/dashboardUtils';
 import {
   DASHBOARD_BREAKPOINT_ORDER,
   DASHBOARD_COLS,
@@ -252,7 +252,8 @@ export const normalizeWidget = (widget: Partial<DashboardWidget>): DashboardWidg
     id: widget.id ?? createWidgetId(),
     title: widget.title ?? 'Widget',
     type,
-    period: widget.period ?? 'week',
+    // A period this version does not know (a file from a newer Motio) reads as a week.
+    period: isDashboardPeriod(widget.period) ? widget.period : 'week',
     groupBy: widget.groupBy ?? 'none',
     size: normalizeWidgetSize(type, widget.size),
     barPalette: hasPalette ? (widget.barPalette ?? DEFAULT_BAR_PALETTE) : undefined,

@@ -3,6 +3,7 @@ import { addDays, format } from 'date-fns';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useInstanceSettingsStore } from '@/shared/store/instanceSettingsStore';
 
 // The board renders <Trans> children verbatim, which is exactly what we assert on.
 vi.mock('@lingui/macro', () => ({
@@ -32,6 +33,8 @@ const mocks = vi.hoisted(() => ({
     milestones: [] as unknown[],
     assignees: [] as { id: string; name: string; isActive: boolean }[],
     projects: [] as unknown[],
+    personCapacities: null as { workspaceId: string; values: Record<string, number> } | null,
+    loadPersonCapacities: vi.fn(async () => {}),
   },
 }));
 
@@ -112,6 +115,46 @@ describe('WorkloadHeatmapBoard with absences', () => {
     };
     mocks.dashboard.timeOff = { records: [], rangeKey: 'k', loading: false, error: null };
     mocks.dashboard.loadTimeOff.mockClear();
+    mocks.dashboard.personCapacities = null;
+    mocks.dashboard.loadPersonCapacities.mockClear();
+    useInstanceSettingsStore.setState((state) => ({ values: { ...state.values, 'heatmap.personCapacity': false } }));
+  });
+
+  describe('each person\'s share (server setting heatmap.personCapacity)', () => {
+    // Two of the six coordinate and take no tasks: 0% each.
+    const coordinatorsAtZero = () => {
+      mocks.dashboard.personCapacities = { workspaceId: 'ws-1', values: { a1: 0, a2: 0 } };
+    };
+
+    it('ignores the shares while the setting is off: everyone counts in full, as before', async () => {
+      coordinatorsAtZero();
+      const popover = await openDayPopover(target);
+      expect(within(popover).getByText(/67%/)).toBeInTheDocument();
+      expect(mocks.dashboard.loadPersonCapacities).not.toHaveBeenCalled();
+    });
+
+    it('counts the team as the sum of shares when the setting is on', async () => {
+      coordinatorsAtZero();
+      useInstanceSettingsStore.setState((state) => ({ values: { ...state.values, 'heatmap.personCapacity': true } }));
+      const popover = await openDayPopover(target);
+      // (20 / 4 people's worth) / 5 = 1.00
+      expect(within(popover).getByText(/100%/)).toBeInTheDocument();
+      expect(mocks.dashboard.loadPersonCapacities).toHaveBeenCalledWith('ws-1');
+    });
+
+    it('does not shrink the team when a 0% person is away', async () => {
+      coordinatorsAtZero();
+      useInstanceSettingsStore.setState((state) => ({ values: { ...state.values, 'heatmap.personCapacity': true } }));
+      mocks.dashboard.timeOff = {
+        records: [{ id: 't1', assigneeId: 'a1', startDate: target, endDate: target }],
+        rangeKey: 'k',
+        loading: false,
+        error: null,
+      };
+      const popover = await openDayPopover(target);
+      expect(within(popover).getByText(/100%/)).toBeInTheDocument();
+      expect(within(popover).getByText('Away: 1 of 6')).toBeInTheDocument();
+    });
   });
 
   it('loads absences for the same window as the heatmap', async () => {

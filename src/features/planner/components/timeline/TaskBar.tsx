@@ -6,7 +6,7 @@ import { Task, TaskPriority } from '@/features/planner/types/planner';
 import { RepeatTaskScopeDialog } from '@/features/planner/components/RepeatTaskScopeDialog';
 import { cn } from '@/shared/lib/classNames';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
-import { TASK_HEIGHT, TASK_GAP, ROW_TOP_PADDING } from '@/features/planner/lib/dateUtils';
+import { NORMAL_TIMELINE_GEOMETRY, type TimelineGeometry } from '@/features/planner/lib/timelineDensity';
 import { getTaskBarAppearance } from '@/features/planner/lib/taskBarColors';
 import { Ban, MessageSquare, RotateCw } from 'lucide-react';
 import { t } from '@lingui/macro';
@@ -33,6 +33,8 @@ interface TaskBarProps {
   lane: number;
   canEdit: boolean;
   rowAssigneeId?: string | null;
+  /** Bar sizes (timeline density); the usual ones when left out. */
+  geometry?: TimelineGeometry;
 }
 
 const TaskBarBase: React.FC<TaskBarProps> = ({
@@ -42,6 +44,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
   lane,
   canEdit,
   rowAssigneeId = null,
+  geometry = NORMAL_TIMELINE_GEOMETRY,
 }) => {
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = useMemo(() => resolveDateFnsLocale(locale), [locale]);
@@ -127,16 +130,17 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
     : (isHovering && !isDragging && !isResizing);
 
   // Calculate vertical position based on lane
-  const topPosition = ROW_TOP_PADDING + lane * (TASK_HEIGHT + TASK_GAP);
+  const topPosition = geometry.rowTopPadding + lane * (geometry.taskHeight + geometry.taskGap);
+  const barHeight = geometry.taskHeight;
 
   const barStyle = useMemo(() => ({
     left: visualLeft,
     top: topPosition,
     width: Math.max(visualWidth, dayWidth - 4),
-    height: TASK_HEIGHT,
+    height: barHeight,
     backgroundColor: appearance.backgroundColor,
     border: appearance.border,
-  }), [visualLeft, topPosition, visualWidth, dayWidth, appearance.backgroundColor, appearance.border]);
+  }), [visualLeft, topPosition, visualWidth, dayWidth, barHeight, appearance.backgroundColor, appearance.border]);
 
   const handleRequestDelete = useCallback(() => {
     setDeleteMounted(true);
@@ -232,6 +236,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
                 ) : task.title}
               </span>
             </div>
+            {geometry.twoLineBars && (
             <div className="flex items-center gap-1.5 min-w-0">
               <span
                 className="text-[11px] leading-tight truncate"
@@ -249,6 +254,7 @@ const TaskBarBase: React.FC<TaskBarProps> = ({
                 </span>
               )}
             </div>
+            )}
           </div>
 
           {/* Right resize handle */}
@@ -305,6 +311,7 @@ const areTaskBarPropsEqual = (prev: TaskBarProps, next: TaskBarProps) => (
   && prev.lane === next.lane
   && prev.canEdit === next.canEdit
   && prev.rowAssigneeId === next.rowAssigneeId
+  && prev.geometry === next.geometry
 );
 
 export const TaskBar = React.memo(TaskBarBase, areTaskBarPropsEqual);
