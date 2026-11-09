@@ -12,11 +12,12 @@
 One shared timeline for your whole team: people, projects and workload on a single screen.
 Free and open source: use the hosted app, or run it on your own servers. The live demo needs no sign-up.
 
-**[▶ Try the live demo](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Open Motio](https://motio.nikog.net/?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Self-host it](#-self-host)** &nbsp;·&nbsp; [What's new](./CHANGELOG.en.md)
+**[▶ Try the live demo](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Open Motio](https://motio.nikog.net/?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Self-host it](https://eleron96.github.io/motio/)** &nbsp;·&nbsp; [What's new](./CHANGELOG.en.md)
 
 [![Version](https://img.shields.io/badge/version-0.10.69-blue.svg)](./CHANGELOG.en.md)
 [![CI](https://github.com/eleron96/motio/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/eleron96/motio/actions/workflows/ci.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](./LICENSE)
+[![Self-hosting guide](https://img.shields.io/badge/self--hosting-guide-c4693f.svg)](https://eleron96.github.io/motio/)
 
 [![Motio in 20 seconds: add a task, drag it to Monday, stretch it over two days, then check that day on the workload heatmap](.github/assets/motio-demo.gif)](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme&utm_content=gif)
 
@@ -69,25 +70,7 @@ Built for teams of 5–50 people running several projects at once. It grew out o
 
 Most teams just [sign up](https://motio.nikog.net/?utm_source=github&utm_medium=readme) and start working. If your data has to stay inside your own perimeter, Motio runs on your infrastructure — the same stack that serves motio.nikog.net.
 
-### Try it on your machine
-
-Requirements: **Node.js 24** (the version CI and the Docker images use), **Docker Desktop**.
-
-```bash
-make up      # full local stack: Postgres, Keycloak, Supabase services, web
-make down    # stop
-make logs    # follow logs
-```
-
-| Service | URL |
-|---|---|
-| App | http://localhost:5173 |
-| Keycloak | http://localhost:8081 |
-| Supabase Gateway health | http://localhost:8080/health |
-| Postgres | `localhost:54322` |
-
-`make up` generates `.env` with dev secrets, applies Liquibase migrations and
-creates the reserve super-admin account — no manual setup needed.
+**📖 [The self-hosting guide](https://eleron96.github.io/motio/)** has everything for it, a page per topic: install, your own sign-in, people and workspaces, updates, backups, troubleshooting.
 
 ### Run it for your team
 
@@ -105,13 +88,34 @@ install first, and `install.sh rollback` takes you back. Every week the installe
 tested end to end on a clean machine: install, update, rollback, backup and restore.
 The install sends nothing to motio.nikog.net.
 
-**[The self-hosting guide](https://eleron96.github.io/motio/)** covers the rest, a page per topic: requirements,
-the reverse-proxy mode (Nginx Proxy Manager, Traefik, nginx), administrators,
-invitations with or without email, your own sign-in provider (Authentik, Entra ID…)
-and workspaces from its groups, updates, backups, troubleshooting. The same pages are
-in the repository: [docs/self-hosting/](docs/self-hosting/README.md). Self-hosting is community-supported —
+[The guide](https://eleron96.github.io/motio/) covers the rest: requirements, the reverse-proxy mode (Nginx Proxy
+Manager, Traefik, nginx), administrators, invitations with or without email, your own
+sign-in provider (Authentik, Entra ID…) and workspaces from its groups, updates,
+backups, troubleshooting. The same pages are in the repository:
+[docs/self-hosting/](docs/self-hosting/README.md). Self-hosting is community-supported —
 questions are welcome in
 [Discussions → Q&A](https://github.com/eleron96/motio/discussions/categories/q-a).
+
+### Try the code on your machine
+
+For development, or a quick look at the code running locally. Requirements:
+**Node.js 24** (the version CI and the Docker images use), **Docker Desktop**.
+
+```bash
+make up      # full local stack: Postgres, Keycloak, Supabase services, web
+make down    # stop
+make logs    # follow logs
+```
+
+| Service | URL |
+|---|---|
+| App | http://localhost:5173 |
+| Keycloak | http://localhost:8081 |
+| Supabase Gateway health | http://localhost:8080/health |
+| Postgres | `localhost:54322` |
+
+`make up` generates `.env` with dev secrets, applies Liquibase migrations and
+creates the reserve super-admin account — no manual setup needed.
 
 ## 🏗 Architecture
 
