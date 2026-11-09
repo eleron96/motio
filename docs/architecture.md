@@ -117,13 +117,35 @@ Contract and examples: [API](api.md).
 | `bootstrap.sync` | makes sure the reserve super-admin account exists (called by the deploy scripts) |
 | `system.status` | Admin → System: service probes through the gateway, latest release from GitHub (cached 6 h, `MOTIO_UPDATE_CHECK`), server settings as yes/no |
 | `system.testEmail` | sends a test email to the calling admin (once a minute) |
+| `system.signIn` | Admin → System → Sign-in checks: the realm (sign-up, address confirmation, mail) and each identity provider (Trust Email, Sync mode, group mappers), read only, with advice (`_shared/signInChecks.ts`) |
+| `system.report` | counts for the support report; the client adds versions and switches and leaves out anything personal |
+| `settings.list` / `settings.update` | Admin → Settings: server switches (see below) |
 | `users.list` | user overview |
+| `users.diagnose` | Admin → Users → Details: the Keycloak account, providers, groups, where super admin comes from, and a read-only preview of the group sync |
 | `workspaces.list` / `workspaces.update` / `workspaces.delete` | workspace management |
+| `workspaces.members` / `workspaces.setMemberRole` / `workspaces.removeMember` | a workspace's members for a super admin; changes go to the workspace's member history (the owner stays) |
+| `invites.list` / `invites.revoke` | Admin → Invitations: open invitations across workspaces |
+| `audit.list` | Admin → Activity log |
 | `superAdmins.list` | super-admin overview |
 
 > `users.create` / `users.update` / `users.delete` / `users.resetPassword` and
 > `superAdmins.create` / `superAdmins.delete` **return an error by design** — user
 > lifecycle and privilege assignment are managed in Keycloak.
+
+**Server settings** (`instance_settings`, 0176): switches for optional behaviour,
+listed in `_shared/instanceSettingsRegistry.ts` (a byte-for-byte copy lives in
+`src/shared/contracts/`), every default off. The function reads the table with a
+30-second cache (`admin/instanceSettings.ts`); whoami hands the values the app needs
+to every signed-in client (`useInstanceSetting`). An unreadable table means every
+default. The older `KEYCLOAK_*_FROM_GROUPS=true` keys still turn their switch on.
+The command line writes the same table through psql (`infra/scripts/motio-settings.sh`).
+
+**Activity log** (`admin_audit_log`, 0181–0182): after every successful changing
+action the handler writes one entry; what is kept is decided per action in
+`_shared/adminAudit.ts` (ids, roles, setting keys and values — no emails or message
+bodies). The group sync and the command line write entries without an actor. The
+table is append-only for `service_role` and closed to clients; names are looked up
+when the log is read.
 
 ### `invite`
 
@@ -143,14 +165,15 @@ Contract and examples: [API](api.md).
 `admin` → `workspaces.addMember` lets a super admin put an existing account into a
 workspace directly, without an invitation; workspace admins still invite.
 
-Workspaces from groups (`KEYCLOAK_WORKSPACES_FROM_GROUPS=true`, self-hosted only):
+Workspaces from groups (server setting `groups.workspaces`, or `KEYCLOAK_WORKSPACES_FROM_GROUPS=true`; self-hosted only):
 `admin` → `superAdmins.whoami`, which every signed-in client calls when Motio
 opens, also reads the person's Keycloak groups and adds the memberships the
 mappings in `group_workspace_mappings` give (rules: `_shared/groupWorkspaces.ts`,
 sync: `admin/groupWorkspaces.ts`). It answers `workspacesChanged`, and the client
 reloads its workspace list before it would create a first workspace. Memberships
-the sync created are recorded in `group_workspace_grants`; only those can be taken
-away again (`KEYCLOAK_WORKSPACES_FROM_GROUPS_REMOVE=true`). Both tables: RLS on, no
+the sync created are recorded in `group_workspace_grants`, with the role the group
+gave (0177); only those can be taken away again (`groups.removeOnLeave`), and only
+their role follows the groups (`groups.syncRoles`) while nobody changed it by hand. Both tables: RLS on, no
 policies, service role only (0174). Mappings: `groupWorkspaces.list` / `create` /
 `delete`, super admins only. Off (the default): whoami answers as before, with no
 request to Keycloak.

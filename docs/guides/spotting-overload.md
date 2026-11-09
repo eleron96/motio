@@ -50,7 +50,9 @@ How a day gets its colour, in plain words:
   turns hotter.
 - **Measured against your team's normal.** A full day means full for *this* team. Motio
   works it out from your own recent history and shows it above the calendars — for
-  example, "Full day ≈ 0.8 tasks/person". An admin can set it by hand instead.
+  example, "Full day ≈ 0.8 tasks/person". An admin can set it by hand instead, and,
+  where your server allows it, give each person a share of a day: someone who only
+  coordinates counts 0%, a part-timer 50%.
 - **Deliveries take people.** A milestone ties up a small crew in the days before it:
   barely visible four days out, at its peak the day before. Several deliveries on the
   same day hit a small team hard — which is exactly what you want to see coming.
