@@ -1,19 +1,21 @@
 import React from 'react';
-import { formatDistanceToNow, parseISO } from 'date-fns';
 import { t } from '@lingui/macro';
 import { AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { formatTimeAgo } from '@/shared/lib/dateFnsLocale';
+import { useLocaleStore } from '@/shared/store/localeStore';
 
 export const PendingDeletionBanner: React.FC = () => {
   const status = useAuthStore((state) => state.profileStatus);
   const purgeAfter = useAuthStore((state) => state.profilePurgeAfter);
   const cancelAccountDeletion = useAuthStore((state) => state.cancelAccountDeletion);
+  const locale = useLocaleStore((state) => state.locale);
 
   if (status !== 'PENDING_DELETION') return null;
 
   const purgeLabel = purgeAfter ? (() => {
     try {
-      return formatDistanceToNow(parseISO(purgeAfter), { addSuffix: true });
+      return formatTimeAgo(purgeAfter, locale);
     } catch (_err) {
       return null;
     }

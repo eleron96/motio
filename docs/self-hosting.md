@@ -2,7 +2,7 @@
 
 The self-hosting guide now has a page per topic:
 
-- **As a website, with search:** <https://eleron96.github.io/motio/>
+- **As a website, with search:** <https://eleron96.github.io/motio/self-hosting/>
 - **In the repository** (and in every release tag): [docs/self-hosting/](self-hosting/README.md)
 
 Quick start, on a Linux server with Docker and a domain pointing at it:

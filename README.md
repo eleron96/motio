@@ -12,11 +12,12 @@
 One shared timeline for your whole team: people, projects and workload on a single screen.
 Free and open source: use the hosted app, or run it on your own servers. The live demo needs no sign-up.
 
-**[▶ Try the live demo](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Open Motio](https://motio.nikog.net/?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Self-host it](#-self-host)** &nbsp;·&nbsp; [What's new](./CHANGELOG.en.md)
+**[▶ Try the live demo](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Open Motio](https://motio.nikog.net/?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[User guide](https://eleron96.github.io/motio/guide/)** &nbsp;·&nbsp; **[Self-host it](https://eleron96.github.io/motio/self-hosting/)** &nbsp;·&nbsp; [What's new](./CHANGELOG.en.md)
 
 [![Version](https://img.shields.io/badge/version-0.10.69-blue.svg)](./CHANGELOG.en.md)
 [![CI](https://github.com/eleron96/motio/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/eleron96/motio/actions/workflows/ci.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](./LICENSE)
+[![Docs: en · ru](https://img.shields.io/badge/docs-en%20%C2%B7%20ru-c4693f.svg)](https://eleron96.github.io/motio/)
 
 [![Motio in 20 seconds: add a task, drag it to Monday, stretch it over two days, then check that day on the workload heatmap](.github/assets/motio-demo.gif)](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme&utm_content=gif)
 
@@ -37,7 +38,7 @@ Most tools answer "what's in project X?". Motio answers the question a team lead
 
 Built for teams of 5–50 people running several projects at once. It grew out of years of managing BIM and engineering project teams, and one recurring Monday question: who's free this week?
 
-**New to Motio?** Three five-minute guides: [your first week](docs/guides/first-week.md) · [several projects, one team](docs/guides/multiple-projects.md) · [spotting overload early](docs/guides/spotting-overload.md).
+**New to Motio?** The **[user guide](https://eleron96.github.io/motio/guide/)** shows every screen with screenshots, in English and [in Russian](https://eleron96.github.io/motio/ru/guide/). Or start with a five-minute playbook: [your first week](docs/guides/first-week.md) · [several projects, one team](docs/guides/multiple-projects.md) · [spotting overload early](docs/guides/spotting-overload.md).
 
 ## ✨ Features
 
@@ -57,6 +58,8 @@ Built for teams of 5–50 people running several projects at once. It grew out o
 - 🧪 **Demo sandbox** — [`/demo`](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme) runs entirely in the browser on sample data, no sign-in needed.
 - 🌍 **Three languages** — English, Russian and German UI (Lingui).
 
+Each of these is explained, with screenshots, in the [user guide](https://eleron96.github.io/motio/guide/).
+
 <div align="center">
 
 [![The board: switch from the timeline to the board, drag a card from Ready to Review, the undo toast appears](.github/assets/motio-board.gif)](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme&utm_content=board-gif)
@@ -69,25 +72,7 @@ Built for teams of 5–50 people running several projects at once. It grew out o
 
 Most teams just [sign up](https://motio.nikog.net/?utm_source=github&utm_medium=readme) and start working. If your data has to stay inside your own perimeter, Motio runs on your infrastructure — the same stack that serves motio.nikog.net.
 
-### Try it on your machine
-
-Requirements: **Node.js 24** (the version CI and the Docker images use), **Docker Desktop**.
-
-```bash
-make up      # full local stack: Postgres, Keycloak, Supabase services, web
-make down    # stop
-make logs    # follow logs
-```
-
-| Service | URL |
-|---|---|
-| App | http://localhost:5173 |
-| Keycloak | http://localhost:8081 |
-| Supabase Gateway health | http://localhost:8080/health |
-| Postgres | `localhost:54322` |
-
-`make up` generates `.env` with dev secrets, applies Liquibase migrations and
-creates the reserve super-admin account — no manual setup needed.
+**📖 [The self-hosting guide](https://eleron96.github.io/motio/self-hosting/)** has everything for it, a page per topic: install, your own sign-in, people and workspaces, updates, backups, troubleshooting.
 
 ### Run it for your team
 
@@ -105,13 +90,34 @@ install first, and `install.sh rollback` takes you back. Every week the installe
 tested end to end on a clean machine: install, update, rollback, backup and restore.
 The install sends nothing to motio.nikog.net.
 
-**[The self-hosting guide](https://eleron96.github.io/motio/)** covers the rest, a page per topic: requirements,
-the reverse-proxy mode (Nginx Proxy Manager, Traefik, nginx), administrators,
-invitations with or without email, your own sign-in provider (Authentik, Entra ID…)
-and workspaces from its groups, updates, backups, troubleshooting. The same pages are
-in the repository: [docs/self-hosting/](docs/self-hosting/README.md). Self-hosting is community-supported —
+[The guide](https://eleron96.github.io/motio/self-hosting/) covers the rest: requirements, the reverse-proxy mode (Nginx Proxy
+Manager, Traefik, nginx), administrators, invitations with or without email, your own
+sign-in provider (Authentik, Entra ID…) and workspaces from its groups, updates,
+backups, troubleshooting. The same pages are in the repository:
+[docs/self-hosting/](docs/self-hosting/README.md). Self-hosting is community-supported —
 questions are welcome in
 [Discussions → Q&A](https://github.com/eleron96/motio/discussions/categories/q-a).
+
+### Try the code on your machine
+
+For development, or a quick look at the code running locally. Requirements:
+**Node.js 24** (the version CI and the Docker images use), **Docker Desktop**.
+
+```bash
+make up      # full local stack: Postgres, Keycloak, Supabase services, web
+make down    # stop
+make logs    # follow logs
+```
+
+| Service | URL |
+|---|---|
+| App | http://localhost:5173 |
+| Keycloak | http://localhost:8081 |
+| Supabase Gateway health | http://localhost:8080/health |
+| Postgres | `localhost:54322` |
+
+`make up` generates `.env` with dev secrets, applies Liquibase migrations and
+creates the reserve super-admin account — no manual setup needed.
 
 ## 🏗 Architecture
 
@@ -142,8 +148,9 @@ sign-in itself; oauth2-proxy stays as a fallback catch-all for non-public paths.
 .
 ├── src/           — frontend (Vite + React + TS)
 ├── docs/          — documentation (operations, configuration, architecture, troubleshooting)
-│   └── self-hosting/ — the self-hosting guide (published from docs-site/)
-├── docs-site/     — VitePress site for the self-hosting guide (GitHub Pages)
+│   ├── guides/    — the user guide, English and Russian (published by docs-site/)
+│   └── self-hosting/ — the self-hosting guide (published by docs-site/)
+├── docs-site/     — VitePress site for the user and self-hosting guides (GitHub Pages)
 ├── infra/
 │   ├── docker-compose.yml / docker-compose.prod.yml
 │   ├── supabase/  — SQL migrations, Liquibase changelog, Edge Functions, gateway nginx
@@ -163,12 +170,12 @@ Details: [docs/architecture.md](docs/architecture.md).
 
 | | |
 |---|---|
-| [docs/guides/](docs/guides/) | how to plan with Motio: first week, several projects, spotting overload |
+| [docs/guides/](docs/guides/README.md) · [as a website](https://eleron96.github.io/motio/guide/) | the user guide: every screen with screenshots, plus three playbooks; also [in Russian](docs/guides/ru/README.md) |
 | [docs/operations.md](docs/operations.md) | local dev, production, deploy, releases, migrations, backup/restore |
 | [docs/configuration.md](docs/configuration.md) | environment variables, feature flags, push, email, scheduled jobs |
 | [docs/architecture.md](docs/architecture.md) | stack, auth flow, Edge Functions, admin console |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | common errors and fixes |
-| [docs/self-hosting/](docs/self-hosting/README.md) · [as a website](https://eleron96.github.io/motio/) | run Motio on your own server: install, sign-in, people, updates, backups, troubleshooting |
+| [docs/self-hosting/](docs/self-hosting/README.md) · [as a website](https://eleron96.github.io/motio/self-hosting/) | run Motio on your own server: install, sign-in, people, updates, backups, troubleshooting |
 | [docs/api.md](docs/api.md) | workspace API: importing absences from time tracking or HR |
 | [CHANGELOG.en.md](./CHANGELOG.en.md) · [CHANGELOG.md](./CHANGELOG.md) | change history (en / ru) |
 | [MANIFESTO.md](./MANIFESTO.md) | product principles |

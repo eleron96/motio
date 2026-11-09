@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { formatDistanceToNow, parseISO } from 'date-fns';
 import { t } from '@lingui/macro';
 import { Button } from '@/shared/ui/button';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { formatTimeAgo } from '@/shared/lib/dateFnsLocale';
+import { useLocaleStore } from '@/shared/store/localeStore';
 import { DataExportButton } from './DataExportButton';
 
 export const AccountRestoreScreen: React.FC = () => {
@@ -11,6 +12,7 @@ export const AccountRestoreScreen: React.FC = () => {
   const purgeAfter = useAuthStore((state) => state.profilePurgeAfter);
   const profileDisplayName = useAuthStore((state) => state.profileDisplayName);
   const user = useAuthStore((state) => state.user);
+  const locale = useLocaleStore((state) => state.locale);
 
   const [restoring, setRestoring] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,12 +20,11 @@ export const AccountRestoreScreen: React.FC = () => {
   const purgeLabel = useMemo(() => {
     if (!purgeAfter) return null;
     try {
-      const distance = formatDistanceToNow(parseISO(purgeAfter), { addSuffix: true });
-      return distance;
+      return formatTimeAgo(purgeAfter, locale);
     } catch (_err) {
       return purgeAfter;
     }
-  }, [purgeAfter]);
+  }, [purgeAfter, locale]);
 
   const handleRestore = async () => {
     setRestoring(true);

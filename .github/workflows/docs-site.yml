@@ -1,12 +1,14 @@
 name: Docs site
 
-# The self-hosting guide (docs/self-hosting/) as a website on GitHub Pages.
+# The user guide (docs/guides/) and the self-hosting guide (docs/self-hosting/) as a
+# website on GitHub Pages.
 # Every push that touches it builds the site, which also catches dead links;
 # only main publishes, so the site always describes a released version.
 
 on:
   push:
     paths:
+      - 'docs/guides/**'
       - 'docs/self-hosting/**'
       - 'docs-site/**'
       - '.github/workflows/docs-site.yml'
