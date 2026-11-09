@@ -9,6 +9,7 @@
 // generate-vapid-keys`.
 
 import type { PushContent } from "./pushPayload.ts";
+import { isPushServiceEndpoint } from "./pushEndpoint.ts";
 
 const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY") ?? "";
 const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY") ?? "";
@@ -28,7 +29,8 @@ export interface PushSubscriptionRecord {
 export interface PushSendResult {
   ok: boolean;
   // 404/410 from the push service means the subscription is dead and should be
-  // pruned from the table so we stop trying to deliver to it.
+  // pruned from the table so we stop trying to deliver to it. An endpoint that
+  // is not a push service (pushEndpoint.ts) can never be delivered to either.
   gone: boolean;
   status?: number;
   error?: string;
@@ -170,12 +172,19 @@ export const sendWebPush = async (
   sub: PushSubscriptionRecord,
   payload: PushContent,
 ): Promise<PushSendResult> => {
+  // Checked here as well as in the table (migration 0175): this is the line
+  // that sends the request, and it has to stay safe on its own.
+  if (!isPushServiceEndpoint(sub.endpoint)) {
+    return { ok: false, gone: true, error: "endpoint is not a push service" };
+  }
   try {
     const jwt = await buildVapidJwt(sub.endpoint);
     const body = await encryptPayload(sub.p256dh, sub.auth, encoder.encode(JSON.stringify(payload)));
 
     const response = await fetch(sub.endpoint, {
       method: "POST",
+      // Push services answer directly; a redirect could lead anywhere.
+      redirect: "manual",
       headers: {
         TTL: "86400",
         "Content-Encoding": "aes128gcm",

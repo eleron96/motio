@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Security
+- Повысили безопасность.
+
 ## [0.10.71] - 2026-11-09
 ### Changed
 - На главной странице — удобный подвал со ссылками и отдельный блок про подробную справку.

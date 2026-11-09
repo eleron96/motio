@@ -189,6 +189,14 @@ default). Old `VITE_FEATURE_TIME_OFF`, `VITE_FEATURE_WORKLOAD_HEATMAP`,
 
 Without both keys the function reports push as not configured, and nothing is sent.
 
+The server only sends to the browsers' own push services: Google FCM (Chrome, Android
+and other Chromium browsers), Mozilla (Firefox), Apple (Safari on macOS and iOS) and
+Microsoft WNS (Edge on Windows). A subscription pointing anywhere else is refused by
+the database and skipped by the `push` function, so nobody can make the server send
+requests to other addresses. A browser on another push service cannot turn push on;
+its host is added in `infra/supabase/functions/_shared/pushEndpoint.ts` and the
+matching migration.
+
 ## Email (`mailer`)
 
 The `mailer` Edge Function sends the welcome email and email broadcasts. Every

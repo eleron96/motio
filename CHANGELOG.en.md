@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Security
+- Improved security.
+
 ## [0.10.71] - 2026-11-09
 ### Changed
 - The home page has a clearer footer with links and a block about the detailed guide.
