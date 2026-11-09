@@ -345,6 +345,11 @@ no integration tests. Check the pipeline separately after pushing:
 
 - `VERSION` holds the current version; the patch part is bumped automatically on every
   production deploy (or set explicitly via `NEXT_VERSION=X.Y.Z`).
+- Open tabs show «A new version of Motio is available» only when the minor or major
+  number goes up (0.10.x → 0.11.0, `isNotableUpdate` in
+  `src/shared/domain/versionCompare.ts`). Patch releases reach people quietly, on the
+  next page load. So an important release — one everybody should load now — goes out
+  with `NEXT_VERSION=0.11.0` (the next minor), not with the automatic patch bump.
 - The full release path in one command (changelog entry + commit + push + deploy + sync):
 
   ```bash

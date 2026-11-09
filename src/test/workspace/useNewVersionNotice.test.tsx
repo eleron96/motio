@@ -28,8 +28,8 @@ describe('useNewVersionNotice', () => {
     vi.useRealTimers();
   });
 
-  it('offers the update once when a newer release is out, and never reloads by itself', async () => {
-    mocks.published.mockResolvedValue('0.10.45');
+  it('offers the update once when an important release is out, and never reloads by itself', async () => {
+    mocks.published.mockResolvedValue('0.11.0');
     const reload = vi.fn();
     vi.stubGlobal('location', { ...window.location, reload });
     renderHook(() => useNewVersionNotice());
@@ -47,6 +47,22 @@ describe('useNewVersionNotice', () => {
     mocks.toast.mock.calls[0][1].action.onClick();
     expect(reload).toHaveBeenCalled();
     vi.unstubAllGlobals();
+  });
+
+  it('stays quiet for patch releases, which arrive on the next page load', async () => {
+    mocks.published
+      .mockResolvedValueOnce('0.10.45')
+      .mockResolvedValueOnce('0.10.99')
+      .mockResolvedValueOnce('1.0.0');
+    renderHook(() => useNewVersionNotice());
+
+    await vi.advanceTimersByTimeAsync(10 * 60_000);
+    expect(mocks.published).toHaveBeenCalledTimes(2);
+    expect(mocks.toast).not.toHaveBeenCalled();
+
+    // A new major version is important too.
+    await vi.advanceTimersByTimeAsync(5 * 60_000);
+    expect(mocks.toast).toHaveBeenCalledTimes(1);
   });
 
   it('stays quiet for the same or an older version', async () => {

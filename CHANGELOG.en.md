@@ -10,6 +10,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Security
 - Improved security.
 
+### Changed
+- The new version message now appears only for major updates; smaller ones arrive quietly the next time you open the page.
+
 ## [0.10.71] - 2026-11-09
 ### Changed
 - The home page has a clearer footer with links and a block about the detailed guide.
