@@ -2231,6 +2231,10 @@ msgstr "Display name"
 msgid "Display style"
 msgstr "Display style"
 
+#: src/features/marketing/components/landing/LandingFooter.tsx
+msgid "Documentation"
+msgstr "Documentation"
+
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Does not repeat"
 msgstr "Does not repeat"
@@ -3154,6 +3158,11 @@ msgstr "Handover to the contractor"
 msgid "Heatmap"
 msgstr "Heatmap"
 
+#: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
+#: src/shared/ui/help-link.tsx
+msgid "Help"
+msgstr "Help"
+
 #: src/features/workspace/lib/starterTemplates/bimTemplate.ts
 msgid "Help set up drawing sheets"
 msgstr "Help set up drawing sheets"
@@ -3222,6 +3231,10 @@ msgstr "Holidays"
 #: src/features/workspace/lib/starterTemplates/bimTemplate.ts
 msgid "Hospital wing"
 msgstr "Hospital wing"
+
+#: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
+msgid "How to work in Motio"
+msgstr "How to work in Motio"
 
 #: src/features/auth/pages/InvitePage.tsx
 msgid "I agree to the <0>Privacy Policy</0>"
@@ -6024,8 +6037,8 @@ msgid "Select workspace"
 msgstr "Select workspace"
 
 #: src/features/marketing/components/landing/LandingSections.tsx
-msgid "Self-hosting guide on GitHub →"
-msgstr "Self-hosting guide on GitHub →"
+msgid "Self-hosting guide →"
+msgstr "Self-hosting guide →"
 
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminBroadcastPage.tsx

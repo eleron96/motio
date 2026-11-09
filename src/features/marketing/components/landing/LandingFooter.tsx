@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
 import { t, Trans } from '@lingui/macro';
+import { docsHomeUrl } from '@/shared/lib/docsLinks';
+import { useLocaleStore } from '@/shared/store/localeStore';
 
 export const LandingFooter = () => {
   const currentYear = new Date().getFullYear();
+  const locale = useLocaleStore((state) => state.locale);
 
   return (
     <footer className="border-t border-slate-200 bg-white">
@@ -25,6 +28,15 @@ export const LandingFooter = () => {
           </Link>
         </p>
         <p>
+          <a
+            href={docsHomeUrl(locale)}
+            target="_blank"
+            rel="noopener"
+            className="underline decoration-slate-300 underline-offset-4 transition-colors hover:text-slate-600"
+          >
+            {t`Documentation`}
+          </a>
+          {' · '}
           <a
             href="https://github.com/eleron96/motio"
             target="_blank"

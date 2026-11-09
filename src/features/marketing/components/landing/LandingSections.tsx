@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { t } from '@lingui/macro';
 import { Button } from '@/shared/ui/button';
+import { selfHostingGuideUrl } from '@/shared/lib/docsLinks';
+import { useLocaleStore } from '@/shared/store/localeStore';
 import heatmapImage from '@/features/marketing/assets/heatmap.webp';
 
 // Four feature cards.
@@ -70,6 +72,7 @@ export const LandingHeatmap = () => {
 
 // Own infrastructure is an option for those who need it, not the main promise: the main path stays "sign up and work".
 export const LandingSelfHosted = () => {
+  const locale = useLocaleStore((state) => state.locale);
   return (
     <section className="mx-auto w-full max-w-[900px] px-4 pt-24 sm:px-6 lg:px-10">
       <div className="rounded-2xl border border-slate-200 bg-slate-50 px-6 py-8 sm:px-10">
@@ -96,13 +99,12 @@ export const LandingSelfHosted = () => {
         <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
           <span className="font-medium text-slate-700">{t`Open source under AGPL-3.0`}</span>
           <a
-            href="https://github.com/eleron96/motio/blob/main/docs/self-hosting.md"
+            href={selfHostingGuideUrl(locale)}
             target="_blank"
-            // noopener, not noreferrer: GitHub's traffic page should see this site as the referrer
             rel="noopener"
             className="font-medium text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:decoration-primary"
           >
-            {t`Self-hosting guide on GitHub →`}
+            {t`Self-hosting guide →`}
           </a>
         </div>
       </div>

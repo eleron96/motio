@@ -1,6 +1,6 @@
 import React from 'react';
 import * as SheetPrimitive from '@radix-ui/react-dialog';
-import { Bell, Building2, Settings, UserCog } from 'lucide-react';
+import { Bell, BookOpen, Building2, ExternalLink, Settings, UserCog } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { t } from '@lingui/macro';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -8,6 +8,8 @@ import { roleLabel } from '@/features/auth/lib/inboxLabels';
 import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { getAccountInitials, getAccountSignedInLabel } from '@/shared/lib/accountIdentity';
 import { APP_VERSION } from '@/shared/lib/appVersion';
+import { userGuideUrl } from '@/shared/lib/docsLinks';
+import { useLocaleStore } from '@/shared/store/localeStore';
 import { SourceCodeLink } from '@/shared/ui/source-code-link';
 import { ReleaseNotesDialog } from '@/features/auth/components/ReleaseNotesDialog';
 import { Sheet, SheetClose, SheetOverlay, SheetPortal, SheetTitle } from '@/shared/ui/sheet';
@@ -78,6 +80,7 @@ export const WorkspaceMobileMenuSheet: React.FC<WorkspaceMobileMenuSheetProps> =
   const workspaces = useAuthStore((state) => state.workspaces);
   const currentWorkspaceId = useAuthStore((state) => state.currentWorkspaceId);
   const currentWorkspaceRole = useAuthStore((state) => state.currentWorkspaceRole);
+  const locale = useLocaleStore((state) => state.locale);
 
   const signedInLabel = getAccountSignedInLabel(user, t`Unknown user`);
   const initials = getAccountInitials(profileDisplayName, signedInLabel);
@@ -380,6 +383,13 @@ export const WorkspaceMobileMenuSheet: React.FC<WorkspaceMobileMenuSheetProps> =
                 title={t`Account settings`}
                 chevron
                 onClick={pick(onOpenAccountSettings)}
+              />
+              <MobileListRow
+                icon={<BookOpen className="h-[17px] w-[17px]" />}
+                title={t`Help`}
+                subtitle={t`How to work in Motio`}
+                right={<ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground/70" aria-hidden="true" />}
+                onClick={pick(() => window.open(userGuideUrl(locale), '_blank', 'noopener,noreferrer'))}
               />
             </MobileListGroup>
           </div>

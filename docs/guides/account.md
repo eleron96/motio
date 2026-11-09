@@ -48,10 +48,11 @@ new one.
    **Restore my account**. After that, your data is anonymised for good; your name stays
    only on the comments you wrote.
 
-## Sign out, and what's new
+## Help, sign out, and what's new
 
-**Sign out** is in **Account settings** too. At the bottom, the version number (such as
-*v0.10.69*) opens **Latest changes**: what changed in Motio, version by version.
+**Help** at the bottom of **Account settings** opens this guide. **Sign out** is in
+**Account settings** too. At the bottom, the version number (such as *v0.10.69*) opens
+**Latest changes**: what changed in Motio, version by version.
 
 > [!NOTE]
 > On a company server, the administrator decides whether **Data** and **Danger zone** are

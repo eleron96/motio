@@ -11,7 +11,8 @@ computer right away, and the other way round.
 - **Sections** — **Timeline**, **Dashboard**, **Projects** and **Team** are at the top.
   Tap one, or swipe along the header to move between them.
 - **Your avatar** at the top left opens the menu: notifications (the number on the
-  avatar is the unread count), workspaces, workspace settings and account settings.
+  avatar is the unread count), workspaces, workspace settings, account settings and
+  **Help** — this guide.
 - **The pencil button** at the bottom creates a task.
 - **View** above the timeline switches between timeline, calendar and board, people and
   projects, day and week — all in one place.
