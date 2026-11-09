@@ -68,6 +68,15 @@ are in [docs/troubleshooting.md](docs/troubleshooting.md).
    npm run test:integration
    ```
 
+   When touching dragging on the timeline or touch gestures, run the browser tests
+   on `/demo` (setup and how to add one: [`e2e/README.md`](e2e/README.md)):
+
+   ```bash
+   npx playwright install chromium   # once
+   npm run build                     # needs VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY; placeholders will do
+   npm run test:e2e                  # serves dist/ and opens /demo
+   ```
+
 4. New UI strings go through Lingui: `npm run lingui:extract && npm run lingui:compile`.
    The interface speaks English (the source text), Russian and German: fill the new
    entries in `src/locales/ru/messages.po` and `src/locales/de/messages.po`. Can't write

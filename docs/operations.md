@@ -61,11 +61,12 @@ npm run dev:compose       # full dev stack via docker compose
 npm run dev:local         # Supabase CLI mode (fallback → dev:compose)
 npm run build
 npm run lint
-npm run typecheck         # tsc -p tsconfig.app.json --noEmit (CI gate)
+npm run typecheck         # tsc for src/ and e2e/ (CI gate)
 npm run test              # unit + component
 npm run test:watch
 npm run test:integration  # DB integration suite (also gates CI)
 npm run test:backup       # backup-service crons (node:test, also gates CI)
+npm run test:e2e          # browser tests on /demo (Playwright, also gates CI; e2e/README.md)
 npm run lingui:extract    # extract translatable strings
 npm run lingui:compile    # compile .po → .js
 ```
@@ -184,6 +185,11 @@ ssh root@<prod-server> "cd /opt/new_toggl && docker compose -f infra/docker-comp
 - **integration-tests** — `infra/scripts/ci-test-db.sh` provisions the Supabase
   Postgres and applies the Liquibase migrations, then `npm run test:integration`
   runs against it.
+- **e2e** — builds the app (placeholder Supabase values: `/demo` needs no
+  backend), installs Playwright's Chromium and runs `npm run test:e2e`: the
+  `/demo` sandbox served with `vite preview`, mouse drags on the desktop timeline
+  and touch gestures on a phone screen. On failure the report and traces are
+  attached to the run (`playwright-report`). What it covers: `e2e/README.md`.
 
 `.github/workflows/image-scan.yml` runs `infra/scripts/scan-images.sh` every Monday,
 on demand and when an image reference changes: Trivy lists the HIGH and CRITICAL
