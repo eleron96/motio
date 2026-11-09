@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import type { Locale as DateFnsLocale } from 'date-fns';
 import { de, enUS, ru } from 'date-fns/locale';
 import type { Locale } from '@/shared/lib/locale';
@@ -6,6 +6,14 @@ import type { Locale } from '@/shared/lib/locale';
 const DATE_FNS_LOCALES: Record<Locale, DateFnsLocale> = { en: enUS, ru, de };
 
 export const resolveDateFnsLocale = (locale: Locale): DateFnsLocale => DATE_FNS_LOCALES[locale];
+
+/**
+ * "5 minutes ago" / "in 30 days" for an ISO timestamp, in the interface language.
+ * Throws a RangeError for a string that is not a date, like date-fns itself.
+ */
+export const formatTimeAgo = (isoDate: string, locale: Locale): string => (
+  formatDistanceToNow(parseISO(isoDate), { addSuffix: true, locale: resolveDateFnsLocale(locale) })
+);
 
 const RU_WEEKDAY_SHORT_BY_INDEX: Record<number, string> = {
   0: 'Вс',

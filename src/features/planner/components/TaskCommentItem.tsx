@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { MoreHorizontal } from 'lucide-react';
-import { formatDistanceToNow, parseISO } from 'date-fns';
 import { t } from '@lingui/macro';
 
 import { Button } from '@/shared/ui/button';
+import { formatTimeAgo } from '@/shared/lib/dateFnsLocale';
+import { useLocaleStore } from '@/shared/store/localeStore';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,9 +63,8 @@ export const TaskCommentItem: React.FC<TaskCommentItemProps> = ({
   const canEdit = !pending && comment.authorId === currentUserId;
   const canDelete = !pending && (comment.authorId === currentUserId || isAdmin);
 
-  const timeAgo = formatDistanceToNow(parseISO(comment.createdAt), {
-    addSuffix: true,
-  });
+  const locale = useLocaleStore((state) => state.locale);
+  const timeAgo = formatTimeAgo(comment.createdAt, locale);
 
   const handleDelete = async () => {
     setDeleteLoading(true);
