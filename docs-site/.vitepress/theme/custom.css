@@ -1,0 +1,54 @@
+/* Motio's terracotta, tuned so links and buttons keep WCAG AA contrast. */
+:root {
+  --vp-c-brand-1: hsl(17 55% 42%);
+  --vp-c-brand-2: hsl(17 55% 36%);
+  --vp-c-brand-3: hsl(17 52% 45%);
+  --vp-c-brand-soft: hsl(17 51% 54% / 0.14);
+
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, hsl(17 58% 48%) 20%, hsl(34 78% 52%));
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, hsl(17 70% 60% / 0.45) 50%, hsl(34 85% 60% / 0.45) 50%);
+  --vp-home-hero-image-filter: blur(56px);
+}
+
+.dark {
+  --vp-c-brand-1: hsl(18 72% 68%);
+  --vp-c-brand-2: hsl(18 66% 61%);
+  --vp-c-brand-3: hsl(18 56% 44%);
+  --vp-c-brand-soft: hsl(18 58% 53% / 0.16);
+
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, hsl(17 60% 45% / 0.4) 50%, hsl(34 70% 45% / 0.4) 50%);
+}
+
+.VPHero .image-src {
+  max-width: 200px;
+}
+
+@media (min-width: 960px) {
+  .VPHero .image-src {
+    max-width: 300px;
+  }
+}
+
+/* The logos are dark ink on transparent: turn them light on the dark theme. */
+.dark .VPNavBarTitle .logo,
+.dark .VPHero .image-src {
+  filter: invert(1) brightness(0.92);
+}
+
+.home-quickstart {
+  max-width: 760px;
+  margin: 8px auto 48px;
+}
+
+/* Tables carry most of the reference: let long cells wrap instead of scrolling. */
+.vp-doc table {
+  display: table;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .vp-doc table {
+    display: block;
+  }
+}

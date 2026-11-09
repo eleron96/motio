@@ -18,7 +18,8 @@
 3. Поведенческие спецификации: `notes/specifications/*-behavior-by-example.md` (ядро — `planner-behavior-by-example.md`).
 4. Публичная документация (трекается в git):
    - `README.md` — витрина; `CONTRIBUTING.md` — как прислать баг, идею или PR (там же чек-лист «Adding a language»); `SECURITY.md` — приватный канал для уязвимостей; `CODE_OF_CONDUCT.md` — Contributor Covenant 2.0, контакт inbox@nikog.net; шаблоны issue/PR — `.github/`.
-   - `docs/` — операционный справочник: `operations.md` (контуры, деплой, релизы, тест-стенд, бэкапы), `configuration.md`, `architecture.md`, `troubleshooting.md`, `self-hosting.md` (§5.6), `api.md` (§4.3).
+   - `docs/` — операционный справочник: `operations.md` (контуры, деплой, релизы, тест-стенд, бэкапы), `configuration.md`, `architecture.md`, `troubleshooting.md`, `api.md` (§4.3).
+   - `docs/self-hosting/` — гайд для своих серверов, страница на тему (§5.6). Он же сайт на GitHub Pages (https://eleron96.github.io/motio/): VitePress в `docs-site/` копирует страницы при сборке, workflow `Docs site` собирает на каждый push в них (ловит битые ссылки) и публикует только с `main`. Страницы пишутся как обычный markdown, читаемый и на GitHub: ссылки внутри гайда — относительные `./page.md`, наружу — абсолютные `https://github.com/eleron96/motio/blob/main/…`, в заголовках без апострофов и номеров (иначе якоря GitHub и сайта расходятся). `docs/self-hosting.md` — только оглавление со старыми якорями: на него ссылаются лендинг и установщики выпущенных версий, не удалять.
    - `docs/guides/` — пользовательские гайды «как получить пользу» (не эксплуатация): при изменении описанного в них поведения (кнопки, названия, жесты) править и гайд; скриншоты в `docs/guides/images/` сняты с публичного `/demo` в 1600×1000.
 5. Команды: `Makefile` и `docs/operations.md`.
 
@@ -162,7 +163,7 @@ npx vitest run src/test/smoke/localeCatalogs.test.ts
    - Мёрж запускать с запасом по времени (≥4 мин): он зависал на шаге коммита; прерванный оставляет стейл-локи `.git/HEAD.lock` / `.git/refs/heads/main.lock` (`docs/troubleshooting.md`, «`git merge` into `main` hangs»).
    - `main` не защищена настройками GitHub — force-push и удаление ветки агенту **запрещены**.
 
-Гейт деплоя **не заменяет CI**: в нём нет храповика `npm run check:health`, SQL security lint, проверки типов Edge Functions, `npm run build`, `npm run test:backup` и `npm run test:integration`. Успешный деплой ≠ зелёный пайплайн. После пуша проверять `gh run list --branch $(git branch --show-current) --workflow CI --limit 1` (без `--workflow` последним может оказаться Image scan или Self-hosted upgrade); красный — чинить сразу.
+Гейт деплоя **не заменяет CI**: в нём нет храповика `npm run check:health`, SQL security lint, проверки типов Edge Functions, `npm run build`, `npm run test:backup` и `npm run test:integration`. Успешный деплой ≠ зелёный пайплайн. После пуша проверять `gh run list --branch $(git branch --show-current) --workflow CI --limit 1` (без `--workflow` последним может оказаться Image scan, Self-hosted upgrade или Docs site); красный — чинить сразу.
 
 ## 5.4.1. Remote deploy (testing)
 
@@ -242,13 +243,13 @@ ssh root@72.56.34.157 "docker stats --no-stream"   # память общая с 
 
 ## 5.6. Self-host: установка на чужие серверы
 
-Установщик: `infra/scripts/install.sh` (install / update / rollback / backup / restore / up / status / `--env-only`), обёртка `infra/scripts/selfhost-compose.sh`, оверлеи `infra/docker-compose.selfhost.yml` (+ `docker-compose.selfhost-tls.yml`, `docker-compose.selfhost-proxy-network.yml` при `MOTIO_PROXY_NETWORK` и незатреканный `docker-compose.selfhost.local.yml` пользователя), `infra/caddy/Caddyfile.selfhost`, `infra/scripts/keycloak-ensure-realm-smtp.sh`. Документация — `docs/self-hosting.md`. **Прод и тест владельца ими не пользуются** — их путь `make deploy` / `make deploy-testing`. Клиенты ставят и обновляются с **тега релиза**: правка установщика доходит до них только после прод-релиза.
+Установщик: `infra/scripts/install.sh` (install / update / rollback / backup / restore / up / status / `--env-only`), обёртка `infra/scripts/selfhost-compose.sh`, оверлеи `infra/docker-compose.selfhost.yml` (+ `docker-compose.selfhost-tls.yml`, `docker-compose.selfhost-proxy-network.yml` при `MOTIO_PROXY_NETWORK` и незатреканный `docker-compose.selfhost.local.yml` пользователя), `infra/caddy/Caddyfile.selfhost`, `infra/scripts/keycloak-ensure-realm-smtp.sh`. Документация — `docs/self-hosting/` (§2 п.4): изменение поведения установщика или новой возможности для своих серверов — тем же коммитом в нужную страницу. **Прод и тест владельца ими не пользуются** — их путь `make deploy` / `make deploy-testing`. Клиенты ставят и обновляются с **тега релиза**: правка установщика доходит до них только после прод-релиза.
 
 При изменениях держать self-host в согласии с продом:
 
 1. **Новый публичный маршрут** (страница или файл без сессии) — во все три Caddyfile: `Caddyfile`, `Caddyfile.testing`, `Caddyfile.selfhost`. Паритет проверяет `src/test/smoke/publicRoutes.test.ts`.
 2. **Новая переменная в `.env.example`** — решить, генерировать ли её или выводить из домена в `install.sh` (`generate_env`); описать в `docs/configuration.md`. При `install.sh update` новые ключи дописываются из `.env.example` с дефолтом — дефолт обязан работать на чужой установке.
-3. **Новый `VITE_*`** — `ARG`/`ENV` в `infra/web/Dockerfile` и `build.args` в `docker-compose.prod.yml`; новый флаг фичи — осознанный дефолт для self-host в `install.sh` и строка в таблице `docs/self-hosting.md`.
+3. **Новый `VITE_*`** — `ARG`/`ENV` в `infra/web/Dockerfile` и `build.args` в `docker-compose.prod.yml`; новый флаг фичи — осознанный дефолт для self-host в `install.sh` и строка в таблице `docs/self-hosting/settings.md`.
 4. **Новый ensure-скрипт Keycloak** — в `prod-compose.sh`, `test-compose.sh` **и** в список `bring_up` в `install.sh`.
 5. **Новый сервис, том или порт в `docker-compose.prod.yml`** — проверить оверлей self-host: имена томов через `MOTIO_INSTANCE`, наружу ничего, кроме Caddy, лимиты памяти под 4 ГБ. Проверка: `docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.selfhost.yml --env-file <тестовый .env> config`.
 6. **Изменение, требующее действия от self-host** (новая обязательная настройка, ручной шаг) — отдельной строкой в CHANGELOG простым языком: «Для своих серверов: …».
@@ -256,7 +257,7 @@ ssh root@72.56.34.157 "docker stats --no-stream"   # память общая с 
 8. **Пробная установка** — чистого VPS нет; владелец разрешил тест-сервер при строгой изоляции: свой каталог и `--instance`, режим `proxy` на `127.0.0.1` (80/443 — nginx соседа), свои порты gateway/Keycloak, проверка через SSH-туннель, перед `up` — нет `external: true` томов. После проверки — `selfhost-compose.sh down -v`, удалить собранные образы `<instance>-*` и каталог; общие образы (`caddy:2.11` использует `motio-caddy`) не трогать.
 9. Резервный админ (`RESERVE_ADMIN_*`) — служебная учётка, сразу в `/app/admin`; первый человек на чужой установке регистрируется сам. Не делать почту установщика резервным админом.
 10. **Бэкап-наборы** (`infra/backups/install/<вид>-<время>/`) — холодная копия томов из `set_volumes` в `install.sh` + `.env` + коммит; `update` снимает набор перед миграциями, `rollback`/`restore` кладут тома обратно побайтно и переключают checkout. **Новый том с данными в `docker-compose.prod.yml` — сразу в `set_volumes`**, иначе откат вернёт всё, кроме него. Копирует `tar` из образа `db` (GNU tar: сохраняет владельцев и xattrs файлов storage-api).
-11. **Пожелание чужой установки, которое меняет поведение у нас, — настройкой, по умолчанию «как на проде сейчас»** (решение владельца 2026-11-04). Кому нужно — переключит у себя. Новая настройка: ключ в `.env.example`, в compose с дефолтом `${KEY:-…}` (для `VITE_*` ещё `infra/web/Dockerfile` и `install.sh`), описание в `docs/configuration.md` и таблице `docs/self-hosting.md`. Примеры: `VITE_START_PAGE=landing` (`app` — сразу вход вместо стартовой страницы), `KEYCLOAK_SUPER_ADMIN_FROM_GROUPS=false` (роль `app_super_admin` от группы Keycloak). Это постоянные настройки, не флаги фич §7.5 п.1: имя без `VITE_FEATURE_`, не удаляются. Переводы и чисто добавочные поля настройки не требуют.
+11. **Пожелание чужой установки, которое меняет поведение у нас, — настройкой, по умолчанию «как на проде сейчас»** (решение владельца 2026-11-04). Кому нужно — переключит у себя. Новая настройка: ключ в `.env.example`, в compose с дефолтом `${KEY:-…}` (для `VITE_*` ещё `infra/web/Dockerfile` и `install.sh`), описание в `docs/configuration.md` и таблице `docs/self-hosting/settings.md`. Примеры: `VITE_START_PAGE=landing` (`app` — сразу вход вместо стартовой страницы), `KEYCLOAK_SUPER_ADMIN_FROM_GROUPS=false` (роль `app_super_admin` от группы Keycloak). Это постоянные настройки, не флаги фич §7.5 п.1: имя без `VITE_FEATURE_`, не удаляются. Переводы и чисто добавочные поля настройки не требуют.
 
 ## 6. Правила логирования
 
@@ -297,6 +298,8 @@ CI (`.github/workflows/ci.yml`) на каждый push и pull request гоня�
 
 Отдельный workflow `Self-hosted upgrade` (`.github/workflows/selfhost-upgrade.yml`, по воскресеньям, вручную и при изменениях установщика, переноса на PostgreSQL 17, ensure-скриптов Keycloak и compose-файлов) прогоняет `infra/scripts/selfhost-upgrade-test.sh`. Это настоящий `install.sh`: установка v0.10.61 (Realtime на 0.1 CPU), v0.10.65 и последнего тега → данные → `update` на проверяемый коммит → `rollback` → снова `update` → `backup`/`restore`, после каждого шага сверка данных, файла, входа и Realtime. 20–40 мин на версию, не CI и не гейт; красный — разбирать (шаг и логи — на странице прогона). По расписанию работает только с `main`. Тот же скрипт можно запускать на тест-сервере в своём каталоге (`docs/operations.md`, «Self-hosted upgrade test»).
 
+Отдельный workflow `Docs site` (`.github/workflows/docs-site.yml`) собирает сайт гайда self-host при изменениях в `docs/self-hosting/` и `docs-site/` (красный — битая ссылка или сломанный конфиг) и с `main` публикует его на GitHub Pages. Свой `package.json` и lock в `docs-site/`, к зависимостям приложения не относится.
+
 CI **не является гейтом мержа и деплоя**: `main` не защищена, прод собирается из рабочего дерева по rsync — красный пайплайн технически не мешает релизу. За зелёным CI следит агент (§5.4).
 
 1. `vite build` НЕ проверяет типы (esbuild) — это делает `npm run typecheck` (`tsc -p tsconfig.app.json --noEmit`).
@@ -309,7 +312,7 @@ CI **не является гейтом мержа и деплоя**: `main` н�
 
 ## 7.5. Чтобы мусор не копился
 
-1. **Флаг фичи живёт, пока фича раскатывается.** Включён на проде, на тесте и по умолчанию у self-host — убрать флаг вместе с кодом ветки «выключено» и тестами на неё: `featureFlags.ts`, `infra/web/Dockerfile`, compose-файлы, `.env.example`, `install.sh`, `docs/configuration.md` и `docs/self-hosting.md`. Значения флагов на проде и тесте — `grep '^VITE_FEATURE' .env` на сервере (§9.0 п.1).
+1. **Флаг фичи живёт, пока фича раскатывается.** Включён на проде, на тесте и по умолчанию у self-host — убрать флаг вместе с кодом ветки «выключено» и тестами на неё: `featureFlags.ts`, `infra/web/Dockerfile`, compose-файлы, `.env.example`, `install.sh`, `docs/configuration.md` и `docs/self-hosting/settings.md`. Значения флагов на проде и тесте — `grep '^VITE_FEATURE' .env` на сервере (§9.0 п.1).
 2. **Временный код совместимости** (для вкладок со старой сборкой, переходных путей и т. п.) помечать комментарием `REMOVE-AFTER: ГГГГ-ММ-ДД — что убрать и почему`. Просроченную дату `npm run check:health` показывает предупреждением — тогда код убрать.
 3. **Удаляя код, удалять и тесты, которые проверяют только его.** Функция, которую вызывают одни тесты, — мёртвая: тест держит её на плаву.
 4. **Храповик `npm run check:health`** (`infra/scripts/check-code-health.mjs`, шаг CI «Code health ratchet») следит за `src/`: неиспользуемые файлы, экспорты и зависимости, экспорты только для тестов, файлы длиннее 600 строк, прямой Supabase в фичах вне `store/`, импорт `features/A` → `features/B/components`. Старое записано в `infra/scripts/code-health-baseline.json`, новое валит CI. Починил старое — обновить базу тем же коммитом (`node infra/scripts/check-code-health.mjs --write-baseline`). Добавлять в базу новое — только осознанно и с объяснением в сообщении коммита.

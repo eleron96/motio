@@ -169,7 +169,11 @@ export const WorkspaceInvitesMobileScreen: React.FC<WorkspaceInvitesMobileScreen
                         variant="outline"
                         size="sm"
                         className="h-9"
-                        onClick={() => onRevoke(invite.token)}
+                        onClick={() => {
+                          // The notice of this invitation would still offer its link.
+                          setLastOutcome((current) => (current?.token === invite.token ? null : current));
+                          onRevoke(invite.token);
+                        }}
                       >
                         {t`Revoke`}
                       </Button>

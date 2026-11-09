@@ -1,0 +1,13 @@
+{
+  "name": "motio-self-hosting-docs",
+  "private": true,
+  "type": "module",
+  "description": "The self-hosting guide as a website: pages from docs/self-hosting/, published to GitHub Pages.",
+  "scripts": {
+    "build": "node sync-pages.mjs && vitepress build",
+    "dev": "node sync-pages.mjs && vitepress dev"
+  },
+  "devDependencies": {
+    "vitepress": "1.6.4"
+  }
+}

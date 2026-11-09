@@ -48,3 +48,8 @@ notes/
 *.njsproj
 *.sln
 *.sw?
+
+# Self-hosting docs site: pages are copied from docs/self-hosting/ at build time
+docs-site/pages/
+docs-site/.vitepress/cache/
+docs-site/.vitepress/dist/
