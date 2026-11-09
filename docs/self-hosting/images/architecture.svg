@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400" width="760" height="400" role="img" aria-labelledby="title desc">
+  <title id="title">How a self-hosted Motio fits together</title>
+  <desc id="desc">Browsers reach Motio's Caddy, directly or through your own reverse proxy. Caddy routes to the web app, the API gateway and Keycloak. The gateway serves sign-in, data, live updates, files, backend functions and backups from one PostgreSQL database. Keycloak has its own database and can broker your company's sign-in.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8a7e77"/>
+    </marker>
+    <style>
+      .bg { fill: #fbf8f6; stroke: #eadfd8; }
+      .box { fill: #ffffff; stroke: #c2735a; stroke-width: 1.5; }
+      .soft { fill: #fff4ee; stroke: #e2b29f; stroke-width: 1.2; }
+      .opt { fill: #ffffff; stroke: #b7aca6; stroke-width: 1.2; stroke-dasharray: 5 4; }
+      .data { fill: #f1ece9; stroke: #9c8f88; stroke-width: 1.2; }
+      .h { font: 600 14px -apple-system, "Segoe UI", Inter, Roboto, sans-serif; fill: #2b2420; }
+      .t { font: 400 12px -apple-system, "Segoe UI", Inter, Roboto, sans-serif; fill: #5b514b; }
+      .s { font: 400 11px -apple-system, "Segoe UI", Inter, Roboto, sans-serif; fill: #8a7e77; }
+      .line { stroke: #8a7e77; stroke-width: 1.4; fill: none; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="1" y="1" width="758" height="398" rx="14"/>
+
+  <!-- people -->
+  <rect class="soft" x="22" y="160" width="112" height="64" rx="10"/>
+  <text class="h" x="78" y="188" text-anchor="middle">Your team</text>
+  <text class="t" x="78" y="206" text-anchor="middle">browser · phone</text>
+
+  <!-- optional proxy -->
+  <rect class="opt" x="160" y="160" width="112" height="64" rx="10"/>
+  <text class="h" x="216" y="186" text-anchor="middle">Your proxy</text>
+  <text class="s" x="216" y="203" text-anchor="middle">optional: NPM,</text>
+  <text class="s" x="216" y="217" text-anchor="middle">Traefik, nginx</text>
+
+  <!-- the install -->
+  <rect x="296" y="22" width="444" height="356" rx="12" fill="none" stroke="#d9cbc3" stroke-width="1.2"/>
+  <text class="s" x="312" y="42">your server · one Docker Compose stack</text>
+
+  <rect class="box" x="312" y="160" width="96" height="64" rx="10"/>
+  <text class="h" x="360" y="188" text-anchor="middle">Caddy</text>
+  <text class="t" x="360" y="206" text-anchor="middle">HTTPS, routes</text>
+
+  <rect class="box" x="440" y="58" width="132" height="58" rx="10"/>
+  <text class="h" x="506" y="83" text-anchor="middle">Web app</text>
+  <text class="t" x="506" y="101" text-anchor="middle">built on your server</text>
+
+  <rect class="box" x="440" y="160" width="132" height="64" rx="10"/>
+  <text class="h" x="506" y="186" text-anchor="middle">API gateway</text>
+  <text class="s" x="506" y="203" text-anchor="middle">sign-in · data · files</text>
+  <text class="s" x="506" y="217" text-anchor="middle">live updates · backups</text>
+
+  <rect class="box" x="440" y="268" width="132" height="58" rx="10"/>
+  <text class="h" x="506" y="293" text-anchor="middle">Keycloak</text>
+  <text class="t" x="506" y="311" text-anchor="middle">accounts, SSO</text>
+
+  <rect class="data" x="604" y="160" width="120" height="64" rx="10"/>
+  <text class="h" x="664" y="186" text-anchor="middle">PostgreSQL 17</text>
+  <text class="t" x="664" y="204" text-anchor="middle">your data</text>
+
+  <rect class="data" x="604" y="268" width="120" height="58" rx="10"/>
+  <text class="h" x="664" y="293" text-anchor="middle">Keycloak DB</text>
+  <text class="t" x="664" y="311" text-anchor="middle">sign-ins</text>
+
+  <rect class="opt" x="604" y="340" width="120" height="30" rx="8"/>
+  <text class="s" x="664" y="359" text-anchor="middle">Authentik, Entra ID…</text>
+
+  <!-- arrows -->
+  <path class="line" d="M134 192 H158" marker-end="url(#arrow)"/>
+  <path class="line" d="M272 192 H310" marker-end="url(#arrow)"/>
+  <path class="line" d="M408 180 C424 150 424 96 438 90" marker-end="url(#arrow)"/>
+  <path class="line" d="M408 192 H438" marker-end="url(#arrow)"/>
+  <path class="line" d="M408 204 C424 234 424 290 438 296" marker-end="url(#arrow)"/>
+  <path class="line" d="M572 192 H602" marker-end="url(#arrow)"/>
+  <path class="line" d="M572 297 H602" marker-end="url(#arrow)"/>
+  <path class="line" d="M572 312 C590 330 590 354 602 355" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+</svg>

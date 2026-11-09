@@ -42,7 +42,7 @@ Built for teams of 5–50 people running several projects at once. It grew out o
 ## ✨ Features
 
 - 📅 **Timeline** — drag-and-drop planner grouped by people or by project, at a day or week scale, plus a three-year calendar; milestones and time off sit on the same grid. Double-click a free spot in a row (double-tap on a phone) to add a task on that day: every row keeps room under its tasks for it. On a computer, find any task with ⌘K or /: other tasks fade, and a strip shows the matches on any date. Drag a task past the edge of the screen and the timeline scrolls along. Moved, rescheduled or deleted something by mistake? Undo it from the toast or with Cmd/Ctrl+Z.
-- 🗂 **Board (beta)** — the same tasks as cards in columns by your own statuses, as an optional view next to the timeline. Drag a card to another column to change its status (undo included), filter by person, group, project or overdue in one click. On a phone it is one column per screen with a swipe between them. Each person turns it on in account settings; on your own server it is off until you [switch it on](docs/self-hosting.md#settings).
+- 🗂 **Board (beta)** — the same tasks as cards in columns by your own statuses, as an optional view next to the timeline. Drag a card to another column to change its status (undo included), filter by person, group, project or overdue in one click. On a phone it is one column per screen with a swipe between them. Each person turns it on in account settings; on your own server it is off until you [switch it on](docs/self-hosting/settings.md).
 - ✅ **Tasks with depth** — subtasks (with pictures), repeating series, priorities, tags, rich descriptions with pasted images, comments with @mentions and screenshots; pictures open full screen with zoom. A subtask you started typing is saved on its own.
 - 🤝 **Working together** — teammates' changes show up within a second, and an open task keeps its subtasks and comments live. On a computer, with live drafts switched on (on in the hosted app, off by default when self-hosting), you see what a teammate is typing — a subtask, a comment — semi-transparent as they write. If two people edit the description of a one-off task at once, nobody's text is silently overwritten: the card asks which version to keep.
 - 👥 **Team** — members and groups, each person's current and past tasks at a glance.
@@ -50,10 +50,10 @@ Built for teams of 5–50 people running several projects at once. It grew out o
 - 📊 **Dashboard** — configurable widgets and a department workload heatmap, with one layout that scales to wide monitors; a daily brief once a day and release notes right in the app.
 - 🔔 **Notifications** — in-app inbox plus browser push; installable as a PWA, push works on iPhone too.
 - 📱 **Works on phones** — a dedicated mobile layer for the timeline, the board, tasks, team and projects; one View button switches between them.
-- 🏢 **Workspaces and roles** — a new workspace asks what your team does (architecture and design, BIM, construction or software) and starts with matching statuses, task types and a few examples; `viewer` / `editor` / `admin`, invitations, owner transfer, leaving a workspace.
-- 🔐 **SSO out of the box** — sign-in through Keycloak; sign-up is self-service (the app opens the Keycloak registration form), while invitations and account deletion happen in the app itself (deletion is off by default when self-hosting); Keycloak is the identity store.
+- 🏢 **Workspaces and roles** — a new workspace asks what your team does (architecture and design, BIM, construction or software) and starts with matching statuses, task types and a few examples; `viewer` / `editor` / `admin`, invitations (they work without email too: the invitation waits in the app, and its link can be copied), owner transfer, leaving a workspace.
+- 🔐 **SSO out of the box** — sign-in through Keycloak; sign-up is self-service (the app opens the Keycloak registration form), while invitations and account deletion happen in the app itself (deletion is off by default when self-hosting); Keycloak is the identity store. On your own server it can hand sign-in to your company's provider (Authentik, Entra ID, Google Workspace), and groups from there can make people super admins or put them into workspaces.
 - 💾 **Backups built in** — daily backups of the database, media and Keycloak with retention, upload/download and one-click restore from the admin console.
-- 🗄 **Super-admin console** — user overview, workspace management, backup/restore, announcements to every user.
+- 🗄 **Super-admin console** — user overview, workspace management, backup/restore, announcements to every user; on your own server also the system status and which group gets into which workspace.
 - 🧪 **Demo sandbox** — [`/demo`](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme) runs entirely in the browser on sample data, no sign-in needed.
 - 🌍 **Three languages** — English, Russian and German UI (Lingui).
 
@@ -101,10 +101,15 @@ infra/scripts/install.sh --domain planner.example.com --email you@example.com
 ```
 
 Updates are `infra/scripts/install.sh update --version vX.Y.Z`: it backs up the whole
-install first, and `install.sh rollback` takes you back. Requirements, the
-reverse-proxy mode (Nginx Proxy Manager, Traefik, nginx), email, your own sign-in
-provider (Authentik, Entra ID…) and backups: **[docs/self-hosting.md](docs/self-hosting.md)**.
-The install sends nothing to motio.nikog.net. Self-hosting is community-supported —
+install first, and `install.sh rollback` takes you back. Every week the installer is
+tested end to end on a clean machine: install, update, rollback, backup and restore.
+The install sends nothing to motio.nikog.net.
+
+**[The self-hosting guide](https://eleron96.github.io/motio/)** covers the rest, a page per topic: requirements,
+the reverse-proxy mode (Nginx Proxy Manager, Traefik, nginx), administrators,
+invitations with or without email, your own sign-in provider (Authentik, Entra ID…)
+and workspaces from its groups, updates, backups, troubleshooting. The same pages are
+in the repository: [docs/self-hosting/](docs/self-hosting/README.md). Self-hosting is community-supported —
 questions are welcome in
 [Discussions → Q&A](https://github.com/eleron96/motio/discussions/categories/q-a).
 
@@ -137,6 +142,8 @@ sign-in itself; oauth2-proxy stays as a fallback catch-all for non-public paths.
 .
 ├── src/           — frontend (Vite + React + TS)
 ├── docs/          — documentation (operations, configuration, architecture, troubleshooting)
+│   └── self-hosting/ — the self-hosting guide (published from docs-site/)
+├── docs-site/     — VitePress site for the self-hosting guide (GitHub Pages)
 ├── infra/
 │   ├── docker-compose.yml / docker-compose.prod.yml
 │   ├── supabase/  — SQL migrations, Liquibase changelog, Edge Functions, gateway nginx
@@ -161,7 +168,7 @@ Details: [docs/architecture.md](docs/architecture.md).
 | [docs/configuration.md](docs/configuration.md) | environment variables, feature flags, push, email, scheduled jobs |
 | [docs/architecture.md](docs/architecture.md) | stack, auth flow, Edge Functions, admin console |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | common errors and fixes |
-| [docs/self-hosting.md](docs/self-hosting.md) | install and update Motio on your own server, behind your proxy, with your own sign-in |
+| [docs/self-hosting/](docs/self-hosting/README.md) · [as a website](https://eleron96.github.io/motio/) | run Motio on your own server: install, sign-in, people, updates, backups, troubleshooting |
 | [docs/api.md](docs/api.md) | workspace API: importing absences from time tracking or HR |
 | [CHANGELOG.en.md](./CHANGELOG.en.md) · [CHANGELOG.md](./CHANGELOG.md) | change history (en / ru) |
 | [MANIFESTO.md](./MANIFESTO.md) | product principles |

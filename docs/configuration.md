@@ -40,13 +40,12 @@ make check-prod-secrets-remote   # check .env on the remote server
 - `KEYCLOAK_SUPER_ADMIN_FROM_GROUPS` — `true` lets the realm role `app_super_admin`
   count when it comes from a Keycloak group or a composite role, not only when it
   is assigned to the user directly. Default `false`. Leaving the group takes the
-  access away on the next check (see `docs/self-hosting.md`, «Super admins»).
+  access away on the next check (see [Administrators](self-hosting/admins.md#or-grant-it-through-a-group)).
 - `KEYCLOAK_WORKSPACES_FROM_GROUPS` — `true` lets Keycloak groups put people into
   workspaces: a super admin maps a group to a workspace and a role in the admin
   console (**Group access**), and whoever is in the group joins it the next time
   they open Motio. Existing members keep their role. Default `false`: no extra
-  request to Keycloak and no admin section (`docs/self-hosting.md`, «Workspaces
-  from groups»).
+  request to Keycloak and no admin section ([Workspaces from groups](self-hosting/people.md#workspaces-from-groups)).
 - `KEYCLOAK_WORKSPACES_FROM_GROUPS_REMOVE` — with the above, `true` also takes away
   the access a group gave once the person is no longer in any group mapped to that
   workspace (at their next visit). Access given by hand or by an invitation, and the
@@ -225,7 +224,7 @@ empty, wins.
 
 ## Self-hosted install (`install.sh`)
 
-Written by `infra/scripts/install.sh`; see [Self-hosting](self-hosting.md).
+Written by `infra/scripts/install.sh`; see the [self-hosting guide](self-hosting/README.md).
 
 - `MOTIO_INSTANCE` — compose project and volume prefix (`motio`).
 - `MOTIO_MODE` — `tls` (Caddy gets the certificate, ports 80/443) or `proxy`

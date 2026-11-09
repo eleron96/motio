@@ -69,7 +69,7 @@ the unfinished PostgreSQL 17 volume of the failed attempt and starts over.
 If a later update reached 0.10.66 after such a failure (for example through
 0.10.65), its `pre-update-*` set may hold the unfinished PostgreSQL 17 copy instead
 of the PostgreSQL 15 data: before a `rollback` on 0.10.66, check the set as
-described in «Backup sets», `docs/self-hosting.md`.
+described in [Troubleshooting for self-hosting](self-hosting/troubleshooting.md#updating-and-restoring).
 
 ## `Warning: Keycloak realm drift detected`
 

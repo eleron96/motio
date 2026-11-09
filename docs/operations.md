@@ -11,7 +11,7 @@ Running Motio locally, deploying to production and testing, releases, migrations
 - [Backup / Restore](#backup--restore)
 - [Security checklist](#security-checklist)
 
-See also: [Configuration](configuration.md) · [Architecture](architecture.md) · [Troubleshooting](troubleshooting.md) · [API](api.md) · [Self-hosting](self-hosting.md)
+See also: [Configuration](configuration.md) · [Architecture](architecture.md) · [Troubleshooting](troubleshooting.md) · [API](api.md) · [Self-hosting](self-hosting/README.md)
 
 ---
 
@@ -189,7 +189,7 @@ ssh root@<prod-server> "cd /opt/new_toggl && docker compose -f infra/docker-comp
 on demand and when an image reference changes: Trivy lists the HIGH and CRITICAL
 vulnerabilities with a fix upstream in every image Motio runs. The table is on the
 run page (and an artifact). It never fails; upgrades go through a release
-(`docs/self-hosting.md`, «Security updates»).
+([Self-hosting → Security](self-hosting/security.md)).
 
 #### Self-hosted upgrade test
 
