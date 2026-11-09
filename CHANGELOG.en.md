@@ -8,11 +8,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [Unreleased]
 
 ### Added
-- “Help” in account settings and in the phone menu opens a detailed guide to Motio, in English or Russian to match the interface. The home page links to the documentation.
+- New: Help — a detailed guide to Motio in English and Russian. You'll find it in account settings and in the phone menu, and the home page links to the documentation.
 
 ### Fixed
-- “Copy link” on an invitation also works where the browser refuses clipboard access, and where nothing can be copied the link is shown to copy by hand. Once an invitation is revoked, the notice with its link goes away.
-- Comment times (“5 minutes ago”) and the time left before an account is deleted follow the interface language instead of always being in English.
+- Invitation links can now be copied in any browser.
+- Comment times like “5 minutes ago” now show in your language.
 
 ## [0.10.69] - 2026-11-08
 ### Added
