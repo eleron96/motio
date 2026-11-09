@@ -38,6 +38,7 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
 import { APP_VERSION } from '@/shared/lib/appVersion';
 import { SourceCodeLink } from '@/shared/ui/source-code-link';
+import { HelpLink } from '@/shared/ui/help-link';
 import { getAccountInitials, getAccountSignedInLabel } from '@/shared/lib/accountIdentity';
 import { AvatarWithEditButton } from './AvatarWithEditButton';
 import { ReleaseNotesDialog } from './ReleaseNotesDialog';
@@ -337,6 +338,9 @@ export const AccountSettingsDialog: React.FC<AccountSettingsDialogProps> = ({ op
 
   const versionAndCredits = (
     <>
+      <div>
+        <HelpLink />
+      </div>
       <button
         type="button"
         onClick={() => setReleaseNotesOpen(true)}
