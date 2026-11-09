@@ -12,6 +12,7 @@ set -euo pipefail
 #   infra/scripts/install.sh restore infra/backups/install/<set>
 #   infra/scripts/install.sh up          # re-apply config and (re)start everything
 #   infra/scripts/install.sh status      # read-only health report (no changes)
+#   infra/scripts/install.sh settings [set <key> on|off | reset <key>]   # server switches (Admin → Settings)
 #   infra/scripts/install.sh --env-only --domain … --email …   # only write .env, start nothing
 #
 # Run it from the root of a Motio checkout (git clone of the repository). It never
@@ -25,7 +26,7 @@ env_file="${MOTIO_ENV_FILE:-.env}"
 compose=(infra/scripts/selfhost-compose.sh)
 
 usage() {
-  sed -n '4,19p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '4,20p' "$0" | sed 's/^# \{0,1\}//'
   cat <<'EOF'
 
 Options (install):
@@ -272,7 +273,11 @@ values = {
     "VAPID_SUBJECT": f"mailto:{email}",
     "VITE_PUSH_VAPID_PUBLIC_KEY": vapid_public,
 
-    "MAILER_DRY_RUN": "0" if smtp_host else "1",
+    # Without an SMTP server Motio sends nothing anyway (the mailer falls back to
+    # a dry run when the host is empty), so the flag stays 0: adding the
+    # GOTRUE_SMTP_* settings later is then all it takes. Older installs may
+    # carry MAILER_DRY_RUN=1 here; print_summary and status point at it.
+    "MAILER_DRY_RUN": "0",
     "BACKUP_CORS_ORIGIN": url,
     "AUTO_PRE_MIGRATION_BACKUP": "true",
 }
@@ -486,6 +491,7 @@ EOF
     echo "  No SMTP configured: Motio sends no email (invitations of new people and password"
     echo "  resets need it). Add the GOTRUE_SMTP_* settings to .env and run: install.sh up"
   fi
+  warn_mail_dry_run
   echo "  Logs: infra/scripts/selfhost-compose.sh logs -f"
   echo "  Guide: docs/self-hosting.md"
 }
@@ -966,6 +972,16 @@ EOF
 
 # Read-only report for troubleshooting over SSH: version, containers, the
 # probes the admin "System" section shows, disk, last backup, newer release.
+# An install made without email used to get MAILER_DRY_RUN=1; adding the SMTP
+# settings later then fixed Keycloak's mail (invitations, resets) but not
+# Motio's own (welcome email, broadcasts, the test in Admin → System).
+warn_mail_dry_run() {
+  if [[ -n "$(get_env_value GOTRUE_SMTP_HOST)$(get_env_value MAILER_SMTP_HOST)" \
+    && "$(get_env_value MAILER_DRY_RUN)" == "1" ]]; then
+    warn "an SMTP server is set, but MAILER_DRY_RUN=1 in .env keeps Motio's own emails (welcome, broadcasts) from being sent. Set MAILER_DRY_RUN=0 and run: infra/scripts/install.sh up"
+  fi
+}
+
 print_status() {
   local gateway_port keycloak_port url version latest code
   gateway_port="$(get_env_value MOTIO_GATEWAY_PORT)"
@@ -993,6 +1009,16 @@ print_status() {
   probe "backup service" "http://127.0.0.1:${gateway_port}/backup/health"
   probe "keycloak" "http://127.0.0.1:${keycloak_port}/realms/timeline/.well-known/openid-configuration"
 
+  log "Email"
+  if [[ -z "$(get_env_value GOTRUE_SMTP_HOST)$(get_env_value MAILER_SMTP_HOST)" ]]; then
+    echo "  no SMTP server: Motio sends no email"
+  elif [[ "$(get_env_value MAILER_DRY_RUN)" == "1" ]]; then
+    echo "  SMTP server set; Motio's own emails are OFF (MAILER_DRY_RUN=1)"
+  else
+    echo "  SMTP server set"
+  fi
+  warn_mail_dry_run
+
   log "Disk and backups"
   df -h . | awk 'NR==2 {print "  disk: " $4 " free of " $2 " (" $5 " used)"}'
   local last_backup last_set
@@ -1013,6 +1039,14 @@ print_status() {
 }
 
 # ─────────────────────────── commands ───────────────────────────
+
+# Server switches (the same as Admin → Settings): a command of its own with
+# positional arguments, handled before the option parsing below.
+if [[ "${1:-}" == "settings" ]]; then
+  shift
+  [[ -f "$env_file" ]] || fail "no $env_file here — this is not an installed Motio."
+  MOTIO_SETTINGS_COMPOSE="${compose[*]}" MOTIO_ENV_FILE="$env_file" exec infra/scripts/motio-settings.sh "$@"
+fi
 
 command_name="install"
 case "${1:-}" in

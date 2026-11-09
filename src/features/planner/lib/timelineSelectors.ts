@@ -259,16 +259,21 @@ export const calculateTimelineRowHeights = (
      * adding a lane here would leave an empty strip above every other row.
      */
     minLanesByRow?: Record<string, number>;
+    /** Timeline density (lib/timelineDensity): the usual sizes when left out. */
+    rowTopPadding?: number;
+    rowBottomSpace?: number;
   },
 ) => {
+  const rowTopPadding = options.rowTopPadding ?? ROW_TOP_PADDING;
+  const rowBottomSpace = options.rowBottomSpace ?? ROW_BOTTOM_SPACE;
   const heights: Record<string, number> = {};
   Object.entries(tasksByRow).forEach(([groupId, rowTasks]) => {
     const minLanes = options.minLanesByRow?.[groupId] ?? 0;
     // getMaxLanes returns 1 for an empty row, so a row whose only content is the
     // bar still gets exactly one lane.
     const lanes = Math.max(getMaxLanes(rowTasks), minLanes);
-    const barsBottom = ROW_TOP_PADDING + lanes * (options.taskHeight + options.taskGap) - options.taskGap;
-    const calculatedHeight = barsBottom + ROW_BOTTOM_SPACE;
+    const barsBottom = rowTopPadding + lanes * (options.taskHeight + options.taskGap) - options.taskGap;
+    const calculatedHeight = barsBottom + rowBottomSpace;
     heights[groupId] = Math.max(options.minRowHeight, calculatedHeight);
   });
   return heights;

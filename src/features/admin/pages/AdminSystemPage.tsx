@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { APP_VERSION } from '@/shared/lib/appVersion';
 import { listBuildFeatureFlags } from '@/shared/lib/featureFlags';
 import { useSystemStatus } from '@/features/admin/hooks/useSystemStatus';
+import { AdminSignInChecks } from '@/features/admin/components/AdminSignInChecks';
+import { AdminSupportReport } from '@/features/admin/components/AdminSupportReport';
 import { isNewerVersion, type SystemServiceKey, type TestEmailResult } from '@/features/admin/lib/systemStatus';
 
 const serviceLabel = (key: SystemServiceKey) => {
@@ -24,7 +26,10 @@ const serviceLabel = (key: SystemServiceKey) => {
 const testEmailText = (result: TestEmailResult) => {
   switch (result.status) {
     case 'sent': return t`Sent. Check the inbox of your admin account.`;
-    case 'not_configured': return t`Email is not configured: no SMTP server in the settings.`;
+    case 'not_configured':
+      return result.reason === 'dry_run_flag'
+        ? t`Email is turned off: MAILER_DRY_RUN=1 in .env, although an SMTP server is set. Set it to 0 and run install.sh up.`
+        : t`Email is not configured: no SMTP server in the settings.`;
     case 'throttled': return t`Wait ${result.retryAfterSeconds} s before sending another one.`;
     case 'failed': return t`Could not send: ${result.message}`;
     default: return '';
@@ -142,6 +147,11 @@ const AdminSystemPage: React.FC = () => {
                 <span>{t`Email (SMTP)`}</span>
                 {status ? <YesNo value={status.configured.email} /> : '—'}
               </li>
+              {status?.configured.emailOffReason === 'dry_run_flag' && (
+                <li className="text-xs text-muted-foreground">
+                  {t`An SMTP server is set, but MAILER_DRY_RUN=1 in .env keeps Motio's own emails (welcome, broadcasts) from being sent. Invitations and password resets go through Keycloak and are not affected. Set it to 0 and run install.sh up.`}
+                </li>
+              )}
               <li className="flex items-center justify-between gap-3">
                 <span>{t`Push notifications`}</span>
                 {status ? <YesNo value={status.configured.push} /> : '—'}
@@ -180,6 +190,9 @@ const AdminSystemPage: React.FC = () => {
             )}
           </CardContent>
         </Card>
+
+        <AdminSignInChecks />
+        <AdminSupportReport />
       </div>
     </div>
   );

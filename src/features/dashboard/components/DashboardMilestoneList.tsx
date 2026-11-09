@@ -6,7 +6,7 @@ import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
-import { formatShortDateRange } from '@/features/dashboard/lib/dashboardUtils';
+import { formatShortDateRange, getPeriodRange, isCalendarPeriod } from '@/features/dashboard/lib/dashboardUtils';
 import type {
   DashboardMilestone,
   DashboardOption,
@@ -45,14 +45,19 @@ export const DashboardMilestoneList: React.FC<DashboardMilestoneListProps> = ({
     projects.map((project) => [project.id, formatProjectLabel(project.name, project.code)]),
   );
   const now = new Date();
-  const milestoneRangeStart = startOfDay(now);
-  const milestoneRangeEnd = endOfDay(
-    period === 'day'
-      ? now
-      : period === 'week'
-        ? addWeeks(now, 1)
-        : addMonths(now, 1),
-  );
+  // A calendar period (this week, next month…) shows its own days; the other
+  // periods look ahead from today, as they always did.
+  const calendarRange = isCalendarPeriod(period) ? getPeriodRange(period, now) : null;
+  const milestoneRangeStart = calendarRange ? startOfDay(parseISO(calendarRange.startDate)) : startOfDay(now);
+  const milestoneRangeEnd = calendarRange
+    ? endOfDay(parseISO(calendarRange.endDate))
+    : endOfDay(
+      period === 'day'
+        ? now
+        : period === 'week'
+          ? addWeeks(now, 1)
+          : addMonths(now, 1),
+    );
   const periodLabel = formatShortDateRange(
     format(milestoneRangeStart, 'yyyy-MM-dd'),
     format(milestoneRangeEnd, 'yyyy-MM-dd'),

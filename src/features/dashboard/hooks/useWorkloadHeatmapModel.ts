@@ -24,16 +24,21 @@ import type { DashboardMilestone } from '@/features/dashboard/types/dashboard';
 import {
   autoCapacityPerPerson,
   availableHeadcount,
+  availableShare,
   awayCountByDate,
+  awayPercentByDate,
+  capacityPercentByAssignee,
   dayPercent,
   historyLoadPerPerson,
   levelForPercent,
   milestoneKernelSum,
   parseIsoDate,
   resolveCapacity,
+  teamCapacityPercent,
   workloadMilestones,
   type HeatmapLevel,
 } from '@/features/dashboard/lib/workloadHeatmap';
+import { useInstanceSetting } from '@/shared/store/instanceSettingsStore';
 
 // Fixed, non-configurable window: ~3 months of context before today, ~6 months
 // ahead. The desktop strip opens with the current month flush to the left, the
@@ -139,7 +144,6 @@ export const useWorkloadHeatmapModel = () => {
     [assignees],
   );
   const headcount = activeAssigneeIds.size;
-  const showHeat = headcount > 0;
 
   // People away per day. Absences of disabled assignees are ignored — they are not
   // in the headcount either, so counting them would shrink the denominator twice.
@@ -147,6 +151,35 @@ export const useWorkloadHeatmapModel = () => {
     () => awayCountByDate(timeOff.records, activeAssigneeIds, { startIso, endIso }),
     [timeOff.records, activeAssigneeIds, startIso, endIso],
   );
+
+  // Each person's share of a full day (server setting heatmap.personCapacity, off
+  // by default). Off: `shares` stays null and every number below is as before —
+  // one person, one share. On: the team is the sum of shares, absences take away
+  // the share of who is away.
+  const personCapacityOn = useInstanceSetting('heatmap.personCapacity');
+  const personCapacities = useDashboardStore((state) => state.personCapacities);
+  const loadPersonCapacities = useDashboardStore((state) => state.loadPersonCapacities);
+  useEffect(() => {
+    if (!personCapacityOn || !currentWorkspaceId) return;
+    void loadPersonCapacities(currentWorkspaceId);
+  }, [personCapacityOn, currentWorkspaceId, loadPersonCapacities]);
+  const shares = useMemo(() => (
+    personCapacityOn && personCapacities && personCapacities.workspaceId === currentWorkspaceId
+      ? capacityPercentByAssignee(activeAssigneeIds, personCapacities.values)
+      : null
+  ), [personCapacityOn, personCapacities, currentWorkspaceId, activeAssigneeIds]);
+  const teamPercent = useMemo(() => (shares ? teamCapacityPercent(shares) : headcount * 100), [shares, headcount]);
+  const showHeat = shares ? teamPercent > 0 : headcount > 0;
+  const awayPercentByDay = useMemo(
+    () => (shares ? awayPercentByDate(timeOff.records, shares, { startIso, endIso }) : null),
+    [shares, timeOff.records, startIso, endIso],
+  );
+  // People's worth of work available on a day: whole people without shares.
+  const availableOn = useCallback((iso: string) => (
+    awayPercentByDay
+      ? availableShare(teamPercent, awayPercentByDay.get(iso) ?? 0)
+      : availableHeadcount(headcount, awayByDate.get(iso) ?? 0)
+  ), [awayPercentByDay, teamPercent, headcount, awayByDate]);
 
   const holidayCountryCode = useMemo(
     () => normalizeHolidayCountryCode(workspace?.holidayCountry),
@@ -204,14 +237,11 @@ export const useWorkloadHeatmapModel = () => {
       if (isWeekend(parseIsoDate(day.date)) || holidayMap[day.date]) return;
       // Past days count against who actually worked them, so a stretch of holidays
       // doesn't drag the team's "normal day" down and make every other day look hot.
-      const load = historyLoadPerPerson(
-        day.taskCount,
-        availableHeadcount(headcount, awayByDate.get(day.date) ?? 0),
-      );
+      const load = historyLoadPerPerson(day.taskCount, availableOn(day.date));
       if (load !== null) loads.push(load);
     });
     return loads;
-  }, [heatmap.days, todayIso, holidayMap, headcount, awayByDate]);
+  }, [heatmap.days, todayIso, holidayMap, availableOn]);
   const autoCapacity = useMemo(() => autoCapacityPerPerson(historyLoads), [historyLoads]);
   useEffect(() => {
     setHeatmapAutoCapacity(autoCapacity);
@@ -244,7 +274,7 @@ export const useWorkloadHeatmapModel = () => {
     const weekend = isWeekend(date);
     const holidayNames = holidayMap[iso] ?? null;
     const awayCount = awayByDate.get(iso) ?? 0;
-    const available = availableHeadcount(headcount, awayCount);
+    const available = availableOn(iso);
     // Nobody available is not a hot day, it's a day the team doesn't work: colouring
     // it bordeaux would confuse "no one to do it" with "too much to do".
     const isTeamAway = showHeat && available === 0;
@@ -274,6 +304,7 @@ export const useWorkloadHeatmapModel = () => {
     countsByDate,
     holidayMap,
     awayByDate,
+    availableOn,
     headcount,
     showHeat,
     capacity,

@@ -40,10 +40,13 @@ GOTRUE_SMTP_SECURE=false          # true for port 465
 GOTRUE_SMTP_USER=no-reply@example.com
 GOTRUE_SMTP_PASS=…
 GOTRUE_SMTP_ADMIN_EMAIL=no-reply@example.com   # the sender address
-MAILER_DRY_RUN=0                  # an install without email has 1 here
+MAILER_DRY_RUN=0                  # installs made without email by older versions have 1 here
 ```
 
-Then run `infra/scripts/install.sh up`. It gives Keycloak the same account and turns
+Then run `infra/scripts/install.sh up`. If `MAILER_DRY_RUN=1` is still there,
+`install.sh up` and `install.sh status` say so: Keycloak's mail (invitations,
+resets) works then, but Motio's own (welcome, broadcasts, the test in
+**Admin → System**) does not. It gives Keycloak the same account and turns
 on address confirmation in the realm.
 
 > [!IMPORTANT]

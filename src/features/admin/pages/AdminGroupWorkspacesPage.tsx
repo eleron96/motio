@@ -38,10 +38,11 @@ const roleLabel = (role: WorkspaceRole) => (
 // a workspace with a role the next time they open Motio.
 const AdminGroupWorkspacesPage: React.FC = () => {
   const {
-    enabled, removeEnabled, mappings, groups, groupsError, loaded, loading, error, load, createMapping, deleteMapping,
+    enabled, removeEnabled, syncRoles, mappings, groups, groupsError, loaded, loading, error, load, createMapping, deleteMapping,
   } = useGroupWorkspacesStore(useShallow((state) => ({
     enabled: state.enabled,
     removeEnabled: state.removeEnabled,
+    syncRoles: state.syncRoles,
     mappings: state.mappings,
     groups: state.groups,
     groupsError: state.groupsError,
@@ -123,9 +124,9 @@ const AdminGroupWorkspacesPage: React.FC = () => {
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>{t`Turned off on this server. It puts people into workspaces by their Keycloak groups, for example the groups of your own sign-in.`}</p>
           <p>
-            {t`To turn it on, set this in .env and run install.sh up:`}
+            {t`Turn it on in Settings (Workspaces from groups) or from the command line:`}
             {' '}
-            <code className="rounded bg-muted px-1 py-0.5 text-foreground">KEYCLOAK_WORKSPACES_FROM_GROUPS=true</code>
+            <code className="rounded bg-muted px-1 py-0.5 text-foreground">install.sh settings set groups.workspaces on</code>
           </p>
         </CardContent>
       </Card>
@@ -135,7 +136,12 @@ const AdminGroupWorkspacesPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="space-y-2 text-sm text-muted-foreground">
-        <p>{t`People in a Keycloak group join its workspace with the role below the next time they open Motio. A group also covers its subgroups. People already in the workspace keep their role.`}</p>
+        <p>{t`People in a Keycloak group join its workspace with the role below the next time they open Motio. A group also covers its subgroups.`}</p>
+        <p>
+          {syncRoles
+            ? t`When someone moves to another group, the role their group gave follows at their next sign-in, up or down. A role a workspace admin changed by hand stays, and so do people added by hand or by an invitation.`
+            : t`People already in the workspace keep their role.`}
+        </p>
         <p>
           {removeEnabled
             ? t`When someone leaves the group, the access it gave is taken away at their next visit. Access given by hand or by an invitation stays.`

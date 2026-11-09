@@ -3,7 +3,6 @@ import { useAdminStore, AdminUser } from '@/features/admin/store/adminStore';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +20,7 @@ import { useLocaleStore } from '@/shared/store/localeStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useTablePagination } from '@/features/admin/hooks/useTablePagination';
 import { AdminTablePagination } from '@/features/admin/components/AdminTablePagination';
+import { AdminUserDialog } from '@/features/admin/components/AdminUserDialog';
 import {
   formatDate,
   formatDateCompact,
@@ -114,8 +114,6 @@ const AdminUsersPage: React.FC = () => {
     setForcePurgeConfirmOpen(false);
     setForcePurgeUserId('');
   };
-
-  const workspaceDetails = workspacesTarget?.workspaces ?? [];
 
   return (
     <TooltipProvider delayDuration={150}>
@@ -359,56 +357,14 @@ const AdminUsersPage: React.FC = () => {
           )}
         </div>
 
-        <Dialog
-          open={workspacesDialogOpen}
-          onOpenChange={(open) => {
-            setWorkspacesDialogOpen(open);
-            if (!open) setWorkspacesTarget(null);
+        <AdminUserDialog
+          user={workspacesDialogOpen ? workspacesTarget : null}
+          locale={locale}
+          onClose={() => {
+            setWorkspacesDialogOpen(false);
+            setWorkspacesTarget(null);
           }}
-        >
-          <DialogContent className="sm:max-w-[640px]">
-            <DialogHeader>
-              <DialogTitle>{t`User workspaces`}</DialogTitle>
-              <DialogDescription className="sr-only">
-                {t`View all workspaces where this user is a member.`}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-3">
-              <div className="text-sm text-muted-foreground">
-                {workspacesTarget?.email ?? workspacesTarget?.id ?? '—'}
-              </div>
-              {workspaceDetails.length === 0 ? (
-                <div className="text-sm text-muted-foreground">{t`No workspaces.`}</div>
-              ) : (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t`Name`}</TableHead>
-                        <TableHead>{t`Role`}</TableHead>
-                        <TableHead>ID</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {workspaceDetails.map((workspace) => (
-                        <TableRow key={workspace.id}>
-                          <TableCell className="font-medium">{workspace.name}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{formatWorkspaceRole(workspace.role)}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{workspace.id}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setWorkspacesDialogOpen(false)}>
-                {t`Close`}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        />
 
         <AlertDialog
           open={forcePurgeConfirmOpen}

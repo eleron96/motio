@@ -54,7 +54,7 @@ own reverse proxy, add `--mode proxy` (see [Install](./install.md)).
 **Keep it running**
 - [Updates and rollback](./updates.md): updating, which versions exist, going back.
 - [Backups and restore](./backups.md): nightly backups, full backup sets, moving to another server.
-- [Day to day](./running.md): status, logs, the admin console's System page, Portainer, WUD, Beszel.
+- [Day to day](./running.md): status, logs, the admin console (System, activity log, user card, invitations), Portainer, WUD, Beszel.
 - [Security](./security.md): how images are chosen, the weekly scan, staying informed.
 
 **Help**
@@ -65,5 +65,5 @@ own reverse proxy, add `--mode proxy` (see [Install](./install.md)).
 
 Self-hosting is community-supported.
 - Questions: [Discussions → Q&A](https://github.com/eleron96/motio/discussions/categories/q-a).
-- Bugs: [open an issue](https://github.com/eleron96/motio/issues/new/choose); `install.sh status` output helps.
+- Bugs: [open an issue](https://github.com/eleron96/motio/issues/new/choose); `install.sh status` output and the support report from **Admin → System** help.
 - Vulnerabilities: privately, as described in [SECURITY.md](https://github.com/eleron96/motio/blob/main/SECURITY.md).

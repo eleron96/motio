@@ -1,5 +1,5 @@
-import React from 'react';
-import { ChevronDown, Plus, Settings } from 'lucide-react';
+import React, { useRef } from 'react';
+import { ChevronDown, Copy, Download, Plus, Settings, Upload } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { Button } from '@/shared/ui/button';
 import {
@@ -14,6 +14,7 @@ import {
 } from '@/shared/ui/dropdown-menu';
 import type { DashboardSummary } from '@/features/dashboard/types/dashboard';
 import type { DashboardManageDialogs } from '@/features/dashboard/hooks/useDashboardManageDialogs';
+import { useDashboardTransfer } from '@/features/dashboard/hooks/useDashboardTransfer';
 
 interface DashboardSwitcherProps {
   dashboards: DashboardSummary[];
@@ -24,9 +25,13 @@ interface DashboardSwitcherProps {
   canCreateDashboard: boolean;
   canDeleteDashboard: boolean;
   dialogs: DashboardManageDialogs;
+  workspaceId: string | null;
 }
 
-/** The dashboard picker and its settings menu (rename, delete). */
+/**
+ * The dashboard picker and its settings menu (rename, delete; duplicate,
+ * export and import where the server allows it).
+ */
 export const DashboardSwitcher: React.FC<DashboardSwitcherProps> = ({
   dashboards,
   currentDashboardId,
@@ -36,7 +41,11 @@ export const DashboardSwitcher: React.FC<DashboardSwitcherProps> = ({
   canCreateDashboard,
   canDeleteDashboard,
   dialogs,
-}) => (
+  workspaceId,
+}) => {
+  const transfer = useDashboardTransfer(workspaceId);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  return (
   <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -92,6 +101,30 @@ export const DashboardSwitcher: React.FC<DashboardSwitcherProps> = ({
         >
           {t`Rename dashboard`}
         </DropdownMenuItem>
+        {transfer.enabled && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={() => void transfer.duplicate()}
+              disabled={!canEdit || !canCreateDashboard || !currentDashboardId}
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              {t`Duplicate dashboard`}
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={transfer.exportToFile} disabled={!currentDashboardId}>
+              <Download className="mr-2 h-4 w-4" />
+              {t`Export to file`}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => fileInputRef.current?.click()}
+              disabled={!canEdit || !canCreateDashboard}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {t`Import from file`}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+          </>
+        )}
         <DropdownMenuItem
           onSelect={dialogs.openDeleteDialog}
           disabled={!canEdit || !canDeleteDashboard}
@@ -101,5 +134,21 @@ export const DashboardSwitcher: React.FC<DashboardSwitcherProps> = ({
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    {transfer.enabled && (
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        aria-hidden="true"
+        tabIndex={-1}
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = '';
+          if (file) void transfer.importFromFile(file);
+        }}
+      />
+    )}
   </>
-);
+  );
+};

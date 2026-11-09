@@ -13,7 +13,8 @@ import {
   selectTimelineGroupItems,
   selectVisibleAssignees,
 } from '@/features/planner/lib/timelineSelectors';
-import { getTaskPosition, MIN_ROW_HEIGHT, TASK_HEIGHT, TASK_GAP } from '@/features/planner/lib/dateUtils';
+import { getTaskPosition } from '@/features/planner/lib/dateUtils';
+import { useTimelineGeometry } from '@/features/planner/hooks/useTimelineGeometry';
 import { TaskBar } from '../TaskBar';
 import { TimeOffBar } from '../TimeOffBar';
 import { resolveAssigneeMinRowHeight } from '../TimelineSidebarRow';
@@ -100,7 +101,11 @@ export const useTaskDisplayRows = ({
   // Read inside the layout memos rather than listed as their dependency: the
   // memory changes after every layout, and depending on it would redo the
   // layout on every render (each scroll step re-renders the grid).
-  const layoutKey = `${layoutScope}|${groupMode}|${JSON.stringify(filters)}`;
+  // Bar and row sizes: the usual ones unless the workspace picked a denser
+  // timeline (server setting timeline.density; computers only).
+  const geometry = useTimelineGeometry();
+  // A density change lays the rows out afresh (rows never shrink within a layout).
+  const layoutKey = `${layoutScope}|${groupMode}|${JSON.stringify(filters)}|${geometry.taskHeight}:${geometry.tieredAvatars}`;
   const layoutMemoryRef = useRef<LayoutMemory>({ key: '', lanesByRow: new Map(), heights: {} });
   const readLayoutMemory = () => (
     layoutMemoryRef.current.key === layoutKey ? layoutMemoryRef.current : null
@@ -167,9 +172,9 @@ export const useTaskDisplayRows = ({
     [filteredTasks, groupItems, groupMode, reservedLaneZeroByRow, layoutKey],
   );
 
-  const effectiveMinRowHeight = groupMode === 'assignee'
-    ? Math.max(MIN_ROW_HEIGHT, resolveAssigneeMinRowHeight(sidebarViewportWidth))
-    : MIN_ROW_HEIGHT;
+  const effectiveMinRowHeight = groupMode === 'assignee' && geometry.tieredAvatars
+    ? Math.max(geometry.minRowHeight, resolveAssigneeMinRowHeight(sidebarViewportWidth))
+    : geometry.minRowHeight;
 
   // A row carrying a bar needs at least one lane even when it has no tasks; the
   // lanes tasks actually use are already packed around the bar.
@@ -185,9 +190,11 @@ export const useTaskDisplayRows = ({
   const rowHeights = useMemo(() => {
     const heights = calculateTimelineRowHeights(tasksByRow, {
       minRowHeight: effectiveMinRowHeight,
-      taskHeight: TASK_HEIGHT,
-      taskGap: TASK_GAP,
+      taskHeight: geometry.taskHeight,
+      taskGap: geometry.taskGap,
       minLanesByRow,
+      rowTopPadding: geometry.rowTopPadding,
+      rowBottomSpace: geometry.rowBottomSpace,
     });
     const previousHeights = readLayoutMemory()?.heights;
     if (!previousHeights) return heights;
@@ -197,7 +204,7 @@ export const useTaskDisplayRows = ({
     });
     return heights;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the memory is read, not tracked (see above)
-  }, [tasksByRow, effectiveMinRowHeight, minLanesByRow, layoutKey]);
+  }, [tasksByRow, effectiveMinRowHeight, minLanesByRow, layoutKey, geometry]);
 
   useEffect(() => {
     const lanesByRow = new Map<string, Map<string, RememberedLane>>();
@@ -249,6 +256,7 @@ export const useTaskDisplayRows = ({
             siblings={rowTimeOff}
             canEditOwn={canManageAnyTimeOff || record.assigneeId === myAssigneeIdForTimeOff}
             onOpenDetail={onOpenTimeOff}
+            geometry={geometry}
           />,
         );
       });
@@ -270,13 +278,14 @@ export const useTaskDisplayRows = ({
             lane={task.lane}
             canEdit={canEdit}
             rowAssigneeId={rowAssigneeId}
+            geometry={geometry}
           />,
         );
       });
       elementsByRowId.set(row.id, taskElements);
     });
     return elementsByRowId;
-  }, [canEdit, canManageAnyTimeOff, dayWidth, displayRows, groupMode, myAssigneeIdForTimeOff, onOpenTimeOff, timeOffIndex, visibleDays]);
+  }, [canEdit, canManageAnyTimeOff, dayWidth, displayRows, groupMode, geometry, myAssigneeIdForTimeOff, onOpenTimeOff, timeOffIndex, visibleDays]);
 
-  return { displayRows, rowTaskElementsById };
+  return { displayRows, rowTaskElementsById, geometry };
 };

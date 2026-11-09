@@ -11,6 +11,7 @@ const { groupState, adminState, toastMock } = vi.hoisted(() => ({
   groupState: {
     enabled: true,
     removeEnabled: false,
+    syncRoles: false,
     mappings: [] as Array<Record<string, unknown>>,
     groups: ['/Design', '/Company/Leads'],
     groupsError: null as string | null,
@@ -53,7 +54,7 @@ describe('AdminGroupWorkspacesPage', () => {
   beforeEach(() => {
     Element.prototype.scrollIntoView = Element.prototype.scrollIntoView ?? (() => undefined);
     Object.assign(groupState, {
-      enabled: true, removeEnabled: false, mappings: [], groupsError: null, loaded: true, loading: false, error: null,
+      enabled: true, removeEnabled: false, syncRoles: false, mappings: [], groupsError: null, loaded: true, loading: false, error: null,
     });
     groupState.load.mockReset();
     groupState.createMapping.mockReset();
@@ -66,7 +67,7 @@ describe('AdminGroupWorkspacesPage', () => {
     groupState.enabled = false;
     render(<AdminGroupWorkspacesPage />);
     expect(screen.getByText(/Turned off on this server/)).toBeInTheDocument();
-    expect(screen.getByText('KEYCLOAK_WORKSPACES_FROM_GROUPS=true')).toBeInTheDocument();
+    expect(screen.getByText('install.sh settings set groups.workspaces on')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Add mapping' })).not.toBeInTheDocument();
   });
 
@@ -76,6 +77,14 @@ describe('AdminGroupWorkspacesPage', () => {
     groupState.removeEnabled = true;
     rerender(<AdminGroupWorkspacesPage />);
     expect(screen.getByText(/the access it gave is taken away at their next visit/)).toBeInTheDocument();
+  });
+
+  it('says whether roles follow the groups', () => {
+    const { rerender } = render(<AdminGroupWorkspacesPage />);
+    expect(screen.getByText('People already in the workspace keep their role.')).toBeInTheDocument();
+    groupState.syncRoles = true;
+    rerender(<AdminGroupWorkspacesPage />);
+    expect(screen.getByText(/the role their group gave follows at their next sign-in/)).toBeInTheDocument();
   });
 
   it('offers the Keycloak groups and maps one to a workspace', async () => {

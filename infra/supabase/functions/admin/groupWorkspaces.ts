@@ -11,13 +11,18 @@ import {
   type GroupWorkspaceRole,
 } from "../_shared/groupWorkspaces.ts";
 import { insertWorkspaceMember } from "./workspaceMembership.ts";
+import type { GroupSyncChange } from "../_shared/adminAudit.ts";
 
 export type GroupWorkspaceDeps = {
   supabaseAdmin: SupabaseClient;
   keycloakConfig: KeycloakConfig;
   removeEnabled: boolean;
+  // groups.syncRoles: a group change also changes the role it gave.
+  syncRoles: boolean;
   // Realm roles mirror memberships for information only (admin/index.ts).
   syncUserRoles: (userId: string, keycloakUserId: string) => Promise<unknown>;
+  // Activity log: what the sync changed (admin/audit.ts). Must not throw.
+  recordChanges?: (userId: string, changes: GroupSyncChange[]) => Promise<void>;
 };
 
 const log = (level: "info" | "warn", entry: Record<string, unknown>) => {
@@ -25,54 +30,81 @@ const log = (level: "info" | "warn", entry: Record<string, unknown>) => {
   if (level === "warn") console.warn(line); else console.info(line);
 };
 
-// Puts the person into the workspaces their groups map to (and, with removal
-// on, takes back what a group gave and no group gives any more). Never throws:
-// a failure here must not keep anyone out of Motio, whoami answers anyway.
+type PersonRef = { userId: string; email: string; keycloakUserId: string };
+
+// What the sync would do for one person right now: the shared reading part of
+// the sync itself and of the admin console's "Check groups now". Throws on a
+// failed read; null when there are no mappings and nothing to take back (then
+// Keycloak is not even asked).
+const planForPerson = async (deps: GroupWorkspaceDeps, person: PersonRef) => {
+  const { supabaseAdmin } = deps;
+  const [mappingsResult, grantsResult] = await Promise.all([
+    supabaseAdmin.from("group_workspace_mappings").select("group_path, workspace_id, role"),
+    supabaseAdmin.from("group_workspace_grants").select("workspace_id, role").eq("user_id", person.userId),
+  ]);
+  if (mappingsResult.error) throw new Error(mappingsResult.error.message);
+  if (grantsResult.error) throw new Error(grantsResult.error.message);
+
+  const mappings = (mappingsResult.data ?? []).map((row) => ({
+    groupPath: row.group_path as string,
+    workspaceId: row.workspace_id as string,
+    role: row.role as GroupWorkspaceRole,
+  })) satisfies GroupWorkspaceMapping[];
+  const grantRows = (grantsResult.data ?? []) as Array<{ workspace_id: string; role: string | null }>;
+  const grantedWorkspaceIds = grantRows.map((row) => row.workspace_id);
+  const grantedRoles = Object.fromEntries(grantRows.map((row) => [row.workspace_id, row.role]));
+  if (mappings.length === 0 && grantedWorkspaceIds.length === 0) return null;
+
+  const membersResult = await supabaseAdmin
+    .from("workspace_members")
+    .select("workspace_id, role, workspaces(owner_id)")
+    .eq("user_id", person.userId);
+  if (membersResult.error) throw new Error(membersResult.error.message);
+  const memberRows = (membersResult.data ?? []) as unknown as Array<{
+    workspace_id: string;
+    role: string;
+    workspaces: { owner_id: string } | null;
+  }>;
+
+  const groups = await getUserGroupPaths(deps.keycloakConfig, person.keycloakUserId);
+  if ("error" in groups) throw new Error(`Keycloak groups: ${groups.error}`);
+
+  const plan = planGroupWorkspaceSync({
+    groupPaths: groups.paths,
+    mappings,
+    memberWorkspaceIds: memberRows.map((row) => row.workspace_id),
+    grantedWorkspaceIds,
+    ownedWorkspaceIds: memberRows
+      .filter((row) => row.workspaces?.owner_id === person.userId)
+      .map((row) => row.workspace_id),
+    removeEnabled: deps.removeEnabled,
+    syncRoles: deps.syncRoles,
+    memberRoles: Object.fromEntries(memberRows.map((row) => [row.workspace_id, row.role])),
+    grantedRoles,
+  });
+  return { plan, groupPaths: groups.paths };
+};
+
+/** "Check groups now" in the admin console: the plan, nothing changed. Throws on a failed read. */
+export const previewWorkspacesFromGroups = async (deps: GroupWorkspaceDeps, person: PersonRef) => (
+  planForPerson(deps, person)
+);
+
+// Puts the person into the workspaces their groups map to (with removal on,
+// takes back what a group gave and no group gives any more; with role sync on,
+// moves a group-given role along with the groups unless someone changed it by
+// hand). Never throws: a failure here must not keep anyone out of Motio, whoami
+// answers anyway.
 export const syncWorkspacesFromGroups = async (
   deps: GroupWorkspaceDeps,
-  person: { userId: string; email: string; keycloakUserId: string },
+  person: PersonRef,
 ): Promise<{ changed: boolean }> => {
   const { supabaseAdmin } = deps;
   try {
-    const [mappingsResult, grantsResult] = await Promise.all([
-      supabaseAdmin.from("group_workspace_mappings").select("group_path, workspace_id, role"),
-      supabaseAdmin.from("group_workspace_grants").select("workspace_id").eq("user_id", person.userId),
-    ]);
-    if (mappingsResult.error) throw new Error(mappingsResult.error.message);
-    if (grantsResult.error) throw new Error(grantsResult.error.message);
-
-    const mappings = (mappingsResult.data ?? []).map((row) => ({
-      groupPath: row.group_path as string,
-      workspaceId: row.workspace_id as string,
-      role: row.role as GroupWorkspaceRole,
-    })) satisfies GroupWorkspaceMapping[];
-    const grantedWorkspaceIds = (grantsResult.data ?? []).map((row) => row.workspace_id as string);
+    const planned = await planForPerson(deps, person);
     // Nothing to do and nothing to take back: no question to Keycloak.
-    if (mappings.length === 0 && grantedWorkspaceIds.length === 0) return { changed: false };
-
-    const membersResult = await supabaseAdmin
-      .from("workspace_members")
-      .select("workspace_id, workspaces(owner_id)")
-      .eq("user_id", person.userId);
-    if (membersResult.error) throw new Error(membersResult.error.message);
-    const memberRows = (membersResult.data ?? []) as unknown as Array<{
-      workspace_id: string;
-      workspaces: { owner_id: string } | null;
-    }>;
-
-    const groups = await getUserGroupPaths(deps.keycloakConfig, person.keycloakUserId);
-    if ("error" in groups) throw new Error(`Keycloak groups: ${groups.error}`);
-
-    const plan = planGroupWorkspaceSync({
-      groupPaths: groups.paths,
-      mappings,
-      memberWorkspaceIds: memberRows.map((row) => row.workspace_id),
-      grantedWorkspaceIds,
-      ownedWorkspaceIds: memberRows
-        .filter((row) => row.workspaces?.owner_id === person.userId)
-        .map((row) => row.workspace_id),
-      removeEnabled: deps.removeEnabled,
-    });
+    if (!planned) return { changed: false };
+    const { plan } = planned;
 
     const added: string[] = [];
     const limited: string[] = [];
@@ -92,9 +124,36 @@ export const syncWorkspacesFromGroups = async (
         added.push(workspaceId);
         const { error } = await supabaseAdmin
           .from("group_workspace_grants")
-          .upsert({ user_id: person.userId, workspace_id: workspaceId });
+          .upsert({ user_id: person.userId, workspace_id: workspaceId, role });
         if (error) throw new Error(error.message);
       }
+    }
+
+    const roleChanged: string[] = [];
+    for (const { workspaceId, role } of plan.changeRole) {
+      const { error } = await supabaseAdmin
+        .from("workspace_members")
+        .update({ role })
+        .eq("workspace_id", workspaceId)
+        .eq("user_id", person.userId);
+      if (error) throw new Error(error.message);
+      const { error: grantError } = await supabaseAdmin
+        .from("group_workspace_grants")
+        .update({ role })
+        .eq("workspace_id", workspaceId)
+        .eq("user_id", person.userId);
+      if (grantError) throw new Error(grantError.message);
+      roleChanged.push(workspaceId);
+    }
+
+    for (const { workspaceId, role } of plan.recordGrantRoles) {
+      const { error } = await supabaseAdmin
+        .from("group_workspace_grants")
+        .update({ role })
+        .eq("workspace_id", workspaceId)
+        .eq("user_id", person.userId)
+        .is("role", null);
+      if (error) throw new Error(error.message);
     }
 
     const removed: string[] = [];
@@ -118,11 +177,25 @@ export const syncWorkspacesFromGroups = async (
       if (error) throw new Error(error.message);
     }
 
-    const changed = added.length > 0 || removed.length > 0;
+    const changed = added.length > 0 || removed.length > 0 || roleChanged.length > 0;
     if (changed) {
       await deps.syncUserRoles(person.userId, person.keycloakUserId).catch(() => undefined);
-      log("info", { action: "sync", entityId: person.userId, result: "success", added, removed });
+      log("info", { action: "sync", entityId: person.userId, result: "success", added, removed, roleChanged });
     }
+    if (plan.manualRoles.length > 0) {
+      log("info", { action: "sync", entityId: person.userId, result: "manual_override", workspaceIds: plan.manualRoles });
+    }
+    // Only real changes reach the activity log: what holds the sync back (a
+    // hand-set role, the five-workspace limit) would repeat on every visit and
+    // stays in the functions log above.
+    const changes: GroupSyncChange[] = [
+      ...plan.add
+        .filter(({ workspaceId }) => added.includes(workspaceId))
+        .map(({ workspaceId, role }) => ({ kind: "added" as const, workspaceId, role })),
+      ...removed.map((workspaceId) => ({ kind: "removed" as const, workspaceId })),
+      ...plan.changeRole.map(({ workspaceId, role, from }) => ({ kind: "roleChanged" as const, workspaceId, from, role })),
+    ];
+    if (changes.length > 0 && deps.recordChanges) await deps.recordChanges(person.userId, changes);
     if (limited.length > 0) {
       log("warn", { action: "sync", entityId: person.userId, result: "limit_reached", workspaceIds: limited });
     }
@@ -171,6 +244,7 @@ export const listGroupWorkspaceMappings = async (deps: GroupWorkspaceDeps) => {
     groups: "error" in groups ? [] : groups.paths,
     groupsError: "error" in groups ? groups.error : null,
     removeEnabled: deps.removeEnabled,
+    syncRoles: deps.syncRoles,
   };
 };
 

@@ -62,6 +62,24 @@ const adminWorkspacesAddMemberRequestSchema = z.object({
   role: z.enum(INVITE_ROLE_VALUES),
 }).strict();
 
+const adminWorkspacesMembersRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.WORKSPACES_MEMBERS),
+  workspaceId: z.string().min(1),
+}).strict();
+
+const adminWorkspacesSetMemberRoleRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.WORKSPACES_SET_MEMBER_ROLE),
+  workspaceId: z.string().min(1),
+  userId: z.string().min(1),
+  role: z.enum(INVITE_ROLE_VALUES),
+}).strict();
+
+const adminWorkspacesRemoveMemberRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.WORKSPACES_REMOVE_MEMBER),
+  workspaceId: z.string().min(1),
+  userId: z.string().min(1),
+}).strict();
+
 // Keycloak group → workspace mappings (self-hosted, KEYCLOAK_WORKSPACES_FROM_GROUPS).
 const adminGroupWorkspacesListRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.GROUP_WORKSPACES_LIST),
@@ -231,6 +249,44 @@ const adminSystemTestEmailRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.SYSTEM_TEST_EMAIL),
 }).strict();
 
+// Settings section: server switches (instance_settings, 0176). value null = back to the default.
+const adminSettingsListRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.SETTINGS_LIST),
+}).strict();
+
+const adminSettingsUpdateRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.SETTINGS_UPDATE),
+  key: z.string().min(1).max(100),
+  value: z.boolean().nullable(),
+}).strict();
+
+const adminAuditListRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.AUDIT_LIST),
+  before: z.number().int().positive().optional(),
+}).strict();
+
+const adminUsersDiagnoseRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.USERS_DIAGNOSE),
+  userId: z.string().min(1),
+}).strict();
+
+const adminSystemSignInRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.SYSTEM_SIGN_IN),
+}).strict();
+
+const adminSystemReportRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.SYSTEM_REPORT),
+}).strict();
+
+const adminInvitesListRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.INVITES_LIST),
+}).strict();
+
+const adminInvitesRevokeRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.INVITES_REVOKE),
+  inviteId: z.string().min(1),
+}).strict();
+
 export const adminRequestSchema = z.discriminatedUnion('action', [
   adminBootstrapSyncRequestSchema,
   adminUsersListRequestSchema,
@@ -242,6 +298,9 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminWorkspacesUpdateRequestSchema,
   adminWorkspacesDeleteRequestSchema,
   adminWorkspacesAddMemberRequestSchema,
+  adminWorkspacesMembersRequestSchema,
+  adminWorkspacesSetMemberRoleRequestSchema,
+  adminWorkspacesRemoveMemberRequestSchema,
   adminGroupWorkspacesListRequestSchema,
   adminGroupWorkspacesCreateRequestSchema,
   adminGroupWorkspacesDeleteRequestSchema,
@@ -267,6 +326,14 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminAnnouncementsResetReadsRequestSchema,
   adminSystemStatusRequestSchema,
   adminSystemTestEmailRequestSchema,
+  adminSettingsListRequestSchema,
+  adminSettingsUpdateRequestSchema,
+  adminAuditListRequestSchema,
+  adminUsersDiagnoseRequestSchema,
+  adminSystemSignInRequestSchema,
+  adminSystemReportRequestSchema,
+  adminInvitesListRequestSchema,
+  adminInvitesRevokeRequestSchema,
 ]);
 
 export type AdminRequest = z.infer<typeof adminRequestSchema>;

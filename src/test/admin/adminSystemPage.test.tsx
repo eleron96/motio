@@ -37,13 +37,35 @@ describe('isNewerVersion', () => {
   });
 });
 
+// The page asks for its status, the sign-in checks card for the realm, and the
+// test email button for a send: answer each by its action, in the order a test
+// queues them for that action.
+const answers = new Map<string, unknown[]>();
+const queue = (action: string, ...values: unknown[]) => {
+  answers.set(action, [...(answers.get(action) ?? []), ...values]);
+};
+const mockByAction = {
+  mockResolvedValueOnce(value: { data?: Record<string, unknown> }) {
+    const key = value.data && 'status' in value.data ? 'system.status' : 'system.testEmail';
+    queue(key, value);
+    return mockByAction;
+  },
+};
+
 describe('AdminSystemPage', () => {
   beforeEach(() => {
+    answers.clear();
     invoke.mockReset();
+    invoke.mockImplementation(async (payload: { action: string }) => {
+      const list = answers.get(payload.action) ?? [];
+      if (list.length > 0) return list.shift();
+      if (payload.action === 'system.signIn') return { error: 'not in this test' };
+      return { error: `no answer for ${payload.action}` };
+    });
   });
 
   it('shows services, an available update with the command, and what is switched on', async () => {
-    invoke.mockResolvedValueOnce({ data: { status: status() } });
+    mockByAction.mockResolvedValueOnce({ data: { status: status() } });
     render(<AdminSystemPage />);
 
     expect(await screen.findByText('Version v0.11.0 is available.')).toBeInTheDocument();
@@ -55,7 +77,7 @@ describe('AdminSystemPage', () => {
   });
 
   it('does not show the update command on the public site', async () => {
-    invoke.mockResolvedValueOnce({ data: { status: status({ selfHosted: false }) } });
+    mockByAction.mockResolvedValueOnce({ data: { status: status({ selfHosted: false }) } });
     render(<AdminSystemPage />);
 
     expect(await screen.findByText('Version v0.11.0 is available.')).toBeInTheDocument();
@@ -63,7 +85,7 @@ describe('AdminSystemPage', () => {
   });
 
   it('reports the outcome of a test email', async () => {
-    invoke
+    mockByAction
       .mockResolvedValueOnce({ data: { status: status({ latestRelease: null, updateCheck: 'disabled' }) } })
       .mockResolvedValueOnce({ data: { result: { status: 'not_configured' } } });
     const user = userEvent.setup();
@@ -72,6 +94,20 @@ describe('AdminSystemPage', () => {
     expect(await screen.findByText('Update check is off (MOTIO_UPDATE_CHECK=false).')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Send test email' }));
     expect(await screen.findByText('Email is not configured: no SMTP server in the settings.')).toBeInTheDocument();
-    expect(invoke).toHaveBeenLastCalledWith({ action: 'system.testEmail' });
+    expect(invoke).toHaveBeenCalledWith({ action: 'system.testEmail' });
+  });
+
+  it('names MAILER_DRY_RUN when it keeps email off although an SMTP server is set', async () => {
+    mockByAction
+      .mockResolvedValueOnce({ data: { status: status({
+        configured: { email: false, emailOffReason: 'dry_run_flag', push: true, errorTracking: false },
+      }) } })
+      .mockResolvedValueOnce({ data: { result: { status: 'not_configured', reason: 'dry_run_flag' } } });
+    const user = userEvent.setup();
+    render(<AdminSystemPage />);
+
+    expect(await screen.findByText(/MAILER_DRY_RUN=1 in .env keeps Motio's own emails/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Send test email' }));
+    expect(await screen.findByText(/Email is turned off: MAILER_DRY_RUN=1 in .env/)).toBeInTheDocument();
   });
 });

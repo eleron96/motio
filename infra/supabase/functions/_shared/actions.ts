@@ -10,6 +10,10 @@ export const ADMIN_ACTIONS = {
   WORKSPACES_DELETE: 'workspaces.delete',
   // A super admin adds an existing account to a workspace, no invitation needed.
   WORKSPACES_ADD_MEMBER: 'workspaces.addMember',
+  // Members of one workspace, a role change and a removal by a super admin.
+  WORKSPACES_MEMBERS: 'workspaces.members',
+  WORKSPACES_SET_MEMBER_ROLE: 'workspaces.setMemberRole',
+  WORKSPACES_REMOVE_MEMBER: 'workspaces.removeMember',
   // Self-hosted installs: Keycloak group → workspace mappings (KEYCLOAK_WORKSPACES_FROM_GROUPS).
   GROUP_WORKSPACES_LIST: 'groupWorkspaces.list',
   GROUP_WORKSPACES_CREATE: 'groupWorkspaces.create',
@@ -38,6 +42,17 @@ export const ADMIN_ACTIONS = {
   // System section: read-only status of the install and a test email.
   SYSTEM_STATUS: 'system.status',
   SYSTEM_TEST_EMAIL: 'system.testEmail',
+  // Settings section: server switches, all off by default (instance_settings, 0176).
+  SETTINGS_LIST: 'settings.list',
+  SETTINGS_UPDATE: 'settings.update',
+  // Activity log, one person's sign-in diagnosis, the sign-in checks, the
+  // support report and open invitations across workspaces.
+  AUDIT_LIST: 'audit.list',
+  USERS_DIAGNOSE: 'users.diagnose',
+  SYSTEM_SIGN_IN: 'system.signIn',
+  SYSTEM_REPORT: 'system.report',
+  INVITES_LIST: 'invites.list',
+  INVITES_REVOKE: 'invites.revoke',
 } as const;
 
 export const PUSH_ACTIONS = {

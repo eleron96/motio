@@ -41,6 +41,9 @@ const AdminGroupWorkspacesPage = lazyDefault(() => import("@/features/admin/page
 const AdminEasterEggsPage = lazyDefault(() => import("@/features/admin/pages/AdminEasterEggsPage"), "AdminEasterEggsPage");
 const AdminBackupsPage = lazyDefault(() => import("@/features/admin/pages/AdminBackupsPage"), "AdminBackupsPage");
 const AdminSystemPage = lazyDefault(() => import("@/features/admin/pages/AdminSystemPage"), "AdminSystemPage");
+const AdminSettingsPage = lazyDefault(() => import("@/features/admin/pages/AdminSettingsPage"), "AdminSettingsPage");
+const AdminAuditPage = lazyDefault(() => import("@/features/admin/pages/AdminAuditPage"), "AdminAuditPage");
+const AdminInvitationsPage = lazyDefault(() => import("@/features/admin/pages/AdminInvitationsPage"), "AdminInvitationsPage");
 const AdminBroadcastPage = lazyDefault(() => import("@/features/admin/pages/AdminBroadcastPage"), "AdminBroadcastPage");
 const PlannerPage = lazyDefault(() => import("@/features/planner/pages/PlannerPage"), "PlannerPage");
 const DashboardPage = lazyDefault(() => import("@/features/dashboard/pages/DashboardPage"), "DashboardPage");
@@ -101,6 +104,9 @@ const App = () => {
                     <Route path="/app/admin/broadcast" element={<AdminBroadcastPage />} />
                     <Route path="/app/admin/backups" element={<AdminBackupsPage />} />
                     <Route path="/app/admin/system" element={<AdminSystemPage />} />
+                    <Route path="/app/admin/settings" element={<AdminSettingsPage />} />
+                    <Route path="/app/admin/activity" element={<AdminAuditPage />} />
+                    <Route path="/app/admin/invitations" element={<AdminInvitationsPage />} />
                   </Route>
                   <Route
                     element={(

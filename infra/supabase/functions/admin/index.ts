@@ -12,7 +12,31 @@ import {
   type GroupWorkspaceDeps,
 } from "./groupWorkspaces.ts";
 import { insertWorkspaceMember } from "./workspaceMembership.ts";
-import { GROUP_WORKSPACE_ROLES, isSettingOn, type GroupWorkspaceRole } from "../_shared/groupWorkspaces.ts";
+import {
+  listWorkspaceMembers,
+  removeWorkspaceMember,
+  setWorkspaceMemberRole,
+  type AdminMemberRole,
+  type WorkspaceMembersDeps,
+} from "./workspaceMembers.ts";
+import { GROUP_WORKSPACE_ROLES, type GroupWorkspaceRole } from "../_shared/groupWorkspaces.ts";
+import { adminAuditEntry, groupSyncAuditEntries } from "../_shared/adminAudit.ts";
+import { auditContextBefore, listAuditEntries, writeAuditEntries } from "./audit.ts";
+import { diagnoseUser } from "./userDiagnostics.ts";
+import { readSignInChecks } from "./signInChecks.ts";
+import { readReportCounts } from "./report.ts";
+import { listOpenInvitations, revokeInvitation } from "./invitations.ts";
+import {
+  listInstanceSettingsForAdmin,
+  loadInstanceSettings,
+  loadInstanceSettingValues,
+  updateInstanceSetting,
+} from "./instanceSettings.ts";
+import {
+  clientInstanceSettingValues,
+  instanceSettingValues,
+  type InstanceSettingValues,
+} from "../_shared/instanceSettings.ts";
 import {
   APP_REALM_ROLES,
   type AppRealmRole,
@@ -39,7 +63,7 @@ import {
   type RoleSnapshot,
   type WorkspaceRole,
 } from "../_shared/supabaseAuth.ts";
-import { decideSuperAdminAccess, isSuperAdminFromGroupsEnabled } from "../_shared/superAdminAccess.ts";
+import { decideSuperAdminAccess } from "../_shared/superAdminAccess.ts";
 import { resolveAnnouncementTexts } from "../_shared/announcementTexts.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
@@ -50,11 +74,9 @@ const { supabaseAdmin } = createSupabaseClients(supabaseUrl, serviceRoleKey);
 
 const reserveAdminEmail = (Deno.env.get("RESERVE_ADMIN_EMAIL") ?? "").trim().toLowerCase();
 const reserveAdminPassword = Deno.env.get("RESERVE_ADMIN_PASSWORD") ?? "";
-const superAdminFromGroups = isSuperAdminFromGroupsEnabled(Deno.env.get("KEYCLOAK_SUPER_ADMIN_FROM_GROUPS"));
-// Self-hosted installs: Keycloak groups put people into workspaces when they
-// open Motio (admin/groupWorkspaces.ts). Off by default, and on motio.nikog.net.
-const workspacesFromGroups = isSettingOn(Deno.env.get("KEYCLOAK_WORKSPACES_FROM_GROUPS"));
-const workspacesFromGroupsRemove = isSettingOn(Deno.env.get("KEYCLOAK_WORKSPACES_FROM_GROUPS_REMOVE"));
+// Super admin from groups and workspaces from groups are server settings now
+// (Admin → Settings; the older .env keys still turn them on): read per request
+// through loadInstanceSettingValues, off by default and on motio.nikog.net.
 
 const keycloakConfig = getKeycloakConfig();
 const keycloakIssuer = `${keycloakConfig.baseUrl}/realms/${keycloakConfig.realm}`;
@@ -121,6 +143,21 @@ const adminRequestSchema = z.discriminatedUnion("action", [
     workspaceId: z.string().min(1),
     userId: z.string().min(1),
     role: z.enum(INVITE_ROLE_VALUES),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.WORKSPACES_MEMBERS),
+    workspaceId: z.string().min(1),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.WORKSPACES_SET_MEMBER_ROLE),
+    workspaceId: z.string().min(1),
+    userId: z.string().min(1),
+    role: z.enum(INVITE_ROLE_VALUES),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.WORKSPACES_REMOVE_MEMBER),
+    workspaceId: z.string().min(1),
+    userId: z.string().min(1),
   }).strict(),
   z.object({
     action: z.literal(ADMIN_ACTIONS.GROUP_WORKSPACES_LIST),
@@ -254,6 +291,35 @@ const adminRequestSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal(ADMIN_ACTIONS.SYSTEM_TEST_EMAIL),
   }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.SETTINGS_LIST),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.SETTINGS_UPDATE),
+    key: z.string().min(1).max(100),
+    value: z.boolean().nullable(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.AUDIT_LIST),
+    before: z.number().int().positive().optional(),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.USERS_DIAGNOSE),
+    userId: z.string().min(1),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.SYSTEM_SIGN_IN),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.SYSTEM_REPORT),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.INVITES_LIST),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.INVITES_REVOKE),
+    inviteId: z.string().min(1),
+  }).strict(),
 ]);
 
 const jsonResponse = (body: Record<string, unknown>, status = 200) =>
@@ -333,6 +399,7 @@ const ensureSuperAdmin = async (userId: string) => {
     return false;
   }
 
+  const superAdminFromGroups = (await loadInstanceSettingValues(supabaseAdmin))["groups.superAdmin"];
   let effectiveRoleNames: string[] = [];
   if (superAdminFromGroups) {
     const effectiveRoles = await getUserEffectiveRealmRoles(keycloakConfig, providerId);
@@ -950,32 +1017,59 @@ const handleWorkspacesAddMember = async (payload: { workspaceId: string; userId:
   return jsonResponse({ success: true, outcome: "added" });
 };
 
-const groupWorkspaceDeps: GroupWorkspaceDeps = {
-  supabaseAdmin,
-  keycloakConfig,
-  removeEnabled: workspacesFromGroupsRemove,
-  syncUserRoles: (userId, keycloakUserId) => syncUserRoles(userId, keycloakUserId),
+// Realm roles mirror memberships for information only: after a super admin
+// changes a membership, bring them in line through the person's Keycloak
+// identity (none — nothing to do). A failure is logged, the change stays.
+const syncRolesOfUser = async (userId: string) => {
+  const identityResult = await findKeycloakIdentityForUser(supabaseAdmin, userId);
+  const keycloakUserId = "error" in identityResult ? null : identityResult.identity?.providerId ?? null;
+  if (!keycloakUserId) return;
+  const roleSync = await syncUserRoles(userId, keycloakUserId);
+  if ("error" in roleSync) {
+    console.warn(JSON.stringify({
+      module: "admin.workspace-members",
+      action: "syncRealmRoles",
+      entityId: userId,
+      result: "role_sync_failed",
+      message: roleSync.error,
+    }));
+  }
 };
 
+const workspaceMembersDeps: WorkspaceMembersDeps = {
+  supabaseAdmin,
+  syncRolesOf: syncRolesOfUser,
+};
+
+const groupWorkspaceDeps = (settings: InstanceSettingValues): GroupWorkspaceDeps => ({
+  supabaseAdmin,
+  keycloakConfig,
+  removeEnabled: settings["groups.removeOnLeave"],
+  syncRoles: settings["groups.syncRoles"],
+  syncUserRoles: (userId, keycloakUserId) => syncUserRoles(userId, keycloakUserId),
+  recordChanges: (userId, changes) => writeAuditEntries(supabaseAdmin, null, groupSyncAuditEntries(userId, changes)),
+});
+
 const handleGroupWorkspaces = async (action: string, payload: unknown, actorId: string) => {
-  if (!workspacesFromGroups) {
+  const settings = await loadInstanceSettingValues(supabaseAdmin);
+  if (!settings["groups.workspaces"]) {
     if (action === ADMIN_ACTIONS.GROUP_WORKSPACES_LIST) {
-      return jsonResponse({ enabled: false, removeEnabled: false, mappings: [], groups: [], groupsError: null });
+      return jsonResponse({ enabled: false, removeEnabled: false, syncRoles: false, mappings: [], groups: [], groupsError: null });
     }
-    return jsonResponse({ error: "Workspaces from groups is turned off (KEYCLOAK_WORKSPACES_FROM_GROUPS)." }, 409);
+    return jsonResponse({ error: "Workspaces from groups is turned off (Admin → Settings)." }, 409);
   }
   if (action === ADMIN_ACTIONS.GROUP_WORKSPACES_LIST) {
-    const listed = await listGroupWorkspaceMappings(groupWorkspaceDeps);
+    const listed = await listGroupWorkspaceMappings(groupWorkspaceDeps(settings));
     if ("error" in listed) return jsonResponse({ error: listed.error }, 500);
     return jsonResponse({ enabled: true, ...listed });
   }
   if (action === ADMIN_ACTIONS.GROUP_WORKSPACES_CREATE) {
     const input = payload as { groupPath: string; workspaceId: string; role: GroupWorkspaceRole };
-    const created = await createGroupWorkspaceMapping(groupWorkspaceDeps, { ...input, createdBy: actorId });
+    const created = await createGroupWorkspaceMapping(groupWorkspaceDeps(settings), { ...input, createdBy: actorId });
     if ("error" in created) return jsonResponse({ error: created.error }, created.status);
     return jsonResponse({ success: true, outcome: created.outcome });
   }
-  const deleted = await deleteGroupWorkspaceMapping(groupWorkspaceDeps, (payload as { id: string }).id);
+  const deleted = await deleteGroupWorkspaceMapping(groupWorkspaceDeps(settings), (payload as { id: string }).id);
   if ("error" in deleted) return jsonResponse({ error: deleted.error }, 500);
   return jsonResponse({ success: true });
 };
@@ -1900,8 +1994,13 @@ export const handler = async (req: Request) => {
   // in the app without any manual table edits.
   if (action === ADMIN_ACTIONS.SUPER_ADMINS_WHOAMI) {
     const whoamiIsSuperAdmin = await ensureSuperAdmin(authResult.user.id);
-    if (!workspacesFromGroups) {
-      return jsonResponse({ isSuperAdmin: whoamiIsSuperAdmin });
+    // The server settings the app needs (all off by default) ride along: no
+    // extra request on every visit.
+    const resolvedSettings = await loadInstanceSettings(supabaseAdmin);
+    const settings = instanceSettingValues(resolvedSettings);
+    const clientSettings = clientInstanceSettingValues(resolvedSettings);
+    if (!settings["groups.workspaces"]) {
+      return jsonResponse({ isSuperAdmin: whoamiIsSuperAdmin, settings: clientSettings });
     }
     // Workspaces from groups: whoami runs each time someone opens Motio, before
     // the app decides whether to create their first workspace. The client
@@ -1909,7 +2008,7 @@ export const handler = async (req: Request) => {
     const identity = await findKeycloakIdentityForUser(supabaseAdmin, authResult.user.id);
     const keycloakUserId = "error" in identity ? null : identity.identity?.providerId ?? null;
     const sync = keycloakUserId
-      ? await syncWorkspacesFromGroups(groupWorkspaceDeps, {
+      ? await syncWorkspacesFromGroups(groupWorkspaceDeps(settings), {
         userId: authResult.user.id,
         email: authResult.user.email ?? "",
         keycloakUserId,
@@ -1919,6 +2018,7 @@ export const handler = async (req: Request) => {
       isSuperAdmin: whoamiIsSuperAdmin,
       groupWorkspaces: true,
       workspacesChanged: sync.changed,
+      settings: clientSettings,
     });
   }
 
@@ -1929,6 +2029,12 @@ export const handler = async (req: Request) => {
 
   await ensureReserveAdminOnce();
 
+  // Activity log: what is recorded is decided by adminAuditEntry; a workspace's
+  // name is read before it can disappear.
+  const auditPayload = payload as Record<string, unknown>;
+  const auditBefore = await auditContextBefore(supabaseAdmin, action, auditPayload);
+
+  const response = await (async () => {
   switch (action) {
     case ADMIN_ACTIONS.SYSTEM_STATUS:
       return jsonResponse({
@@ -1936,6 +2042,47 @@ export const handler = async (req: Request) => {
       });
     case ADMIN_ACTIONS.SYSTEM_TEST_EMAIL:
       return jsonResponse({ result: await sendTestEmail(authResult.user.id, authResult.user.email) });
+    case ADMIN_ACTIONS.SETTINGS_LIST:
+      return jsonResponse({ settings: await listInstanceSettingsForAdmin(supabaseAdmin) });
+    case ADMIN_ACTIONS.AUDIT_LIST: {
+      const listed = await listAuditEntries(supabaseAdmin, (payload as { before?: number }).before);
+      if ("error" in listed) return jsonResponse({ error: listed.error }, 500);
+      return jsonResponse(listed);
+    }
+    case ADMIN_ACTIONS.USERS_DIAGNOSE: {
+      const settings = await loadInstanceSettingValues(supabaseAdmin);
+      const diagnosis = await diagnoseUser(
+        { supabaseAdmin, keycloakConfig, settings, groupDeps: groupWorkspaceDeps(settings) },
+        (payload as { userId: string }).userId,
+      );
+      if ("error" in diagnosis) return jsonResponse({ error: diagnosis.error }, diagnosis.status);
+      return jsonResponse({ diagnosis });
+    }
+    case ADMIN_ACTIONS.SYSTEM_SIGN_IN: {
+      const keycloakReady = ensureKeycloakReady(keycloakConfig);
+      if ("error" in keycloakReady) return jsonResponse({ error: keycloakReady.error }, 503);
+      const checks = await readSignInChecks(keycloakConfig, await loadInstanceSettingValues(supabaseAdmin));
+      if ("error" in checks) return jsonResponse({ error: checks.error }, 502);
+      return jsonResponse({ checks });
+    }
+    case ADMIN_ACTIONS.SYSTEM_REPORT:
+      return jsonResponse({ counts: await readReportCounts(supabaseAdmin) });
+    case ADMIN_ACTIONS.INVITES_LIST: {
+      const listed = await listOpenInvitations(supabaseAdmin);
+      if ("error" in listed) return jsonResponse({ error: listed.error }, 500);
+      return jsonResponse(listed);
+    }
+    case ADMIN_ACTIONS.INVITES_REVOKE: {
+      const revoked = await revokeInvitation(supabaseAdmin, (payload as { inviteId: string }).inviteId);
+      if ("error" in revoked) return jsonResponse({ error: revoked.error }, revoked.status);
+      return jsonResponse({ success: true, outcome: revoked.outcome });
+    }
+    case ADMIN_ACTIONS.SETTINGS_UPDATE: {
+      const input = payload as { key: string; value: boolean | null };
+      const updated = await updateInstanceSetting(supabaseAdmin, { ...input, actorId: authResult.user.id });
+      if ("error" in updated) return jsonResponse({ error: updated.error }, updated.status);
+      return jsonResponse({ settings: await listInstanceSettingsForAdmin(supabaseAdmin) });
+    }
     case ADMIN_ACTIONS.USERS_LIST:
       return handleUsersList(payload as { search?: string; includeSuperAdmins?: boolean });
     case ADMIN_ACTIONS.USERS_CREATE:
@@ -1954,6 +2101,23 @@ export const handler = async (req: Request) => {
       return handleWorkspacesDelete(payload as { workspaceId?: string });
     case ADMIN_ACTIONS.WORKSPACES_ADD_MEMBER:
       return handleWorkspacesAddMember(payload as { workspaceId: string; userId: string; role: WorkspaceRole });
+    case ADMIN_ACTIONS.WORKSPACES_MEMBERS: {
+      const listed = await listWorkspaceMembers(workspaceMembersDeps, (payload as { workspaceId: string }).workspaceId);
+      if ("error" in listed) return jsonResponse({ error: listed.error }, listed.status);
+      return jsonResponse({ members: listed.members });
+    }
+    case ADMIN_ACTIONS.WORKSPACES_SET_MEMBER_ROLE: {
+      const input = payload as { workspaceId: string; userId: string; role: AdminMemberRole };
+      const changed = await setWorkspaceMemberRole(workspaceMembersDeps, { ...input, actorId: authResult.user.id });
+      if ("error" in changed) return jsonResponse({ error: changed.error }, changed.status);
+      return jsonResponse({ success: true, outcome: changed.outcome });
+    }
+    case ADMIN_ACTIONS.WORKSPACES_REMOVE_MEMBER: {
+      const input = payload as { workspaceId: string; userId: string };
+      const removed = await removeWorkspaceMember(workspaceMembersDeps, { ...input, actorId: authResult.user.id });
+      if ("error" in removed) return jsonResponse({ error: removed.error }, removed.status);
+      return jsonResponse({ success: true, outcome: removed.outcome });
+    }
     case ADMIN_ACTIONS.GROUP_WORKSPACES_LIST:
     case ADMIN_ACTIONS.GROUP_WORKSPACES_CREATE:
     case ADMIN_ACTIONS.GROUP_WORKSPACES_DELETE:
@@ -2049,6 +2213,17 @@ export const handler = async (req: Request) => {
     default:
       return jsonResponse({ error: "Unknown action" }, 400);
   }
+  })();
+
+  if (response.status < 300) {
+    const auditEntry = adminAuditEntry(action, auditPayload);
+    if (auditEntry) {
+      await writeAuditEntries(supabaseAdmin, authResult.user.id, [
+        { ...auditEntry, details: { ...auditBefore, ...auditEntry.details } },
+      ]);
+    }
+  }
+  return response;
 };
 
 if (import.meta.main) {

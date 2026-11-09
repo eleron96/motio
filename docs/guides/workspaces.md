@@ -39,6 +39,10 @@ you can change depends on your [role](#roles).
 - **Workspace name.**
 - **Holiday calendar** — the country whose public holidays are hatched on the timeline
   and counted on the heatmap, and optionally a **Region** with holidays of its own.
+- **Days off for everyone** (where your server allows it) — a company closure or
+  collective leave: a name and the first and last day. These days look like public
+  holidays on the timeline, in the calendar and on the heatmap; nobody's own time off
+  changes. Admins add, change and delete them.
 
 ### Display
 
@@ -49,6 +53,10 @@ you can change depends on your [role](#roles).
 - **Workload heatmap** (*experimental*) — turns on
   [the heatmap](./dashboard.md#workload-heatmap) for everyone, with an optional
   **Full working day** that counts as 100%.
+- **Timeline density** (where your server allows it) — **Normal**, **Small photos** (a
+  small photo next to the name, rows only as tall as their tasks) or **Compact** (small
+  photos and one-line tasks, about twice as many people on screen). It applies to
+  everyone in the workspace on a computer; phones keep the usual layout.
 
 ### Members and access
 

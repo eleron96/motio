@@ -16,9 +16,33 @@ The same picture is in the browser: sign in as a super admin and open
 - the version, and a newer release with the exact update command;
 - whether each service answers;
 - which features and server settings are on (yes or no only, never the values);
-- **Send test email**, to check [email](./email.md).
+- **Send test email**, to check [email](./email.md);
+- **Sign-in checks**: whether sign-up is open, address confirmation, Keycloak's
+  mail, and for each external sign-in provider Trust Email, Sync mode and group
+  mappers — with what needs attention (for example Trust Email off while
+  addresses must be confirmed);
+- **Support report**: one file with versions, switches, service health, sign-in
+  configuration and counts, without names, addresses or secrets. Attach it to a
+  bug report.
 
 It only reads: updating stays `install.sh update` on the server.
+
+## The admin console's other tools
+
+- **Admin → Activity log** (`/app/admin/activity`): what super admins changed in
+  the console (settings, members and roles, workspaces, group mappings,
+  broadcasts, announcements) and what the group sync did on its own — who joined
+  through a group, who was taken out, whose role followed the group. Settings
+  changed with `install.sh settings` are there too. Backups and Keycloak's own
+  console keep their own logs.
+- **Admin → Users → Details**: a person's workspaces and how they sign in — the
+  Keycloak account (on or off, address confirmed, what Keycloak will ask at the
+  next sign-in), the providers it is linked to, its Keycloak groups, where super
+  admin comes from, and what the group sync would do at their next visit. Nothing
+  is changed by looking.
+- **Admin → Invitations** (`/app/admin/invitations`): every invitation nobody has
+  answered, in every workspace, with **Copy link** (useful without email) and
+  **Revoke**.
 
 ## Logs and containers
 

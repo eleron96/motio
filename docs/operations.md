@@ -450,6 +450,28 @@ The testing environment is fully isolated from production.
   super admin in particular — one without any workspace is treated as the reserve
   service account and sent straight to the admin console.
 
+## Server settings on testing and production
+
+Optional extras are server settings (**Admin → Settings**, all off by default; see
+[Configuration → Server settings](configuration.md#server-settings)). Besides the
+admin console they can be read and changed over ssh:
+
+```bash
+make settings CONTOUR=testing                          # list
+make settings CONTOUR=testing SET=timeline.density=on
+make settings CONTOUR=testing RESET=timeline.density   # back to the default (off)
+make settings CONTOUR=prod                             # production: asks before changing anything
+```
+
+Who changed what — in the console, from the command line or through the group
+sync — is in **Admin → Activity log** (`/app/admin/activity`, table
+`admin_audit_log`).
+
+`infra/scripts/settings-remote.sh` runs `infra/scripts/motio-settings.sh` in the
+deployed checkout (psql in the `db` container), so the server needs a deploy that
+has it. A change reaches the backend within 30 seconds and people at their next
+visit. No rebuild, no restart.
+
 ---
 
 ## Migrations (Liquibase)

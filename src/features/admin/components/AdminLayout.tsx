@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Activity, Database, Egg, Gauge, LayoutGrid, Send, UsersRound, Users } from 'lucide-react';
+import { Activity, Database, Egg, Gauge, History, LayoutGrid, MailPlus, Send, SlidersHorizontal, UsersRound, Users } from 'lucide-react';
 import { t } from '@lingui/macro';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -20,19 +20,22 @@ interface AdminNavItem {
 
 // The console is reachable by direct URL only (no in-app links, by design).
 // Section list lives here: adding a page = one file + one entry below.
-// "Group access" only where KEYCLOAK_WORKSPACES_FROM_GROUPS is on (self-hosted
-// installs); the page itself explains how to turn it on when reached by URL.
+// "Group access" only where workspaces from groups is on (Settings, or the
+// older KEYCLOAK_WORKSPACES_FROM_GROUPS); reached by URL, the page says how.
 const useNavItems = (groupWorkspacesEnabled: boolean): AdminNavItem[] => [
   { path: '/app/admin', label: t`Overview`, icon: <Gauge className="h-4 w-4" />, end: true },
   { path: '/app/admin/system', label: t`System`, icon: <Activity className="h-4 w-4" /> },
+  { path: '/app/admin/settings', label: t`Settings`, icon: <SlidersHorizontal className="h-4 w-4" /> },
   { path: '/app/admin/users', label: t`Users`, icon: <Users className="h-4 w-4" /> },
   { path: '/app/admin/workspaces', label: t`Workspaces`, icon: <LayoutGrid className="h-4 w-4" /> },
+  { path: '/app/admin/invitations', label: t`Invitations`, icon: <MailPlus className="h-4 w-4" /> },
   ...(groupWorkspacesEnabled
     ? [{ path: '/app/admin/group-access', label: t`Group access`, icon: <UsersRound className="h-4 w-4" /> }]
     : []),
   { path: '/app/admin/easter-eggs', label: t`Easter eggs`, icon: <Egg className="h-4 w-4" /> },
   { path: '/app/admin/broadcast', label: t`Broadcast`, icon: <Send className="h-4 w-4" /> },
   { path: '/app/admin/backups', label: t`Backups`, icon: <Database className="h-4 w-4" /> },
+  { path: '/app/admin/activity', label: t`Activity log`, icon: <History className="h-4 w-4" /> },
 ];
 
 const AdminLayout: React.FC = () => {

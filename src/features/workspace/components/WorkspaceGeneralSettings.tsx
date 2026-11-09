@@ -8,6 +8,8 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { t } from '@lingui/macro';
 import { cn } from '@/shared/lib/classNames';
 import { Block } from '@/features/workspace/components/settingsBlocks';
+import { WorkspaceClosuresSettings } from '@/features/workspace/components/WorkspaceClosuresSettings';
+import { useInstanceSetting } from '@/shared/store/instanceSettingsStore';
 import type { WorkspaceGeneralDraft } from '@/features/workspace/hooks/useWorkspaceGeneralDraft';
 
 interface WorkspaceGeneralSettingsProps {
@@ -16,12 +18,16 @@ interface WorkspaceGeneralSettingsProps {
   currentWorkspaceId: string | null;
 }
 
-/** Settings → General: the workspace name and its holiday calendar. */
+/**
+ * Settings → General: the workspace name and its holiday calendar (and, where
+ * the server allows it, days off for the whole workspace).
+ */
 export const WorkspaceGeneralSettings: React.FC<WorkspaceGeneralSettingsProps> = ({
   draft,
   isAdmin,
   currentWorkspaceId,
 }) => {
+  const closuresEnabled = useInstanceSetting('workspaces.closures');
   const {
     filteredHolidayCountryOptions,
     handleSaveWorkspaceHolidayCountry,
@@ -234,6 +240,9 @@ export const WorkspaceGeneralSettings: React.FC<WorkspaceGeneralSettingsProps> =
           </Button>
         </div>
       </Block>
+      {closuresEnabled && currentWorkspaceId && (
+        <WorkspaceClosuresSettings workspaceId={currentWorkspaceId} isAdmin={isAdmin} />
+      )}
     </div>
   );
 };
