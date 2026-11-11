@@ -489,3 +489,4 @@
 2026-11-09T11:07:00Z | 0.10.70 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261109-110609.dump | New: Help — a detailed guide to Motio in English and Russian. You'll find it in account settings and in the phone menu, and the home page links to the documentation.
 2026-11-09T11:43:18Z | 0.10.71 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261109-114224.dump | The home page has a clearer footer with links and a block about the detailed guide.
 2026-11-09T15:36:38Z | 0.10.72 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261109-153444.dump | Improved security.
+2026-11-11T12:57:11Z | 0.10.73 | n/a | root | msk-1-vm-z76s | infra/backups/pre-migrate-20261111-125502.dump | The task card now has a change history: click the “Updated” line to see who moved the dates or changed the status, project or assignees, and when.

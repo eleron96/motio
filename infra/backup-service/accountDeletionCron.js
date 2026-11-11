@@ -299,6 +299,24 @@ const tickHealthCheck = async (rawCtx) => {
   }
 };
 
+// История задач хранится год (миграции 0183–0185): раз в сутки убираем записи
+// старше года, кроме последней записи каждой задачи. Больше их никто не чистит.
+const tickTaskHistoryPurge = async (rawCtx) => {
+  const ctx = buildCtx(rawCtx);
+  try {
+    const { rows } = await ctx.pool.query('select public.purge_task_history() as removed');
+    const removed = Number(rows[0]?.removed ?? 0);
+    if (removed > 0) {
+      ctx.logger.log(`[task-history purge] removed ${removed} row(s) older than a year`);
+    }
+    return { removed };
+  } catch (error) {
+    ctx.logger.error(`[task-history purge] failed: ${error.message}`);
+    ctx.captureException(error, { tags: { job: 'task-history-purge' } });
+    throw error;
+  }
+};
+
 module.exports = {
   tickAccountPurge,
   tickDataExportWorker,
@@ -306,6 +324,7 @@ module.exports = {
   tickHealthCheck,
   tickBroadcast,
   tickPush,
+  tickTaskHistoryPurge,
   // exported for tests
   deleteExpiredExportFile,
   postFunction,

@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { tickHealthCheck } = require('./accountDeletionCron');
+const { tickHealthCheck, tickTaskHistoryPurge } = require('./accountDeletionCron');
 
 const NOW = new Date('2026-10-11T22:15:00Z');
 const hoursAgo = (hours) => new Date(NOW.getTime() - hours * 60 * 60 * 1000).toISOString();
@@ -439,4 +439,30 @@ test('ctx validation: every required field is checked', async () => {
   await assert.rejects(tickAccountPurge({ serviceRoleKey: 'k', pool: {} }), /SUPABASE_URL is required/);
   await assert.rejects(tickAccountPurge({ supabaseUrl: 'http://x', pool: {} }), /SERVICE_ROLE_KEY is required/);
   await assert.rejects(tickAccountPurge({ supabaseUrl: 'http://x', serviceRoleKey: 'k' }), /pool is required/);
+});
+
+test('task history purge asks the database once and reports how much it removed', async () => {
+  const queries = [];
+  const ctx = {
+    supabaseUrl: 'http://supabase.example',
+    serviceRoleKey: 'test-key',
+    pool: { query: async (sql) => { queries.push(sql); return { rows: [{ removed: 3 }] }; } },
+    logger: { log() {}, warn() {}, error() {} },
+  };
+  assert.deepEqual(await tickTaskHistoryPurge(ctx), { removed: 3 });
+  assert.deepEqual(queries, ['select public.purge_task_history() as removed']);
+});
+
+test('a failed task history purge is reported and rethrown', async () => {
+  const reported = [];
+  const ctx = {
+    supabaseUrl: 'http://supabase.example',
+    serviceRoleKey: 'test-key',
+    pool: { query: async () => { throw new Error('db is down'); } },
+    captureException: (error, options) => reported.push({ error, options }),
+    logger: { log() {}, warn() {}, error() {} },
+  };
+  await assert.rejects(tickTaskHistoryPurge(ctx), /db is down/);
+  assert.equal(reported.length, 1);
+  assert.equal(reported[0].options.tags.job, 'task-history-purge');
 });

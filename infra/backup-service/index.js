@@ -23,6 +23,7 @@ const {
   tickDataExportWorker,
   tickDataExportCleanup,
   tickHealthCheck,
+  tickTaskHistoryPurge,
   tickBroadcast,
   tickPush,
 } = require('./accountDeletionCron');
@@ -118,6 +119,9 @@ const PURGE_CRON = process.env.PURGE_CRON || '0 4 * * *';
 const EXPORT_WORKER_CRON = process.env.EXPORT_WORKER_CRON || '*/5 * * * *';
 const EXPORT_CLEANUP_CRON = process.env.EXPORT_CLEANUP_CRON || '0 5 * * *';
 const ACCOUNT_DELETION_HEALTH_CRON = process.env.ACCOUNT_DELETION_HEALTH_CRON || '15 * * * *';
+// Once a night, away from the backup and the other nightly jobs. Not configurable:
+// the job is one cheap indexed delete.
+const TASK_HISTORY_PURGE_CRON = '40 4 * * *';
 const BROADCAST_TICK_CRON = process.env.BROADCAST_TICK_CRON || '*/1 * * * *';
 const PUSH_TICK_CRON = process.env.PUSH_TICK_CRON || '*/1 * * * *';
 const PURGE_CRON_ENABLED = (process.env.PURGE_CRON_ENABLED ?? 'true').toLowerCase() !== 'false';
@@ -997,6 +1001,11 @@ if (ACCOUNT_DELETION_CRON_ENABLED) {
 
   cron.schedule(ACCOUNT_DELETION_HEALTH_CRON, async () => {
     try { await tickHealthCheck(cronCtx()); }
+    catch (_err) { /* уже залогировано внутри */ }
+  });
+
+  cron.schedule(TASK_HISTORY_PURGE_CRON, async () => {
+    try { await tickTaskHistoryPurge(cronCtx()); }
     catch (_err) { /* уже залогировано внутри */ }
   });
 

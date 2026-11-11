@@ -7,6 +7,14 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.73] - 2026-11-11
+### Added
+- The task card now has a change history: click the “Updated” line to see who moved the dates or changed the status, project or assignees, and when.
+
+
+### Fixed
+- The “Created / Updated” line of the task card now names a person even when they have not filled in their profile name.
+
 ## [0.10.72] - 2026-11-09
 ### Security
 - Improved security.

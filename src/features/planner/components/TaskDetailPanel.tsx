@@ -16,6 +16,7 @@ import { useTaskRepeatConfig } from '@/features/planner/hooks/useTaskRepeatConfi
 import { useTaskSubtasks } from '@/features/planner/hooks/useTaskSubtasks';
 import { useTaskDrafts } from '@/features/planner/hooks/useTaskDrafts';
 import { useTaskAttribution } from '@/features/planner/hooks/useTaskAttribution';
+import { TaskHistoryButton } from '@/features/planner/components/TaskHistoryButton';
 import { useTaskDescriptionSave } from '@/features/planner/hooks/useTaskDescriptionSave';
 import { useTaskRepeatSave } from '@/features/planner/hooks/useTaskRepeatSave';
 import { useTaskDetailClose } from '@/features/planner/hooks/useTaskDetailClose';
@@ -24,6 +25,7 @@ import { useTaskDraftPresence } from '@/features/planner/hooks/useTaskDraftPrese
 import { useSerialFieldWrite } from '@/features/planner/hooks/useSerialFieldWrite';
 import { isTaskLiveDraftsEnabled } from '@/shared/lib/featureFlags';
 import { hasTaskUpdates } from '@/shared/domain/taskUpdates';
+import { rowNamesByUserId } from '@/features/planner/lib/personRowNames';
 import { formatTaskTimestamps } from '@/features/planner/lib/taskTimestamps';
 import { clampTaskDates } from '@/features/planner/lib/dateUtils';
 
@@ -215,9 +217,13 @@ export const TaskDetailPanel: React.FC = () => {
   // Attribution is fetched only for the open card, outside the timeline's data.
   const taskCreatedAt = task?.createdAt;
   const taskUpdatedAt = task?.updatedAt;
-  const { createdByName, updatedByName } = useTaskAttribution(taskId, taskUpdatedAt);
+  const attribution = useTaskAttribution(taskId, taskUpdatedAt);
+  const rowNames = useMemo(() => rowNamesByUserId(assignees), [assignees]);
   const timestampsMeta = formatTaskTimestamps(
-    taskCreatedAt, taskUpdatedAt, createdByName, updatedByName,
+    taskCreatedAt,
+    taskUpdatedAt,
+    attribution.createdByName ?? (attribution.createdByUserId ? rowNames.get(attribution.createdByUserId) ?? null : null),
+    attribution.updatedByName ?? (attribution.updatedByUserId ? rowNames.get(attribution.updatedByUserId) ?? null : null),
   );
 
   const descriptionSave = useTaskDescriptionSave({ task, selectedTaskId, canEdit, drafts });
@@ -354,6 +360,17 @@ export const TaskDetailPanel: React.FC = () => {
       open={!!selectedTaskId}
       onRequestClose={requestClose}
       timestampsMeta={timestampsMeta}
+      renderUpdatedLine={taskUpdatedAt ? (line) => (
+        <TaskHistoryButton
+          taskId={task.id}
+          updatedAt={taskUpdatedAt}
+          label={line}
+          isMobile={isMobile}
+          statuses={statuses}
+          projects={projects}
+          assignees={assignees}
+        />
+      ) : undefined}
       onCancel={handleCancelClose}
       onDone={() => {
         void handleSaveAndClose();

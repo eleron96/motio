@@ -10,6 +10,13 @@ On the left are the title, the description, subtasks and comments. On the right,
 **Parameters**. At the bottom, who created the task and who last changed its fields,
 and when.
 
+Click the **Updated** line to open the **Change history**: who moved the dates, changed
+the status, the project or the assignees, renamed the task or edited the description,
+and when. The five latest entries show first, the rest come with **Show more**. Several
+quick edits of one field by the same person fold into a single entry. The list holds the
+latest 50 entries at most. History is kept
+for a year (the latest entry of a task stays longer, for as long as the task exists) and starts when Motio was updated — earlier edits are not in it.
+
 ## Parameters
 
 | Field | What it means |

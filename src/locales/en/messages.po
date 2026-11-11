@@ -258,6 +258,22 @@ msgstr "{months} mo in Motio"
 msgid "{moreProjects, plural, one {and # more project} other {and # more projects}}"
 msgstr "{moreProjects, plural, one {and # more project} other {and # more projects}}"
 
+#: src/features/planner/lib/taskHistoryText.ts
+msgid "{name} changed the assignees"
+msgstr "{name} changed the assignees"
+
+#: src/features/planner/lib/taskHistoryText.ts
+msgid "{name} changed the project"
+msgstr "{name} changed the project"
+
+#: src/features/planner/lib/taskHistoryText.ts
+msgid "{name} changed the status"
+msgstr "{name} changed the status"
+
+#: src/features/planner/lib/taskHistoryText.ts
+msgid "{name} edited the description"
+msgstr "{name} edited the description"
+
 #: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 msgid "{name} is already a member of {workspaceName}."
 msgstr "{name} is already a member of {workspaceName}."
@@ -289,6 +305,14 @@ msgstr "{name} is writing a comment"
 #: src/features/planner/components/TeammateDraftLine.tsx
 msgid "{name} is writing a subtask"
 msgstr "{name} is writing a subtask"
+
+#: src/features/planner/lib/taskHistoryText.ts
+msgid "{name} moved the dates"
+msgstr "{name} moved the dates"
+
+#: src/features/planner/lib/taskHistoryText.ts
+msgid "{name} renamed the task"
+msgstr "{name} renamed the task"
 
 #: src/features/admin/components/AdminWorkspaceAddMemberDialog.tsx
 msgid "{name} was added to {workspaceName}."
@@ -1323,6 +1347,12 @@ msgstr "Change easter egg"
 msgid "Change group"
 msgstr "Change group"
 
+#: src/features/planner/components/TaskHistoryButton.tsx
+#: src/features/planner/components/TaskHistoryButton.tsx
+#: src/features/planner/components/TaskHistoryButton.tsx
+msgid "Change history"
+msgstr "Change history"
+
 #: src/features/planner/components/timeline/TimeOffEditDialog.tsx
 msgid "Change the days or remove the time off."
 msgstr "Change the days or remove the time off."
@@ -1781,6 +1811,10 @@ msgstr "Couldn't delete the task. It's back in place."
 #: src/features/auth/hooks/useAccountSettings.ts
 msgid "Couldn't enable notifications. Please try again."
 msgstr "Couldn't enable notifications. Please try again."
+
+#: src/features/planner/components/TaskHistoryButton.tsx
+msgid "Couldn't load the history"
+msgstr "Couldn't load the history"
 
 #: src/features/planner/hooks/useTaskWriteFailureToasts.ts
 msgid "Couldn't save the task. Check your connection and try again."
@@ -4041,6 +4075,7 @@ msgstr "Loading..."
 #: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
 #: src/features/admin/pages/AdminSettingsPage.tsx
 #: src/features/demo/pages/DemoPage.tsx
+#: src/features/planner/components/TaskHistoryButton.tsx
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Loading…"
 msgstr "Loading…"
@@ -4566,6 +4601,10 @@ msgstr "No backups."
 msgid "No broadcasts yet."
 msgstr "No broadcasts yet."
 
+#: src/features/planner/components/TaskHistoryButton.tsx
+msgid "No changes recorded yet"
+msgstr "No changes recorded yet"
+
 #: src/features/planner/components/FilterPanel.tsx
 msgid "No code"
 msgstr "No code"
@@ -4860,6 +4899,7 @@ msgstr "No priority"
 #: src/features/planner/components/timeline/TaskBarMenu.tsx
 #: src/features/planner/components/timeline/TaskBarTooltip.tsx
 #: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
+#: src/features/planner/lib/taskHistoryText.ts
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "No project"
 msgstr "No project"
@@ -5234,6 +5274,10 @@ msgstr "Only super admins can access this page."
 #: src/features/admin/lib/serverSettingLabels.ts
 msgid "Only the access a group gave. Access given by hand or by an invitation stays."
 msgstr "Only the access a group gave. Access given by hand or by an invitation stays."
+
+#: src/features/planner/components/TaskHistoryButton.tsx
+msgid "Only the latest {TASK_HISTORY_LIMIT} changes are shown."
+msgstr "Only the latest {TASK_HISTORY_LIMIT} changes are shown."
 
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Only this task"
@@ -6662,6 +6706,11 @@ msgstr "Share your timeline after you sign up"
 msgid "Sharing a live timeline needs a real account. Sign up in 30 seconds."
 msgstr "Sharing a live timeline needs a real account. Sign up in 30 seconds."
 
+#. placeholder {0}: history.hiddenCount
+#: src/features/planner/components/TaskHistoryButton.tsx
+msgid "Show {0} more"
+msgstr "Show {0} more"
+
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
 msgid "Show {overflowCount} more milestones"
 msgstr "Show {overflowCount} more milestones"
@@ -6887,6 +6936,10 @@ msgstr "Sofia Reyes"
 #: src/features/workspace/lib/starterTemplates/index.ts
 msgid "Software development"
 msgstr "Software development"
+
+#: src/features/planner/lib/taskHistoryText.ts
+msgid "Someone"
+msgstr "Someone"
 
 #: src/features/planner/components/TaskDetailDescription.tsx
 msgid "Someone changed the description while you were writing. Your text is kept here."

@@ -1,5 +1,6 @@
 import js from "@eslint/js";
 import globals from "globals";
+import jsxA11y from "eslint-plugin-jsx-a11y";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
@@ -80,6 +81,18 @@ export default tseslint.config(
           ],
         },
       ],
+    },
+  },
+  {
+    // Accessibility of the app's own markup. Violations that predate the rule are
+    // counted per file in eslint-suppressions.json; a new one fails the lint.
+    files: ["src/**/*.tsx"],
+    ignores: ["src/test/**"],
+    plugins: { "jsx-a11y": jsxA11y },
+    rules: {
+      ...jsxA11y.flatConfigs.recommended.rules,
+      // Dialogs and inline editors focus their first field on purpose.
+      "jsx-a11y/no-autofocus": "off",
     },
   },
 );

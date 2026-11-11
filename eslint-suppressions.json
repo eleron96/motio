@@ -1,0 +1,124 @@
+{
+  "src/features/members/components/MemberTasksList.tsx": {
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 1
+    }
+  },
+  "src/features/planner/components/CommentEditor.tsx": {
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 1
+    }
+  },
+  "src/features/planner/components/FilterPanel.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 1
+    }
+  },
+  "src/features/planner/components/RichTextEditor.tsx": {
+    "jsx-a11y/interactive-supports-focus": {
+      "count": 1
+    }
+  },
+  "src/features/planner/components/TagMultiSelect.tsx": {
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 1
+    }
+  },
+  "src/features/planner/components/TaskCommentItem.tsx": {
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 1
+    }
+  },
+  "src/features/planner/components/timeline/CalendarTimeline.tsx": {
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 1
+    }
+  },
+  "src/features/planner/components/timeline/TaskBar.tsx": {
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 2
+    }
+  },
+  "src/features/planner/components/timeline/TimeOffBar.tsx": {
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 2
+    }
+  },
+  "src/features/planner/components/timeline/TimelineGrid.tsx": {
+    "jsx-a11y/no-noninteractive-element-interactions": {
+      "count": 1
+    },
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 1
+    }
+  },
+  "src/features/planner/components/timeline/TimelineRow.tsx": {
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 1
+    }
+  },
+  "src/features/planner/pages/PlannerPage.tsx": {
+    "jsx-a11y/no-noninteractive-element-interactions": {
+      "count": 1
+    }
+  },
+  "src/features/projects/components/projectCard/ActivityBlock.tsx": {
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/no-noninteractive-element-interactions": {
+      "count": 1
+    }
+  },
+  "src/features/projects/components/projectCard/AddContactForm.tsx": {
+    "jsx-a11y/no-noninteractive-element-interactions": {
+      "count": 1
+    }
+  },
+  "src/features/projects/components/projectCard/PersonSuggestField.tsx": {
+    "jsx-a11y/role-has-required-aria-props": {
+      "count": 1
+    }
+  },
+  "src/features/workspace/components/WorkspaceWorkflowSettings.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 2
+    }
+  },
+  "src/shared/ui/alert.tsx": {
+    "jsx-a11y/heading-has-content": {
+      "count": 1
+    }
+  },
+  "src/shared/ui/card.tsx": {
+    "jsx-a11y/heading-has-content": {
+      "count": 1
+    }
+  },
+  "src/shared/ui/image-lightbox.tsx": {
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 1
+    }
+  }
+}

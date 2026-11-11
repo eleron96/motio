@@ -19,6 +19,8 @@ interface TaskDetailFrameProps {
   onRequestClose: () => void;
   /** Created/updated dates and known authors, or no lines for undated tasks. */
   timestampsMeta: string[];
+  /** Replaces the last metadata line (the "updated" one) — the way into the task's history. */
+  renderUpdatedLine?: (line: string) => React.ReactNode;
   onCancel: () => void;
   onDone: () => void;
   doneDisabled: boolean;
@@ -41,6 +43,7 @@ export const TaskDetailFrame: React.FC<TaskDetailFrameProps> = ({
   open,
   onRequestClose,
   timestampsMeta,
+  renderUpdatedLine,
   onCancel,
   onDone,
   doneDisabled,
@@ -68,7 +71,9 @@ export const TaskDetailFrame: React.FC<TaskDetailFrameProps> = ({
   const metadata = timestampsMeta.length > 0 && (
     <div className={`min-w-0 text-xs leading-4 text-muted-foreground ${isMobile ? 'text-center' : ''}`}>
       {timestampsMeta.map((line, index) => (
-        <p key={index} className="break-words [overflow-wrap:anywhere]">{line}</p>
+        renderUpdatedLine && index === timestampsMeta.length - 1
+          ? <React.Fragment key={index}>{renderUpdatedLine(line)}</React.Fragment>
+          : <p key={index} className="break-words [overflow-wrap:anywhere]">{line}</p>
       ))}
     </div>
   );
