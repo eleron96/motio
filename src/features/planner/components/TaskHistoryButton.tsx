@@ -8,7 +8,7 @@ import { useTaskHistory, type TaskHistoryState } from '@/features/planner/hooks/
 import { describeTaskHistoryEntry, type TaskHistoryNames } from '@/features/planner/lib/taskHistoryText';
 import { rowNamesByUserId } from '@/features/planner/lib/personRowNames';
 import { formatTimestampLabel } from '@/features/planner/lib/taskTimestamps';
-import { groupTaskHistoryByDay } from '@/shared/domain/taskHistory';
+import { TASK_HISTORY_LIMIT, groupTaskHistoryByDay } from '@/shared/domain/taskHistory';
 import { useSheetDragDismiss } from '@/shared/hooks/useSheetDragDismiss';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 import { isSupportedLocale } from '@/shared/lib/locale';
@@ -84,6 +84,11 @@ const TaskHistoryList: React.FC<{ history: TaskHistoryState; names: TaskHistoryN
         >
           {t`Show ${history.hiddenCount} more`}
         </button>
+      )}
+      {history.truncated && (
+        <p className="text-xs leading-4 text-muted-foreground">
+          {t`Only the latest ${TASK_HISTORY_LIMIT} changes are shown.`}
+        </p>
       )}
     </div>
   );

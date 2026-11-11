@@ -5275,6 +5275,10 @@ msgstr "Nur Super-Admins haben Zugriff auf diese Seite."
 msgid "Only the access a group gave. Access given by hand or by an invitation stays."
 msgstr "Nur den Zugriff, den eine Gruppe vergeben hat. Manuell oder per Einladung vergebener Zugriff bleibt."
 
+#: src/features/planner/components/TaskHistoryButton.tsx
+msgid "Only the latest {TASK_HISTORY_LIMIT} changes are shown."
+msgstr "Es werden nur die letzten {TASK_HISTORY_LIMIT} Änderungen angezeigt."
+
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Only this task"
 msgstr "Nur diese Aufgabe"

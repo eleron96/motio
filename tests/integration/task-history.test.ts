@@ -187,6 +187,32 @@ describe("task history", () => {
     });
   });
 
+  it("purges every row past a year, also for tasks nobody touched since", async () => {
+    await withRollback(async (client) => {
+      const taskId = await createTask(client);
+      await actingAs(client, TEST_USER_IDS.alice, async () => {
+        await moveTo(client, taskId, "2026-03-09", "2026-03-11");
+        await client.query("update public.tasks set title = 'Send the offer' where id = $1", [taskId]);
+      });
+      await client.query(
+        "update public.task_history set created_at = now() - interval '13 months' where task_id = $1 and kind = 'dates'",
+        [taskId],
+      );
+
+      await client.query("set local role service_role");
+      const { rows } = await client.query<{ removed: number }>("select public.purge_task_history() as removed");
+      await client.query("reset role");
+
+      expect(rows[0].removed).toBe(1);
+      expect((await history(client, taskId)).map((row) => row.kind)).toEqual(["title"]);
+
+      await client.query("savepoint purge_attempt");
+      await client.query("set local role authenticated");
+      await expect(client.query("select public.purge_task_history()")).rejects.toThrow(/permission denied/);
+      await client.query("rollback to savepoint purge_attempt");
+    });
+  });
+
   it("lets a member read the rows and nobody write them", async () => {
     await withRollback(async (client) => {
       const taskId = await createTask(client);

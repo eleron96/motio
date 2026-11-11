@@ -13,6 +13,8 @@ export interface TaskHistoryState {
   actorNames: Record<string, string | null>;
   /** Entries that exist but are not on screen yet (never counts past the load limit). */
   hiddenCount: number;
+  /** Everything loadable is on screen, but the task has older entries past the limit. */
+  truncated: boolean;
   showMore: () => void;
 }
 
@@ -64,20 +66,22 @@ export const useTaskHistory = (
   // previous list on screen instead of flashing a spinner.
   const current = loaded && loaded.key.startsWith(`${taskId ?? ''}|`) ? loaded : null;
   if (!taskId || !open) {
-    return { status: 'idle', entries: [], actorNames: {}, hiddenCount: 0, showMore };
+    return { status: 'idle', entries: [], actorNames: {}, hiddenCount: 0, truncated: false, showMore };
   }
   if (!current) {
-    return { status: 'loading', entries: [], actorNames: {}, hiddenCount: 0, showMore };
+    return { status: 'loading', entries: [], actorNames: {}, hiddenCount: 0, truncated: false, showMore };
   }
   if (current.failed) {
-    return { status: 'error', entries: [], actorNames: {}, hiddenCount: 0, showMore };
+    return { status: 'error', entries: [], actorNames: {}, hiddenCount: 0, truncated: false, showMore };
   }
   const reachable = Math.min(current.total, TASK_HISTORY_LIMIT);
+  const hiddenCount = Math.max(0, reachable - current.entries.length);
   return {
     status: 'ready',
     entries: current.entries,
     actorNames: current.actorNames,
-    hiddenCount: Math.max(0, reachable - current.entries.length),
+    hiddenCount,
+    truncated: hiddenCount === 0 && current.total > TASK_HISTORY_LIMIT,
     showMore,
   };
 };

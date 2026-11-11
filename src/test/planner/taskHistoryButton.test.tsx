@@ -124,6 +124,25 @@ describe('TaskHistoryButton', () => {
     expect(await screen.findByText('Someone changed the status')).toBeInTheDocument();
   });
 
+  it('says that older changes exist once the limit of fifty is on screen', async () => {
+    mocks.fetchTaskHistory.mockResolvedValueOnce(page([moved], 120));
+    mocks.fetchTaskHistory.mockResolvedValueOnce(page(
+      Array.from({ length: 50 }, (_, index) => ({ ...moved, id: `h-${index}` })),
+      120,
+    ));
+    renderButton();
+
+    await userEvent.click(screen.getByRole('button', { name: /Updated by Boris/ }));
+    // The button counts only what can be loaded, and the note waits until it is.
+    const more = await screen.findByRole('button', { name: 'Show 49 more' });
+    expect(screen.queryByText('Only the latest 50 changes are shown.')).not.toBeInTheDocument();
+
+    await userEvent.click(more);
+
+    expect(await screen.findByText('Only the latest 50 changes are shown.')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Show \d+ more/ })).not.toBeInTheDocument();
+  });
+
   it('says so when there is nothing recorded or the list cannot be loaded', async () => {
     mocks.fetchTaskHistory.mockResolvedValueOnce(page([]));
     const first = renderButton();
