@@ -14,7 +14,7 @@ Free and open source: use the hosted app, or run it on your own servers. The liv
 
 **[▶ Try the live demo](https://motio.nikog.net/demo?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Open Motio](https://motio.nikog.net/?utm_source=github&utm_medium=readme)** &nbsp;·&nbsp; **[Documentation](https://eleron96.github.io/motio/)** &nbsp;·&nbsp; [What's new](./CHANGELOG.en.md)
 
-[![Version](https://img.shields.io/badge/version-0.10.73-blue.svg)](./CHANGELOG.en.md)
+[![Version](https://img.shields.io/badge/version-0.10.74-blue.svg)](./CHANGELOG.en.md)
 [![CI](https://github.com/eleron96/motio/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/eleron96/motio/actions/workflows/ci.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](./LICENSE)
 [![Docs: en · ru](https://img.shields.io/badge/docs-en%20%C2%B7%20ru-c4693f.svg)](https://eleron96.github.io/motio/)

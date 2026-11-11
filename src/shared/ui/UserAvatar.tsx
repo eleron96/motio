@@ -1,6 +1,6 @@
 import React from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared/ui/avatar';
-import { getMonogramColor } from '@/shared/lib/monogramColor';
+import { getMonogramColor, getMonogramTextColor } from '@/shared/lib/monogramColor';
 import { toMonogramColor } from '@/shared/lib/personColor';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { cn } from '@/shared/lib/classNames';
@@ -103,8 +103,8 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
         />
       )}
       <AvatarFallback
-        className="font-semibold text-white"
-        style={{ backgroundColor: bgColor }}
+        className="font-semibold"
+        style={{ backgroundColor: bgColor, color: getMonogramTextColor(bgColor) }}
       >
         {resolvedInitials}
       </AvatarFallback>

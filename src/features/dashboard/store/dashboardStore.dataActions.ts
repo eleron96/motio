@@ -9,7 +9,7 @@ import {
 } from '@/features/dashboard/types/dashboard';
 import { resolveDashboardIncludeDisabledAssignees } from '@/features/dashboard/lib/dashboardAssigneeOptions';
 import { getPeriodRange } from '@/features/dashboard/lib/dashboardUtils';
-import type { WorkloadDay } from '@/features/dashboard/lib/workloadHeatmap';
+import { localIsoDay, type WorkloadDay } from '@/features/dashboard/lib/workloadHeatmap';
 import {
   type DashboardGetState,
   type DashboardSetState,
@@ -50,7 +50,7 @@ export const createDashboardDataActions = (
         .order('created_at', { ascending: true }),
       supabase
         .from('assignees')
-        .select('id, name, user_id, is_active, color')
+        .select('id, name, user_id, is_active, color, created_at, deactivated_at')
         .eq('workspace_id', workspaceId)
         .order('created_at', { ascending: true }),
       supabase
@@ -107,6 +107,8 @@ export const createDashboardDataActions = (
         name: row.name as string,
         isActive: row.is_active ?? true,
         color: (row as { color?: string | null }).color ?? undefined,
+        joinedOn: localIsoDay((row as { created_at?: string | null }).created_at),
+        leftOn: localIsoDay((row as { deactivated_at?: string | null }).deactivated_at),
       }));
 
     const groups = (groupsRes.data ?? []).map((row) => ({

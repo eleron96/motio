@@ -691,10 +691,19 @@ msgstr "Projektstatus hinzufügen"
 msgid "Add rule"
 msgstr "Regel hinzufügen"
 
+#: src/features/workspace/components/CreateWorkspaceDialog.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
+msgid "Add status"
+msgstr "Status hinzufügen"
+
 #: src/features/planner/components/AddTaskSubtasksField.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Add subtask"
 msgstr "Unteraufgabe hinzufügen"
+
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
+msgid "Add tag"
+msgstr "Label hinzufügen"
 
 #: src/features/planner/components/board/BoardColumn.tsx
 #: src/features/planner/components/board/BoardColumn.tsx
@@ -704,6 +713,10 @@ msgstr "Unteraufgabe hinzufügen"
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 msgid "Add task"
 msgstr "Aufgabe hinzufügen"
+
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
+msgid "Add task type"
+msgstr "Aufgabentyp hinzufügen"
 
 #: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 msgid "Add tasks & dates"
@@ -2030,6 +2043,10 @@ msgstr "Kunde:"
 msgid "Customers"
 msgstr "Kunden"
 
+#: src/features/planner/components/timeline/TimelineHeader.tsx
+msgid "CW {weekNumber}"
+msgstr "KW {weekNumber}"
+
 #: src/features/admin/lib/format.ts
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Daily"
@@ -2769,6 +2786,7 @@ msgstr "Projektstatus bearbeiten"
 msgid "Edit project status: {0}"
 msgstr "Projektstatus bearbeiten: {0}"
 
+#: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Edit widget"
 msgstr "Widget bearbeiten"
@@ -3521,6 +3539,10 @@ msgstr "durch Filter ausgeblendet"
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Hide disabled people"
 msgstr "Deaktivierte Personen ausblenden"
+
+#: src/features/planner/components/FilterPanel.tsx
+msgid "Hide filters"
+msgstr "Filter ausblenden"
 
 #: src/features/projects/components/projectCard/MilestonesBlock.tsx
 msgid "Hide past"
@@ -5693,6 +5715,7 @@ msgstr "Fortschritt: {0} / {1}"
 #: src/features/planner/components/AddTaskParameters.tsx
 #: src/features/planner/components/TaskDetailParameters.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/timeline/CalendarDayHoverContent.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
@@ -6795,6 +6818,10 @@ msgstr "Aufgaben ohne Zuständige anzeigen"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Show tasks without an assignee."
 msgstr "Aufgaben ohne Zuständige anzeigen."
+
+#: src/features/auth/components/AccountAppearanceSection.tsx
+msgid "Show the calendar week number above each Monday"
+msgstr "Zeigt über jedem Montag die Nummer der Kalenderwoche an"
 
 #: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Show the department workload board on the dashboard"
@@ -8317,6 +8344,10 @@ msgid "Week"
 msgstr "Woche"
 
 #: src/features/auth/components/AccountAppearanceSection.tsx
+msgid "Week numbers on the timeline"
+msgstr "Kalenderwochen auf der Zeitachse"
+
+#: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "Week view on the timeline"
 msgstr "Wochenansicht in der Zeitachse"
 
@@ -8511,6 +8542,7 @@ msgstr "Bereiche des Arbeitsbereichs"
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
+#: src/features/workspace/components/WorkspacePageHeader.tsx
 msgid "Workspace settings"
 msgstr "Einstellungen des Arbeitsbereichs"
 

@@ -57,6 +57,11 @@ How a day gets its colour:
 - **Work per available person.** The day's tasks are divided among the people who are
   actually there. With two of six on vacation, the same work lands on four, and the day
   turns hotter.
+- **The team a day really had.** A past day is divided by the people who were on the
+  team then. When someone leaves or joins, today and the days ahead follow; the months
+  behind stay as they were. (Everyone added in a workspace's first month counts as there
+  from the start. People switched off before Motio began recording the day someone
+  leaves are left out of every day.)
 - **Measured against your team's normal.** Motio works out what a full day means for
   *this* team from its recent history and shows it above the calendars, for example
   "Full day ≈ 0.8 tasks/person". An admin can set it by hand instead.

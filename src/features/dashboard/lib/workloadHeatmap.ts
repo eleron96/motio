@@ -8,7 +8,8 @@
 // from a high percentile of the team's recent history — so a team that normally
 // runs 6 tasks/person reads differently from one that runs 2.
 //
-//   available      = activeHeadcount - people away on that day
+//   team(day)      = people who were on the team that day (see teamPresence)
+//   available      = team(day) - people away on that day
 //   taskShare      = (taskCount / available) / capacity
 //   pinnedPeople   = min(milestoneKernelSum(day) * MILESTONE_CREW, available)
 //   percent        = round((taskShare + pinnedPeople / available) * 100)  // may exceed 100
@@ -63,6 +64,16 @@ const MIN_HISTORY_SAMPLES = 12;
 // Parse an ISO date at UTC noon so timezone/DST never shifts the day.
 export const parseIsoDate = (iso: string): Date => new Date(`${iso}T12:00:00Z`);
 
+/** A timestamp as the viewer's own calendar day ('YYYY-MM-DD'); null when there is none. */
+export const localIsoDay = (timestamp: string | null | undefined): string | null => {
+  if (!timestamp) return null;
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) return null;
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+};
+
 const dayDiff = (a: Date, b: Date): number => Math.round(
   (a.getTime() - b.getTime()) / 86_400_000,
 );
@@ -92,13 +103,87 @@ export const milestoneKernelSum = (
   return total;
 };
 
-// ---------------------------------------------------------------- absences ----
+// ------------------------------------------------------- the team, by day ----
+// The team is not one number for the whole board: a past day is divided by the
+// people who were on the team THEN. Otherwise switching one person off would
+// re-divide three months of history by a smaller team and make days that are
+// long over read hotter (and adding one would cool them down).
 
-const nextIsoDay = (iso: string): string => {
+export type TeamMember = {
+  id: string;
+  isActive: boolean;
+  /** Local ISO day the person was added to the workspace; null/absent = unknown. */
+  joinedOn?: string | null;
+  /** Local ISO day the person was switched off; null/absent = unknown. */
+  leftOn?: string | null;
+};
+
+/** On the team from `from` (null = from the start) until the day before `until` (null = still is). */
+export type PresenceSpan = { from: string | null; until: string | null };
+export type TeamPresence = ReadonlyMap<string, PresenceSpan>;
+
+// Motio knows when a person was added to Motio, not when they joined the team.
+// While a workspace is being set up the two differ: the whole team is entered in
+// the first days, together with work that began weeks earlier. So everyone added
+// within this many days of the first person counts as there from the start;
+// after that "added" really does mean "joined".
+export const FOUNDING_DAYS = 30;
+
+const addIsoDays = (iso: string, days: number): string => {
   const date = parseIsoDate(iso);
-  date.setUTCDate(date.getUTCDate() + 1);
+  date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
 };
+
+const nextIsoDay = (iso: string): string => addIsoDays(iso, 1);
+
+/**
+ * When each person was on the team.
+ *
+ * A switched-off person with no known leaving day is left out altogether — that
+ * is everyone who was already inactive before the day started to be recorded
+ * (migration 0186), and how the board treated every inactive person before.
+ * Someone switched off and on again reads as never having left: only the last
+ * change is stored.
+ */
+export const teamPresence = (members: readonly TeamMember[]): TeamPresence => {
+  const presence = new Map<string, PresenceSpan>();
+  let firstJoin: string | null = null;
+  for (const member of members) {
+    if (member.joinedOn && (firstJoin === null || member.joinedOn < firstJoin)) firstJoin = member.joinedOn;
+  }
+  const foundingEnd = firstJoin === null ? null : addIsoDays(firstJoin, FOUNDING_DAYS);
+  for (const member of members) {
+    if (!member.isActive && !member.leftOn) continue;
+    const joinedOn = member.joinedOn ?? null;
+    const founder = joinedOn === null || foundingEnd === null || joinedOn <= foundingEnd;
+    presence.set(member.id, {
+      from: founder ? null : joinedOn,
+      until: member.isActive ? null : member.leftOn ?? null,
+    });
+  }
+  return presence;
+};
+
+const isPresentOn = (span: PresenceSpan, iso: string): boolean => (
+  (span.from === null || span.from <= iso) && (span.until === null || iso < span.until)
+);
+
+/** People on the team on each day of the window (both ends inclusive). */
+export const headcountByDate = (
+  presence: TeamPresence,
+  window: { startIso: string; endIso: string },
+): Map<string, number> => {
+  const counts = new Map<string, number>();
+  for (let iso = window.startIso; iso <= window.endIso; iso = nextIsoDay(iso)) {
+    let count = 0;
+    presence.forEach((span) => { if (isPresentOn(span, iso)) count += 1; });
+    counts.set(iso, count);
+  }
+  return counts;
+};
+
+// ---------------------------------------------------------------- absences ----
 
 /**
  * How many people are away on each day of the window.
@@ -108,24 +193,26 @@ const nextIsoDay = (iso: string): string => {
  * window before walking the days. Both ends are inclusive, mirroring the time_off
  * table (migration 0131) and `timeOffCoversDay` on the timeline.
  *
- * Only records of currently active assignees count: a disabled person is not in
- * the headcount either, so counting their absence would shrink the denominator
- * twice. Days are keyed by ISO date; a person is counted once per day even if
- * two records somehow cover it.
+ * An absence counts only on days the person was on the team: someone who is not
+ * in that day's headcount must not shrink the denominator a second time. Days
+ * are keyed by ISO date; a person is counted once per day even if two records
+ * somehow cover it.
  */
 const awayPeopleByDate = (
   records: DashboardTimeOff[],
-  activeAssigneeIds: ReadonlySet<string>,
+  presence: TeamPresence,
   window: { startIso: string; endIso: string },
 ): Map<string, Set<string>> => {
   const peopleByDay = new Map<string, Set<string>>();
-  if (records.length === 0 || activeAssigneeIds.size === 0) return peopleByDay;
+  if (records.length === 0 || presence.size === 0) return peopleByDay;
   for (const record of records) {
-    if (!activeAssigneeIds.has(record.assigneeId)) continue;
+    const span = presence.get(record.assigneeId);
+    if (!span) continue;
     const from = record.startDate > window.startIso ? record.startDate : window.startIso;
     const to = record.endDate < window.endIso ? record.endDate : window.endIso;
     if (from > to) continue;
     for (let iso = from; iso <= to; iso = nextIsoDay(iso)) {
+      if (!isPresentOn(span, iso)) continue;
       const people = peopleByDay.get(iso);
       if (people) people.add(record.assigneeId);
       else peopleByDay.set(iso, new Set([record.assigneeId]));
@@ -136,11 +223,11 @@ const awayPeopleByDate = (
 
 export const awayCountByDate = (
   records: DashboardTimeOff[],
-  activeAssigneeIds: ReadonlySet<string>,
+  presence: TeamPresence,
   window: { startIso: string; endIso: string },
 ): Map<string, number> => {
   const counts = new Map<string, number>();
-  awayPeopleByDate(records, activeAssigneeIds, window).forEach((people, iso) => counts.set(iso, people.size));
+  awayPeopleByDate(records, presence, window).forEach((people, iso) => counts.set(iso, people.size));
   return counts;
 };
 
@@ -158,33 +245,42 @@ export const normalizeCapacityPercent = (value: unknown): number => {
   return Math.min(100, Math.max(0, Math.round(number)));
 };
 
-/** Share of every active person; someone missing from `capacities` counts in full. */
+/** Share of every listed person; someone missing from `capacities` counts in full. */
 export const capacityPercentByAssignee = (
-  activeAssigneeIds: ReadonlySet<string>,
+  assigneeIds: Iterable<string>,
   capacities: Readonly<Record<string, number>>,
 ): Map<string, number> => {
   const shares = new Map<string, number>();
-  activeAssigneeIds.forEach((id) => {
+  for (const id of assigneeIds) {
     shares.set(id, id in capacities ? normalizeCapacityPercent(capacities[id]) : DEFAULT_CAPACITY_PERCENT);
-  });
+  }
   return shares;
 };
 
-export const teamCapacityPercent = (shares: ReadonlyMap<string, number>): number => {
-  let total = 0;
-  shares.forEach((share) => { total += share; });
-  return total;
+/** The team on each day of the window as a sum of shares, in whole percents (see headcountByDate). */
+export const teamPercentByDate = (
+  shares: ReadonlyMap<string, number>,
+  presence: TeamPresence,
+  window: { startIso: string; endIso: string },
+): Map<string, number> => {
+  const percents = new Map<string, number>();
+  for (let iso = window.startIso; iso <= window.endIso; iso = nextIsoDay(iso)) {
+    let total = 0;
+    presence.forEach((span, id) => { if (isPresentOn(span, iso)) total += shares.get(id) ?? 0; });
+    percents.set(iso, total);
+  }
+  return percents;
 };
 
 /** The share of the team away on each day, in whole percents (see awayCountByDate). */
 export const awayPercentByDate = (
   records: DashboardTimeOff[],
   shares: ReadonlyMap<string, number>,
+  presence: TeamPresence,
   window: { startIso: string; endIso: string },
 ): Map<string, number> => {
   const percents = new Map<string, number>();
-  const activeIds = new Set(shares.keys());
-  awayPeopleByDate(records, activeIds, window).forEach((people, iso) => {
+  awayPeopleByDate(records, presence, window).forEach((people, iso) => {
     let away = 0;
     people.forEach((id) => { away += shares.get(id) ?? 0; });
     percents.set(iso, away);

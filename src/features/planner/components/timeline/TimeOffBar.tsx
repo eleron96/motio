@@ -219,7 +219,7 @@ const TimeOffBarBase: React.FC<TimeOffBarProps> = ({
       )}
 
       <span className="truncate text-ui-sm font-medium leading-tight">{headline}</span>
-      {geometry.twoLineBars && <span className="truncate text-ui-xs leading-tight opacity-80">{range}</span>}
+      {geometry.twoLineBars && <span className="truncate text-ui-xs leading-tight">{range}</span>}
 
       {canDrag && (
         <div

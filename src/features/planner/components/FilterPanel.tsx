@@ -336,6 +336,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
                 size="icon"
                 onClick={onToggle}
                 className="h-7 w-7"
+                aria-label={t`Hide filters`}
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>

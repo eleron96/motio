@@ -109,7 +109,7 @@ export const ResponsiveSelect: React.FC<ResponsiveSelectProps> = ({
 
   return (
     <Select value={value} onValueChange={onValueChange} disabled={disabled}>
-      <SelectTrigger id={triggerId} className={triggerClassName}>
+      <SelectTrigger id={triggerId} className={triggerClassName} aria-label={title}>
         <SelectValue placeholder={placeholder} className={valueClassName} />
       </SelectTrigger>
       <SelectContent>

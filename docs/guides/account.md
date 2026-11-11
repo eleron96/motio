@@ -19,6 +19,7 @@ which projects your tasks are in.
 | **Interface color** | the accent colour of buttons and highlights |
 | **Time off pattern** | the pattern drawn on your days off; your teammates see it too |
 | **Week view on the timeline** | adds a **Week** scale next to **Day** and **Calendar** |
+| **Week numbers on the timeline** | prints the calendar week (ISO, for example **CW 46**) above each Monday in the timeline header |
 | **Board view (beta)** | adds the [board](./board.md) |
 | **Product tour** | **Show again** replays the tour of the timeline |
 

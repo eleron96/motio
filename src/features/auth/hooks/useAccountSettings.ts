@@ -14,6 +14,7 @@ import {
 } from '@/shared/lib/push/pushClient';
 import { useAppBasePath } from '@/features/demo/hooks/useIsDemo';
 import { isWeekViewEnabled, WEEK_VIEW_PREFERENCE_KEY } from '@/features/planner/lib/weekViewPreference';
+import { isWeekNumbersEnabled, WEEK_NUMBERS_PREFERENCE_KEY } from '@/features/planner/lib/weekNumbersPreference';
 import { BOARD_VIEW_PREFERENCE_KEY, isBoardViewPreferenceOn } from '@/features/planner/lib/boardViewPreference';
 import {
   DEFAULT_TIME_OFF_MOTIF_ID,
@@ -78,6 +79,7 @@ export const useAccountSettings = (open: boolean) => {
   const [pushOnMention, setPushOnMention] = useState(true);
   const [pushOnTaskChange, setPushOnTaskChange] = useState(true);
   const [weekViewEnabled, setWeekViewEnabled] = useState(false);
+  const [weekNumbersEnabled, setWeekNumbersEnabled] = useState(false);
   const [boardViewEnabled, setBoardViewEnabled] = useState(false);
   const [tourRestarting, setTourRestarting] = useState(false);
   const [tourRestarted, setTourRestarted] = useState(false);
@@ -110,6 +112,7 @@ export const useAccountSettings = (open: boolean) => {
       setDailyBriefEnabled(data.preferences.daily_brief_enabled !== false);
       setMarketingEmailsEnabled(data.marketingEmailsOptIn);
       setWeekViewEnabled(isWeekViewEnabled(data.preferences));
+      setWeekNumbersEnabled(isWeekNumbersEnabled(data.preferences));
       setBoardViewEnabled(isBoardViewPreferenceOn(data.preferences));
       setAccentId(getAccentColorId(data.preferences));
       setTimeOffMotifId(getTimeOffMotifId(data.preferences));
@@ -279,6 +282,15 @@ export const useAccountSettings = (open: boolean) => {
     );
   };
 
+  const handleWeekNumbersToggle = async (checked: boolean) => {
+    const previousEnabled = weekNumbersEnabled;
+    await savePreference(
+      { [WEEK_NUMBERS_PREFERENCE_KEY]: checked },
+      () => setWeekNumbersEnabled(checked),
+      () => setWeekNumbersEnabled(previousEnabled),
+    );
+  };
+
   const handleBoardViewToggle = async (checked: boolean) => {
     const previousEnabled = boardViewEnabled;
     await savePreference(
@@ -375,6 +387,7 @@ export const useAccountSettings = (open: boolean) => {
     setPushOnTaskChange,
     weekViewEnabled,
     setWeekViewEnabled,
+    weekNumbersEnabled,
     boardViewEnabled,
     setBoardViewEnabled,
     tourRestarting,
@@ -399,6 +412,7 @@ export const useAccountSettings = (open: boolean) => {
     handlePushMasterToggle,
     updatePushEventPref,
     handleWeekViewToggle,
+    handleWeekNumbersToggle,
     handleBoardViewToggle,
     handleRestartTour,
     handleAccentChange,

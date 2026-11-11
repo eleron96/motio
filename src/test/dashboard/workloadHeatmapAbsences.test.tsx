@@ -31,7 +31,7 @@ const mocks = vi.hoisted(() => ({
     loadTimeOff: vi.fn(async () => {}),
     setHeatmapAutoCapacity: vi.fn(),
     milestones: [] as unknown[],
-    assignees: [] as { id: string; name: string; isActive: boolean }[],
+    assignees: [] as { id: string; name: string; isActive: boolean; joinedOn?: string | null; leftOn?: string | null }[],
     projects: [] as unknown[],
     personCapacities: null as { workspaceId: string; values: Record<string, number> } | null,
     loadPersonCapacities: vi.fn(async () => {}),
@@ -154,6 +154,54 @@ describe('WorkloadHeatmapBoard with absences', () => {
       const popover = await openDayPopover(target);
       expect(within(popover).getByText(/100%/)).toBeInTheDocument();
       expect(within(popover).getByText('Away: 1 of 6')).toBeInTheDocument();
+    });
+  });
+
+  describe('the team changes', () => {
+    // A weekday a couple of weeks back, and a long-running workspace.
+    const past = (() => {
+      let date = addDays(new Date(), -14);
+      while (date.getDay() === 0 || date.getDay() === 6) date = addDays(date, -1);
+      return format(date, 'yyyy-MM-dd');
+    })();
+    const veterans = TEAM.map((person) => ({ ...person, joinedOn: '2020-01-10' }));
+
+    beforeEach(() => {
+      mocks.dashboard.heatmap = {
+        days: [{ date: past, taskCount: 20 }, { date: target, taskCount: 20 }],
+        rangeKey: 'k',
+        loading: false,
+        error: null,
+      };
+    });
+
+    it('keeps a past day on the team it had when two people have left since', async () => {
+      const leftOn = format(addDays(new Date(), -3), 'yyyy-MM-dd');
+      mocks.dashboard.assignees = veterans.map((person, index) => (
+        index < 2 ? { ...person, isActive: false, leftOn } : person
+      ));
+      // Six people then: (20 / 6) / 5 = 0.67 — not the 100% of today's four.
+      const popover = await openDayPopover(past);
+      expect(within(popover).getByText(/67%/)).toBeInTheDocument();
+    });
+
+    it('divides the days ahead by the team as it is now', async () => {
+      const leftOn = format(addDays(new Date(), -3), 'yyyy-MM-dd');
+      mocks.dashboard.assignees = veterans.map((person, index) => (
+        index < 2 ? { ...person, isActive: false, leftOn } : person
+      ));
+      const popover = await openDayPopover(target);
+      expect(within(popover).getByText(/100%/)).toBeInTheDocument();
+    });
+
+    it('does not cool down a past day when two people have joined since', async () => {
+      const joinedOn = format(addDays(new Date(), -3), 'yyyy-MM-dd');
+      mocks.dashboard.assignees = veterans.map((person, index) => (
+        index < 2 ? { ...person, joinedOn } : person
+      ));
+      // Four people then: a full day, not the 67% of today's six.
+      const popover = await openDayPopover(past);
+      expect(within(popover).getByText(/100%/)).toBeInTheDocument();
     });
   });
 
