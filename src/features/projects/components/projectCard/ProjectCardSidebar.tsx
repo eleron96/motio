@@ -289,7 +289,7 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
         </div>
       </div>
 
-      <div className="px-5 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
+      <div className="px-5 pb-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
         {groupLabel ?? t`Active`}
       </div>
 
@@ -303,7 +303,7 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
           <div className="space-y-3">
             {groupedProjects.map((group) => (
               <div key={group.id} className="space-y-1">
-                <div className="px-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground/80">
+                <div className="px-2 pt-1 text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
                   {group.name}
                 </div>
                 <ul className="space-y-1">

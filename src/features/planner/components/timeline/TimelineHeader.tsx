@@ -75,7 +75,9 @@ const TimelineHeaderBase: React.FC<TimelineHeaderProps> = ({
                 >
                   <span className={cn(
                     'text-xs uppercase tracking-wide leading-none',
-                    today ? 'text-rose-700 font-semibold' : 'text-muted-foreground'
+                    // A weekend column is darker than the rest: the muted grey
+                    // is too faint on it.
+                    today ? 'text-rose-700 font-semibold' : weekend ? 'text-foreground/75' : 'text-muted-foreground'
                   )}>
                     {dayName}
                   </span>

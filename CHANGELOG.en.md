@@ -10,6 +10,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ### Fixed
 - Icon-only buttons and the dropdowns in the task card now have names for screen readers.
 
+
+### Changed
+- Secondary grey text is a little darker and easier to read; initials on light avatars are now black.
+
 ## [0.10.73] - 2026-11-11
 ### Added
 - The task card now has a change history: click the “Updated” line to see who moved the dates or changed the status, project or assignees, and when.

@@ -29,7 +29,9 @@
     --secondary-foreground: 220 20% 25%;
 
     --muted: 210 15% 96%;
-    --muted-foreground: 220 10% 50%;
+    /* 44% is the lightest grey that still reads at 4.5:1 (WCAG AA) on every
+       light surface it sits on, from white down to the muted panels. */
+    --muted-foreground: 220 10% 44%;
 
     --accent: 210 20% 94%;
     --accent-foreground: 220 20% 15%;

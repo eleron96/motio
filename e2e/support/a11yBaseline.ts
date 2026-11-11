@@ -14,7 +14,7 @@ export const A11Y_BASELINE = {
   "desktop dashboard": ["color-contrast", "label-content-name-mismatch", "svg-img-alt"],
   "desktop projects": ["color-contrast", "label-content-name-mismatch"],
   "desktop team": ["color-contrast", "label-content-name-mismatch"],
-  "phone timeline": ["aria-allowed-attr", "color-contrast", "label-content-name-mismatch"],
+  "phone timeline": ["aria-allowed-attr", "label-content-name-mismatch"],
 } satisfies Record<string, string[]>;
 
 export type A11yScreen = keyof typeof A11Y_BASELINE;
