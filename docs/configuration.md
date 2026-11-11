@@ -288,7 +288,7 @@ backup-service runs every scheduled job with `node-cron`. Defaults:
 | `EXPORT_CLEANUP_CRON` | `0 5 * * *` | remove expired exports (`EXPORT_CLEANUP_BATCH_LIMIT` per run, `100`) |
 | `PURGE_CRON` | `0 4 * * *` | purge accounts whose deletion grace period is over (`PURGE_CRON_ENABLED`, `true`) |
 | `ACCOUNT_DELETION_HEALTH_CRON` | `15 * * * *` | health check of the account-deletion pipeline |
-| — (fixed) | `40 4 * * *` | drop task history older than a year |
+| — (fixed) | `40 4 * * *` | drop task history older than a year; the latest entry of each task stays |
 
 A failed job is reported to GlitchTip (tag `job`). The push, broadcast and
 data-export jobs call Edge Functions, which every deploy restarts for a few

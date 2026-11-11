@@ -171,7 +171,7 @@ describe("task history", () => {
     });
   });
 
-  it("drops rows older than a year the next time the task changes", async () => {
+  it("keeps the previous entry when a fresh change is taken back", async () => {
     await withRollback(async (client) => {
       const taskId = await createTask(client);
 
@@ -180,30 +180,48 @@ describe("task history", () => {
         "update public.task_history set created_at = now() - interval '13 months' where task_id = $1",
         [taskId],
       );
-      await actingAs(client, TEST_USER_IDS.alice, () =>
-        client.query("update public.tasks set title = 'Send the offer' where id = $1", [taskId]));
+      // The trigger leaves old rows alone (0185): a rename that is undone a
+      // moment later must not cost the task its only entry.
+      await actingAs(client, TEST_USER_IDS.alice, async () => {
+        await client.query("update public.tasks set title = 'Send the offer' where id = $1", [taskId]);
+        await client.query("update public.tasks set title = 'Prepare the offer' where id = $1", [taskId]);
+      });
 
-      expect((await history(client, taskId)).map((row) => row.kind)).toEqual(["title"]);
+      expect((await history(client, taskId)).map((row) => row.kind)).toEqual(["dates"]);
     });
   });
 
-  it("purges every row past a year, also for tasks nobody touched since", async () => {
+  it("purges rows past a year nightly, except the latest entry of a task", async () => {
     await withRollback(async (client) => {
       const taskId = await createTask(client);
+      const purge = async () => {
+        await client.query("set local role service_role");
+        const { rows } = await client.query<{ removed: number }>("select public.purge_task_history() as removed");
+        await client.query("reset role");
+        return rows[0].removed;
+      };
+      const age = (kind: string, interval: string) => client.query(
+        `update public.task_history set created_at = now() - interval '${interval}' where task_id = $1 and kind = $2`,
+        [taskId, kind],
+      );
+
       await actingAs(client, TEST_USER_IDS.alice, async () => {
         await moveTo(client, taskId, "2026-03-09", "2026-03-11");
         await client.query("update public.tasks set title = 'Send the offer' where id = $1", [taskId]);
       });
-      await client.query(
-        "update public.task_history set created_at = now() - interval '13 months' where task_id = $1 and kind = 'dates'",
-        [taskId],
-      );
+      await age("dates", "13 months");
 
-      await client.query("set local role service_role");
-      const { rows } = await client.query<{ removed: number }>("select public.purge_task_history() as removed");
-      await client.query("reset role");
+      // A change made a moment ago may still be taken back: it does not yet
+      // count as the entry that replaces the old one.
+      expect(await purge()).toBe(0);
 
-      expect(rows[0].removed).toBe(1);
+      await age("title", "10 minutes");
+      expect(await purge()).toBe(1);
+      expect((await history(client, taskId)).map((row) => row.kind)).toEqual(["title"]);
+
+      // The latest entry stays however old it gets.
+      await age("title", "3 years");
+      expect(await purge()).toBe(0);
       expect((await history(client, taskId)).map((row) => row.kind)).toEqual(["title"]);
 
       await client.query("savepoint purge_attempt");

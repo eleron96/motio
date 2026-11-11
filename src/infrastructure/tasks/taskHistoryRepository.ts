@@ -4,7 +4,7 @@ import type { TaskHistoryRow } from '@/shared/domain/taskHistory';
 export interface TaskHistoryPage {
   /** Newest first. */
   rows: TaskHistoryRow[];
-  /** All rows of the last year, not only the loaded ones. */
+  /** All rows the database keeps for the task, not only the loaded ones. */
   total: number;
   /** Display names of live accounts by profile id, null when the profile has no name. A purged account is absent. */
   actorNames: Record<string, string | null>;
@@ -16,16 +16,15 @@ interface ActorProfileRow {
   status: string | null;
 }
 
-const YEAR_MS = 365 * 24 * 60 * 60 * 1000;
-
-/** Reads the history of the open card under the `task_history` and profile RLS. */
+/**
+ * Reads the history of the open card under the `task_history` and profile RLS.
+ * Retention is the database's job (a year, plus the latest entry of the task).
+ */
 export const fetchTaskHistory = async (taskId: string, limit: number): Promise<TaskHistoryPage> => {
-  const since = new Date(Date.now() - YEAR_MS).toISOString();
   const { data, error, count } = await supabase
     .from('task_history')
     .select('id, actor_id, kind, old_value, new_value, created_at', { count: 'exact' })
     .eq('task_id', taskId)
-    .gte('created_at', since)
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
     .range(0, limit - 1);
