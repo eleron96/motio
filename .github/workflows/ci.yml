@@ -119,8 +119,18 @@ jobs:
         run: npm ci
 
       # Headless only, so the headless shell is enough (smaller than full Chromium).
+      # --with-deps also pulls system packages through apt: the libraries Chromium
+      # needs are already in the runner image, apt mostly adds fonts on top. When
+      # the runner cannot reach the Ubuntu mirror (2026-11-11: four runs in a row
+      # died here on "Temporary failure resolving", before a single test ran),
+      # install the browser alone. If a library were ever really missing, the
+      # browser would refuse to start and the tests would fail loudly.
       - name: Install the browser
-        run: npx playwright install --with-deps --only-shell chromium
+        run: |
+          if ! timeout 300 npx playwright install --with-deps --only-shell chromium; then
+            echo "::warning::apt could not install the system packages; installing the browser without them"
+            npx playwright install --only-shell chromium
+          fi
 
       - name: Build the app
         # /demo never talks to Supabase, but the app refuses to start without
