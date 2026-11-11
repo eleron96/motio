@@ -108,6 +108,7 @@ export const WorkspacePageHeader: React.FC<WorkspacePageHeaderProps> = ({
                 data-tour="settings-btn"
                 variant="ghost"
                 size="icon"
+                aria-label={t`Workspace settings`}
                 onClick={onOpenSettings}
                 className="h-8 w-8 rounded-md text-muted-foreground hover:bg-background hover:text-foreground hover:shadow-sm"
                 disabled={settingsDisabled}

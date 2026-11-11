@@ -149,7 +149,7 @@ export const TaskProjectSelect: React.FC<TaskProjectSelectProps> = ({
       onOpenChange={handleProjectSelectOpenChange}
       disabled={disabled}
     >
-      <SelectTrigger className={cn('min-w-0 overflow-hidden', triggerClassName)}>
+      <SelectTrigger className={cn('min-w-0 overflow-hidden', triggerClassName)} aria-label={t`Project`}>
         {selectedProject ? (
           // Render the trigger value as a single truncated line so a long project
           // name shrinks with an ellipsis and can never widen the field (or the

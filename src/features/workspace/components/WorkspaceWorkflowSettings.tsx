@@ -131,7 +131,7 @@ export const WorkspaceWorkflowSettings: React.FC<WorkspaceWorkflowSettingsProps>
               onChange={(e) => setNewStatusName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddStatus()}
             />
-            <Button onClick={handleAddStatus} size="icon">
+            <Button onClick={handleAddStatus} size="icon" aria-label={t`Add status`}>
               <Plus className="w-4 h-4" />
             </Button>
           </div>
@@ -237,7 +237,7 @@ export const WorkspaceWorkflowSettings: React.FC<WorkspaceWorkflowSettingsProps>
               onChange={(e) => setNewTypeName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddType()}
             />
-            <Button onClick={handleAddType} size="icon">
+            <Button onClick={handleAddType} size="icon" aria-label={t`Add task type`}>
               <Plus className="w-4 h-4" />
             </Button>
           </div>
@@ -273,7 +273,7 @@ export const WorkspaceWorkflowSettings: React.FC<WorkspaceWorkflowSettingsProps>
               onChange={(e) => setNewTagName(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
             />
-            <Button onClick={handleAddTag} size="icon">
+            <Button onClick={handleAddTag} size="icon" aria-label={t`Add tag`}>
               <Plus className="w-4 h-4" />
             </Button>
           </div>

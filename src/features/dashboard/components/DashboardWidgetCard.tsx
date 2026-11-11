@@ -148,6 +148,7 @@ export const DashboardWidgetCard: React.FC<DashboardWidgetCardProps> = ({
               size="icon"
               className="h-7 w-7 opacity-40 transition-opacity hover:opacity-100"
               onClick={onEdit}
+              aria-label={`${t`Edit widget`}: ${widget.title}`}
             >
               <Pencil className="h-4 w-4" />
             </Button>

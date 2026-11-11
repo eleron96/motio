@@ -691,10 +691,19 @@ msgstr "Add project status"
 msgid "Add rule"
 msgstr "Add rule"
 
+#: src/features/workspace/components/CreateWorkspaceDialog.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
+msgid "Add status"
+msgstr "Add status"
+
 #: src/features/planner/components/AddTaskSubtasksField.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Add subtask"
 msgstr "Add subtask"
+
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
+msgid "Add tag"
+msgstr "Add tag"
 
 #: src/features/planner/components/board/BoardColumn.tsx
 #: src/features/planner/components/board/BoardColumn.tsx
@@ -704,6 +713,10 @@ msgstr "Add subtask"
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 msgid "Add task"
 msgstr "Add task"
+
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
+msgid "Add task type"
+msgstr "Add task type"
 
 #: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 msgid "Add tasks & dates"
@@ -2769,6 +2782,7 @@ msgstr "Edit project status"
 msgid "Edit project status: {0}"
 msgstr "Edit project status: {0}"
 
+#: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Edit widget"
 msgstr "Edit widget"
@@ -3521,6 +3535,10 @@ msgstr "hidden by filters"
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Hide disabled people"
 msgstr "Hide disabled people"
+
+#: src/features/planner/components/FilterPanel.tsx
+msgid "Hide filters"
+msgstr "Hide filters"
 
 #: src/features/projects/components/projectCard/MilestonesBlock.tsx
 msgid "Hide past"
@@ -5692,6 +5710,7 @@ msgstr "Progress: {0} / {1}"
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskParameters.tsx
 #: src/features/planner/components/TaskDetailParameters.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/timeline/CalendarDayHoverContent.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
@@ -8511,6 +8530,7 @@ msgstr "Workspace sections"
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
+#: src/features/workspace/components/WorkspacePageHeader.tsx
 msgid "Workspace settings"
 msgstr "Workspace settings"
 

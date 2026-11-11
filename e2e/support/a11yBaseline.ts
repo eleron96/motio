@@ -4,17 +4,16 @@
  * as a note on the test — remove it then, so the list only shrinks.
  */
 export const A11Y_BASELINE = {
-  "desktop timeline": ["aria-allowed-attr", "button-name", "color-contrast", "label-content-name-mismatch"],
+  "desktop timeline": ["aria-allowed-attr", "color-contrast", "label-content-name-mismatch"],
   "desktop task card": [
     "aria-input-field-name",
-    "button-name",
     "color-contrast",
     "label",
     "label-content-name-mismatch",
   ],
-  "desktop dashboard": ["button-name", "color-contrast", "label-content-name-mismatch", "svg-img-alt"],
-  "desktop projects": ["button-name", "color-contrast", "label-content-name-mismatch"],
-  "desktop team": ["button-name", "color-contrast", "label-content-name-mismatch"],
+  "desktop dashboard": ["color-contrast", "label-content-name-mismatch", "svg-img-alt"],
+  "desktop projects": ["color-contrast", "label-content-name-mismatch"],
+  "desktop team": ["color-contrast", "label-content-name-mismatch"],
   "phone timeline": ["aria-allowed-attr", "color-contrast", "label-content-name-mismatch"],
 } satisfies Record<string, string[]>;
 

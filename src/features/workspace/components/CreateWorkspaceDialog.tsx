@@ -293,6 +293,7 @@ export const CreateWorkspaceDialog: React.FC<CreateWorkspaceDialogProps> = ({ op
                         type="button"
                         size="icon"
                         onClick={handleAddTemplateStatus}
+                        aria-label={t`Add status`}
                       >
                         <Plus className="w-4 h-4" />
                       </Button>

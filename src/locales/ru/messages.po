@@ -691,10 +691,19 @@ msgstr "Добавить статус"
 msgid "Add rule"
 msgstr "Добавить правило"
 
+#: src/features/workspace/components/CreateWorkspaceDialog.tsx
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
+msgid "Add status"
+msgstr "Добавить статус"
+
 #: src/features/planner/components/AddTaskSubtasksField.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 msgid "Add subtask"
 msgstr "Добавить подзадачу"
+
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
+msgid "Add tag"
+msgstr "Добавить тег"
 
 #: src/features/planner/components/board/BoardColumn.tsx
 #: src/features/planner/components/board/BoardColumn.tsx
@@ -704,6 +713,10 @@ msgstr "Добавить подзадачу"
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 msgid "Add task"
 msgstr "Добавить задачу"
+
+#: src/features/workspace/components/WorkspaceWorkflowSettings.tsx
+msgid "Add task type"
+msgstr "Добавить тип задачи"
 
 #: src/features/marketing/components/landing/LandingTimelineDemo.tsx
 msgid "Add tasks & dates"
@@ -2769,6 +2782,7 @@ msgstr "Редактировать статус"
 msgid "Edit project status: {0}"
 msgstr "Изменить статус проекта: {0}"
 
+#: src/features/dashboard/components/DashboardWidgetCard.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Edit widget"
 msgstr "Редактировать виджет"
@@ -3521,6 +3535,10 @@ msgstr "скрыта фильтром"
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "Hide disabled people"
 msgstr "Скрыть отключенных участников"
+
+#: src/features/planner/components/FilterPanel.tsx
+msgid "Hide filters"
+msgstr "Скрыть фильтры"
 
 #: src/features/projects/components/projectCard/MilestonesBlock.tsx
 msgid "Hide past"
@@ -5692,6 +5710,7 @@ msgstr "Прогресс: {0} / {1}"
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/AddTaskParameters.tsx
 #: src/features/planner/components/TaskDetailParameters.tsx
+#: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/TaskProjectSelect.tsx
 #: src/features/planner/components/timeline/CalendarDayHoverContent.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
@@ -8511,6 +8530,7 @@ msgstr "Разделы рабочего пространства"
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/SettingsPanel.tsx
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
+#: src/features/workspace/components/WorkspacePageHeader.tsx
 msgid "Workspace settings"
 msgstr "Настройки рабочего пространства"
 
