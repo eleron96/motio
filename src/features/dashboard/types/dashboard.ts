@@ -108,6 +108,10 @@ export type DashboardOption = {
 
 export type DashboardAssigneeOption = DashboardOption & {
   isActive: boolean;
+  /** Local ISO day the person was added; the workload heatmap's team by day. */
+  joinedOn?: string | null;
+  /** Local ISO day the person was switched off (assignees.deactivated_at, 0186). */
+  leftOn?: string | null;
 };
 
 export type DashboardSummary = {

@@ -29,12 +29,14 @@ import {
   awayPercentByDate,
   capacityPercentByAssignee,
   dayPercent,
+  headcountByDate,
   historyLoadPerPerson,
   levelForPercent,
   milestoneKernelSum,
   parseIsoDate,
   resolveCapacity,
-  teamCapacityPercent,
+  teamPercentByDate,
+  teamPresence,
   workloadMilestones,
   type HeatmapLevel,
 } from '@/features/dashboard/lib/workloadHeatmap';
@@ -59,7 +61,7 @@ export type HeatmapDayCell = {
   level: HeatmapLevel;
   percent: number;
   taskCount: number;
-  /** Active people away that day, and the whole team for the "N of M" reading. */
+  /** People away that day, and that day's whole team for the "N of M" reading. */
   awayCount: number;
   headcount: number;
   /** Nobody left to work: the day is shown as non-working, not as an overload. */
@@ -139,17 +141,17 @@ export const useWorkloadHeatmapModel = () => {
     () => workspaces.find((item) => item.id === currentWorkspaceId) ?? null,
     [workspaces, currentWorkspaceId],
   );
-  const activeAssigneeIds = useMemo(
-    () => new Set(assignees.filter((a) => a.isActive).map((a) => a.id)),
-    [assignees],
-  );
-  const headcount = activeAssigneeIds.size;
+  // Who was on the team, day by day: a past day keeps the team it had, so someone
+  // joining or leaving changes today and the future, not the months behind.
+  const presence = useMemo(() => teamPresence(assignees), [assignees]);
+  const dayWindow = useMemo(() => ({ startIso, endIso }), [startIso, endIso]);
+  const headcountByDay = useMemo(() => headcountByDate(presence, dayWindow), [presence, dayWindow]);
 
-  // People away per day. Absences of disabled assignees are ignored — they are not
-  // in the headcount either, so counting them would shrink the denominator twice.
+  // People away per day. An absence counts only on days its person was on the
+  // team — otherwise it would shrink the denominator twice.
   const awayByDate = useMemo(
-    () => awayCountByDate(timeOff.records, activeAssigneeIds, { startIso, endIso }),
-    [timeOff.records, activeAssigneeIds, startIso, endIso],
+    () => awayCountByDate(timeOff.records, presence, dayWindow),
+    [timeOff.records, presence, dayWindow],
   );
 
   // Each person's share of a full day (server setting heatmap.personCapacity, off
@@ -165,21 +167,29 @@ export const useWorkloadHeatmapModel = () => {
   }, [personCapacityOn, currentWorkspaceId, loadPersonCapacities]);
   const shares = useMemo(() => (
     personCapacityOn && personCapacities && personCapacities.workspaceId === currentWorkspaceId
-      ? capacityPercentByAssignee(activeAssigneeIds, personCapacities.values)
+      ? capacityPercentByAssignee(presence.keys(), personCapacities.values)
       : null
-  ), [personCapacityOn, personCapacities, currentWorkspaceId, activeAssigneeIds]);
-  const teamPercent = useMemo(() => (shares ? teamCapacityPercent(shares) : headcount * 100), [shares, headcount]);
-  const showHeat = shares ? teamPercent > 0 : headcount > 0;
-  const awayPercentByDay = useMemo(
-    () => (shares ? awayPercentByDate(timeOff.records, shares, { startIso, endIso }) : null),
-    [shares, timeOff.records, startIso, endIso],
+  ), [personCapacityOn, personCapacities, currentWorkspaceId, presence]);
+  const teamPercentByDay = useMemo(
+    () => (shares ? teamPercentByDate(shares, presence, dayWindow) : null),
+    [shares, presence, dayWindow],
   );
+  const awayPercentByDay = useMemo(
+    () => (shares ? awayPercentByDate(timeOff.records, shares, presence, dayWindow) : null),
+    [shares, timeOff.records, presence, dayWindow],
+  );
+  // The size of the team on a day: whole people, or the sum of shares in percents.
+  const teamSizeOn = useCallback((iso: string) => (
+    teamPercentByDay ? teamPercentByDay.get(iso) ?? 0 : headcountByDay.get(iso) ?? 0
+  ), [teamPercentByDay, headcountByDay]);
   // People's worth of work available on a day: whole people without shares.
   const availableOn = useCallback((iso: string) => (
-    awayPercentByDay
-      ? availableShare(teamPercent, awayPercentByDay.get(iso) ?? 0)
-      : availableHeadcount(headcount, awayByDate.get(iso) ?? 0)
-  ), [awayPercentByDay, teamPercent, headcount, awayByDate]);
+    teamPercentByDay && awayPercentByDay
+      ? availableShare(teamPercentByDay.get(iso) ?? 0, awayPercentByDay.get(iso) ?? 0)
+      : availableHeadcount(headcountByDay.get(iso) ?? 0, awayByDate.get(iso) ?? 0)
+  ), [teamPercentByDay, awayPercentByDay, headcountByDay, awayByDate]);
+  // Nobody on the team today — nothing to measure the work against, no heat at all.
+  const showHeat = teamSizeOn(todayIso) > 0;
 
   const holidayCountryCode = useMemo(
     () => normalizeHolidayCountryCode(workspace?.holidayCountry),
@@ -275,11 +285,13 @@ export const useWorkloadHeatmapModel = () => {
     const holidayNames = holidayMap[iso] ?? null;
     const awayCount = awayByDate.get(iso) ?? 0;
     const available = availableOn(iso);
+    // A day before anyone was on the team has nobody to measure against: no heat.
+    const hasTeam = showHeat && teamSizeOn(iso) > 0;
     // Nobody available is not a hot day, it's a day the team doesn't work: colouring
     // it bordeaux would confuse "no one to do it" with "too much to do".
-    const isTeamAway = showHeat && available === 0;
+    const isTeamAway = hasTeam && available === 0;
     const isWorkday = !weekend && !holidayNames && !isTeamAway;
-    const percent = showHeat && !isTeamAway
+    const percent = hasTeam && !isTeamAway
       ? dayPercent(taskCount, available, capacity, milestoneKernelSum(iso, loadBearingMilestones))
       : 0;
     return {
@@ -290,11 +302,11 @@ export const useWorkloadHeatmapModel = () => {
       isToday: iso === todayIso,
       isWeekend: weekend,
       holidayNames,
-      level: showHeat && isWorkday ? levelForPercent(percent) : 0,
+      level: hasTeam && isWorkday ? levelForPercent(percent) : 0,
       percent,
       taskCount,
       awayCount,
-      headcount,
+      headcount: headcountByDay.get(iso) ?? 0,
       isTeamAway,
       milestones: milestonesByDate.get(iso) ?? [],
     };
@@ -305,7 +317,8 @@ export const useWorkloadHeatmapModel = () => {
     holidayMap,
     awayByDate,
     availableOn,
-    headcount,
+    teamSizeOn,
+    headcountByDay,
     showHeat,
     capacity,
     loadBearingMilestones,

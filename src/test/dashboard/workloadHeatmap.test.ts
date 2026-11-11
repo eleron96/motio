@@ -7,18 +7,27 @@ import {
   awayPercentByDate,
   capacityPercentByAssignee,
   normalizeCapacityPercent,
-  teamCapacityPercent,
   colorForLevel,
   dayPercent,
   DEFAULT_CAPACITY_PER_PERSON,
+  FOUNDING_DAYS,
+  headcountByDate,
   historyLoadPerPerson,
   levelForPercent,
+  localIsoDay,
   milestoneKernelSum,
   MILESTONE_CREW,
   resolveCapacity,
+  teamPercentByDate,
+  teamPresence,
   workloadMilestones,
+  type TeamMember,
 } from '@/features/dashboard/lib/workloadHeatmap';
 import type { DashboardMilestone, DashboardTimeOff } from '@/features/dashboard/types/dashboard';
+
+// A team where everyone has always been there — what every test before the
+// day-by-day team assumed.
+const everyone = (...ids: string[]) => teamPresence(ids.map((id) => ({ id, isActive: true })));
 
 const milestone = (
   date: string,
@@ -176,7 +185,7 @@ describe('capacity resolution', () => {
 
 describe('absences', () => {
   const WINDOW = { startIso: '2026-07-01', endIso: '2026-07-31' };
-  const ACTIVE = new Set(['a1', 'a2', 'a3']);
+  const ACTIVE = everyone('a1', 'a2', 'a3');
   const record = (
     assigneeId: string,
     startDate: string,
@@ -233,7 +242,7 @@ describe('absences', () => {
 
   it('is empty without records or without an active team', () => {
     expect(awayCountByDate([], ACTIVE, WINDOW).size).toBe(0);
-    expect(awayCountByDate([record('a1', '2026-07-10', '2026-07-10')], new Set(), WINDOW).size).toBe(0);
+    expect(awayCountByDate([record('a1', '2026-07-10', '2026-07-10')], everyone(), WINDOW).size).toBe(0);
   });
 
   it('never reports a negative availability', () => {
@@ -291,9 +300,9 @@ describe('each person\'s share (heatmap.personCapacity)', () => {
   });
 
   it('counts everyone in full unless a share is set, and keeps shares within 0–100', () => {
-    const shares = capacityPercentByAssignee(new Set(['a', 'b', 'c']), { a: 0, b: 50, x: 30 });
+    const shares = capacityPercentByAssignee(['a', 'b', 'c'], { a: 0, b: 50, x: 30 });
     expect(Object.fromEntries(shares)).toEqual({ a: 0, b: 50, c: 100 });
-    expect(teamCapacityPercent(shares)).toBe(150);
+    expect(teamPercentByDate(shares, everyone('a', 'b', 'c'), WINDOW).get('2026-07-10')).toBe(150);
     expect(normalizeCapacityPercent(140)).toBe(100);
     expect(normalizeCapacityPercent(-5)).toBe(0);
     expect(normalizeCapacityPercent('abc')).toBe(100);
@@ -301,28 +310,44 @@ describe('each person\'s share (heatmap.personCapacity)', () => {
   });
 
   it('gives the same numbers as whole people when everyone is at 100%', () => {
-    const ids = new Set(['a', 'b', 'c', 'd']);
+    const team = everyone('a', 'b', 'c', 'd');
     const records = [off('a', '2026-07-10', '2026-07-11'), off('b', '2026-07-11', '2026-07-11')];
-    const shares = capacityPercentByAssignee(ids, {});
-    const awayPercent = awayPercentByDate(records, shares, WINDOW);
-    const awayCount = awayCountByDate(records, ids, WINDOW);
+    const shares = capacityPercentByAssignee(team.keys(), {});
+    const teamPercent = teamPercentByDate(shares, team, WINDOW);
+    const awayPercent = awayPercentByDate(records, shares, team, WINDOW);
+    const headcount = headcountByDate(team, WINDOW);
+    const awayCount = awayCountByDate(records, team, WINDOW);
     for (const iso of ['2026-07-09', '2026-07-10', '2026-07-11']) {
-      expect(availableShare(teamCapacityPercent(shares), awayPercent.get(iso) ?? 0))
-        .toBe(availableHeadcount(ids.size, awayCount.get(iso) ?? 0));
+      expect(availableShare(teamPercent.get(iso) ?? 0, awayPercent.get(iso) ?? 0))
+        .toBe(availableHeadcount(headcount.get(iso) ?? 0, awayCount.get(iso) ?? 0));
     }
   });
 
   it('takes away only the share of who is away', () => {
-    const shares = capacityPercentByAssignee(new Set(['coord', 'half', 'full']), { coord: 0, half: 50 });
-    const away = awayPercentByDate([off('half', '2026-07-10', '2026-07-10')], shares, WINDOW);
-    expect(availableShare(teamCapacityPercent(shares), away.get('2026-07-10') ?? 0)).toBe(1);
-    expect(availableShare(teamCapacityPercent(shares), away.get('2026-07-09') ?? 0)).toBe(1.5);
+    const team = everyone('coord', 'half', 'full');
+    const shares = capacityPercentByAssignee(team.keys(), { coord: 0, half: 50 });
+    const teamPercent = teamPercentByDate(shares, team, WINDOW);
+    const away = awayPercentByDate([off('half', '2026-07-10', '2026-07-10')], shares, team, WINDOW);
+    expect(availableShare(teamPercent.get('2026-07-10') ?? 0, away.get('2026-07-10') ?? 0)).toBe(1);
+    expect(availableShare(teamPercent.get('2026-07-09') ?? 0, away.get('2026-07-09') ?? 0)).toBe(1.5);
   });
 
   it('leaves exactly nobody when everyone with a share is away', () => {
-    const shares = capacityPercentByAssignee(new Set(['a', 'b']), { a: 30, b: 70 });
-    const away = awayPercentByDate([off('a', '2026-07-10', '2026-07-10'), off('b', '2026-07-10', '2026-07-10')], shares, WINDOW);
+    const team = everyone('a', 'b');
+    const shares = capacityPercentByAssignee(team.keys(), { a: 30, b: 70 });
+    const away = awayPercentByDate([off('a', '2026-07-10', '2026-07-10'), off('b', '2026-07-10', '2026-07-10')], shares, team, WINDOW);
     expect(availableShare(100, away.get('2026-07-10') ?? 0)).toBe(0);
+  });
+
+  it('drops the share of someone who has left from the days after, not the days before', () => {
+    const team = teamPresence([
+      { id: 'full', isActive: true },
+      { id: 'half', isActive: false, leftOn: '2026-07-15' },
+    ]);
+    const shares = capacityPercentByAssignee(team.keys(), { half: 50 });
+    const teamPercent = teamPercentByDate(shares, team, WINDOW);
+    expect(teamPercent.get('2026-07-14')).toBe(150);
+    expect(teamPercent.get('2026-07-15')).toBe(100);
   });
 
   it('loads half a person twice as heavily as a whole one', () => {
@@ -330,3 +355,93 @@ describe('each person\'s share (heatmap.personCapacity)', () => {
     expect(dayPercent(5, 1, 5, 0)).toBe(100);
   });
 });
+
+describe('the team, day by day', () => {
+  const WINDOW = { startIso: '2026-07-01', endIso: '2026-07-31' };
+  // A workspace that has been running for years: the founding month is long over.
+  const veteran = (id: string): TeamMember => ({ id, isActive: true, joinedOn: '2024-01-10' });
+  const off = (assigneeId: string, startDate: string, endDate: string): DashboardTimeOff => ({
+    id: `t-${assigneeId}-${startDate}`,
+    assigneeId,
+    startDate,
+    endDate,
+  });
+
+  it('keeps the team a past day had when someone leaves', () => {
+    const team = teamPresence([
+      veteran('a'), veteran('b'), veteran('c'), veteran('d'),
+      { id: 'e', isActive: false, joinedOn: '2024-01-10', leftOn: '2026-07-20' },
+    ]);
+    const headcount = headcountByDate(team, WINDOW);
+    expect(headcount.get('2026-07-01')).toBe(5);
+    expect(headcount.get('2026-07-19')).toBe(5);
+    // From the day they were switched off the team is four — today and onwards.
+    expect(headcount.get('2026-07-20')).toBe(4);
+    expect(headcount.get('2026-07-31')).toBe(4);
+    // The same 20 tasks: 80% for five people before, a full day for four after.
+    expect(dayPercent(20, headcount.get('2026-07-19') ?? 0, 5, 0)).toBe(80);
+    expect(dayPercent(20, headcount.get('2026-07-20') ?? 0, 5, 0)).toBe(100);
+  });
+
+  it('does not cool down the days before someone joined', () => {
+    const team = teamPresence([
+      veteran('a'), veteran('b'), veteran('c'), veteran('d'),
+      { id: 'new', isActive: true, joinedOn: '2026-07-20' },
+    ]);
+    const headcount = headcountByDate(team, WINDOW);
+    expect(headcount.get('2026-07-19')).toBe(4);
+    expect(headcount.get('2026-07-20')).toBe(5);
+  });
+
+  it('counts everyone added while the workspace was being set up as there from the start', () => {
+    // Work that began before Motio is entered with its real dates: the people
+    // entered alongside it must be there to divide it by.
+    const team = teamPresence([
+      { id: 'owner', isActive: true, joinedOn: '2026-07-10' },
+      { id: 'b', isActive: true, joinedOn: '2026-07-12' },
+      { id: 'c', isActive: true, joinedOn: addDays('2026-07-10', FOUNDING_DAYS) },
+      { id: 'late', isActive: true, joinedOn: addDays('2026-07-10', FOUNDING_DAYS + 1) },
+    ]);
+    const headcount = headcountByDate(team, { startIso: '2026-06-01', endIso: '2026-08-31' });
+    expect(headcount.get('2026-06-01')).toBe(3);
+    expect(headcount.get(addDays('2026-07-10', FOUNDING_DAYS))).toBe(3);
+    expect(headcount.get(addDays('2026-07-10', FOUNDING_DAYS + 1))).toBe(4);
+  });
+
+  it('treats people without dates as always there (the sandbox, old data)', () => {
+    const headcount = headcountByDate(everyone('a', 'b'), WINDOW);
+    expect(headcount.get('2026-07-01')).toBe(2);
+    expect(headcount.get('2026-07-31')).toBe(2);
+  });
+
+  it('leaves out a switched-off person whose leaving day is unknown, on every day', () => {
+    const team = teamPresence([veteran('a'), { id: 'old', isActive: false, joinedOn: '2024-01-10' }]);
+    expect(team.has('old')).toBe(false);
+    expect(headcountByDate(team, WINDOW).get('2026-07-01')).toBe(1);
+  });
+
+  it('counts an absence only on days its person was on the team', () => {
+    const team = teamPresence([
+      veteran('a'),
+      { id: 'gone', isActive: false, joinedOn: '2024-01-10', leftOn: '2026-07-12' },
+    ]);
+    const away = awayCountByDate([off('gone', '2026-07-10', '2026-07-14')], team, WINDOW);
+    expect(away.get('2026-07-10')).toBe(1);
+    expect(away.get('2026-07-11')).toBe(1);
+    expect(away.get('2026-07-12')).toBeUndefined();
+  });
+
+  it('reads a timestamp as a local calendar day', () => {
+    expect(localIsoDay(new Date(2026, 6, 20, 23, 30).toISOString())).toBe('2026-07-20');
+    expect(localIsoDay(new Date(2026, 6, 20, 0, 5).toISOString())).toBe('2026-07-20');
+    expect(localIsoDay(null)).toBeNull();
+    expect(localIsoDay(undefined)).toBeNull();
+    expect(localIsoDay('not a date')).toBeNull();
+  });
+});
+
+function addDays(iso: string, days: number): string {
+  const date = new Date(`${iso}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
