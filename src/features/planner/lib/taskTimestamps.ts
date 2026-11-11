@@ -5,7 +5,7 @@ import { i18n } from '@lingui/core';
 import { isSupportedLocale } from '@/shared/lib/locale';
 import { resolveDateFnsLocale } from '@/shared/lib/dateFnsLocale';
 
-const formatTimestampLabel = (iso: string, now: Date, locale: DateFnsLocale) => {
+export const formatTimestampLabel = (iso: string, now: Date, locale: DateFnsLocale) => {
   const date = parseISO(iso);
   if (isSameDay(date, now)) return t`today`;
   if (isSameDay(date, subDays(now, 1))) return t`yesterday`;

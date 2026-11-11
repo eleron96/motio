@@ -16,6 +16,7 @@ import { useTaskRepeatConfig } from '@/features/planner/hooks/useTaskRepeatConfi
 import { useTaskSubtasks } from '@/features/planner/hooks/useTaskSubtasks';
 import { useTaskDrafts } from '@/features/planner/hooks/useTaskDrafts';
 import { useTaskAttribution } from '@/features/planner/hooks/useTaskAttribution';
+import { TaskHistoryButton } from '@/features/planner/components/TaskHistoryButton';
 import { useTaskDescriptionSave } from '@/features/planner/hooks/useTaskDescriptionSave';
 import { useTaskRepeatSave } from '@/features/planner/hooks/useTaskRepeatSave';
 import { useTaskDetailClose } from '@/features/planner/hooks/useTaskDetailClose';
@@ -354,6 +355,17 @@ export const TaskDetailPanel: React.FC = () => {
       open={!!selectedTaskId}
       onRequestClose={requestClose}
       timestampsMeta={timestampsMeta}
+      renderUpdatedLine={taskUpdatedAt ? (line) => (
+        <TaskHistoryButton
+          taskId={task.id}
+          updatedAt={taskUpdatedAt}
+          label={line}
+          isMobile={isMobile}
+          statuses={statuses}
+          projects={projects}
+          assignees={assignees}
+        />
+      ) : undefined}
       onCancel={handleCancelClose}
       onDone={() => {
         void handleSaveAndClose();

@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- The task card now has a change history: click the “Updated” line to see who moved the dates or changed the status, project or assignees, and when.
+
 ## [0.10.72] - 2026-11-09
 ### Security
 - Improved security.
