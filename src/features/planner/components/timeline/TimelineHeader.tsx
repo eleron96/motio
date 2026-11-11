@@ -12,6 +12,8 @@ import {
   ContextMenuTrigger,
 } from '@/shared/ui/context-menu';
 import { t } from '@lingui/macro';
+import { useAuthStore } from '@/features/auth/store/authStore';
+import { isWeekNumbersEnabled, weekNumberForColumn } from '@/features/planner/lib/weekNumbersPreference';
 
 interface TimelineHeaderProps {
   visibleDays: Date[];
@@ -35,6 +37,9 @@ const TimelineHeaderBase: React.FC<TimelineHeaderProps> = ({
 }) => {
   const locale = useLocaleStore((state) => state.locale);
   const dateLocale = React.useMemo(() => resolveDateFnsLocale(locale), [locale]);
+  // Read here, not in TimelineGrid: a boolean selector keeps the grid's props
+  // (and this component's memo) untouched for everyone who has it off.
+  const showWeekNumbers = useAuthStore((state) => isWeekNumbersEnabled(state.profilePreferences));
 
   const totalWidth = visibleDays.length * dayWidth;
 
@@ -51,6 +56,7 @@ const TimelineHeaderBase: React.FC<TimelineHeaderProps> = ({
           const adjacentWeekend = weekend && nextDay !== undefined && isWeekend(nextDay);
           const isHoliday = shouldApplyHolidayHatch(dayKey, weekend, holidayDates);
           const isAttentionDay = attentionDate === dayKey;
+          const weekNumber = showWeekNumbers ? weekNumberForColumn(day) : null;
 
           // Keyed by the day, like the row cells: see TimelineRow.
           return (
@@ -59,7 +65,7 @@ const TimelineHeaderBase: React.FC<TimelineHeaderProps> = ({
                 <div
                   data-day-key={dayKey}
                   className={cn(
-                    'flex flex-col items-center justify-center border-r border-border py-2 gap-1',
+                    'relative flex flex-col items-center justify-center border-r border-border py-2 gap-1',
                     weekend && 'bg-timeline-weekend',
                     adjacentWeekend && 'border-r-foreground/20',
                     isHoliday && 'holiday-hatch',
@@ -73,6 +79,16 @@ const TimelineHeaderBase: React.FC<TimelineHeaderProps> = ({
                       : undefined
                   }
                 >
+                  {weekNumber !== null && (
+                    // Sits in the free strip above the weekday; never wraps, so in
+                    // the narrow Week view it runs over the next column instead.
+                    <span
+                      data-week-number={weekNumber}
+                      className="pointer-events-none absolute left-1 top-px whitespace-nowrap text-[10px] font-medium leading-none text-muted-foreground"
+                    >
+                      {t`CW ${weekNumber}`}
+                    </span>
+                  )}
                   <span className={cn(
                     'text-xs uppercase tracking-wide leading-none',
                     // A weekend column is darker than the rest: the muted grey

@@ -2043,6 +2043,10 @@ msgstr "Kunde:"
 msgid "Customers"
 msgstr "Kunden"
 
+#: src/features/planner/components/timeline/TimelineHeader.tsx
+msgid "CW {weekNumber}"
+msgstr "KW {weekNumber}"
+
 #: src/features/admin/lib/format.ts
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Daily"
@@ -6815,6 +6819,10 @@ msgstr "Aufgaben ohne Zuständige anzeigen"
 msgid "Show tasks without an assignee."
 msgstr "Aufgaben ohne Zuständige anzeigen."
 
+#: src/features/auth/components/AccountAppearanceSection.tsx
+msgid "Show the calendar week number above each Monday"
+msgstr "Zeigt über jedem Montag die Nummer der Kalenderwoche an"
+
 #: src/features/workspace/components/WorkspaceDisplaySettings.tsx
 msgid "Show the department workload board on the dashboard"
 msgstr "Auslastungsboard der Abteilung im Dashboard anzeigen"
@@ -8334,6 +8342,10 @@ msgstr "Website-Launch"
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "Week"
 msgstr "Woche"
+
+#: src/features/auth/components/AccountAppearanceSection.tsx
+msgid "Week numbers on the timeline"
+msgstr "Kalenderwochen auf der Zeitachse"
 
 #: src/features/auth/components/AccountAppearanceSection.tsx
 msgid "Week view on the timeline"

@@ -31,6 +31,7 @@ export const AccountAppearanceSection: React.FC<AccountAppearanceSectionProps> =
     handleLocaleChange,
     handleRestartTour,
     handleTimeOffMotifChange,
+    handleWeekNumbersToggle,
     handleWeekViewToggle,
     languageOptions,
     loading,
@@ -40,6 +41,7 @@ export const AccountAppearanceSection: React.FC<AccountAppearanceSectionProps> =
     tourRestarted,
     tourRestarting,
     user,
+    weekNumbersEnabled,
     weekViewEnabled,
   } = settings;
 
@@ -175,6 +177,24 @@ export const AccountAppearanceSection: React.FC<AccountAppearanceSectionProps> =
         </div>
         <p className="text-xs text-muted-foreground">
           {t`Add a "Week" button next to Day and Calendar`}
+        </p>
+      </div>
+
+      <div className="space-y-2 border-t pt-4 text-left">
+        <div className="flex items-center justify-between gap-3">
+          <Label htmlFor="week-numbers-toggle" className="cursor-pointer">
+            {t`Week numbers on the timeline`}
+          </Label>
+          <Switch
+            size={switchSize}
+            id="week-numbers-toggle"
+            checked={weekNumbersEnabled}
+            onCheckedChange={handleWeekNumbersToggle}
+            disabled={!user || loading}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          {t`Show the calendar week number above each Monday`}
         </p>
       </div>
 
