@@ -3,6 +3,12 @@ import { supabase } from '@/shared/lib/supabaseClient';
 export interface TaskAttribution {
   createdByName: string | null;
   updatedByName: string | null;
+  /**
+   * Set only for a live account whose profile has no name, so the caller may
+   * name the person another way. A purged or unreadable author has neither.
+   */
+  createdByUserId?: string;
+  updatedByUserId?: string;
 }
 
 interface TaskAttributionRow {
@@ -43,13 +49,20 @@ export const fetchTaskAttribution = async (taskId: string, updatedAt?: string): 
   if (profilesError) throw new Error(profilesError.message);
 
   const profileRows = (profiles ?? []) as unknown as AuthorProfileRow[];
-  const names = new Map(profileRows.map((profile) => [
-    profile.id,
-    profile.status === 'PURGED' ? null : profile.display_name?.trim() || null,
-  ]));
+  const profilesById = new Map(profileRows.map((profile) => [profile.id, profile]));
+  const resolve = (id: string | null | undefined): { name: string | null; userId?: string } => {
+    const profile = id ? profilesById.get(id) : undefined;
+    if (!profile || profile.status === 'PURGED') return { name: null };
+    const name = profile.display_name?.trim() || null;
+    return name ? { name } : { name: null, userId: profile.id };
+  };
+  const created = resolve(row?.created_by);
+  const updated = resolve(row?.updated_by);
 
   return {
-    createdByName: row?.created_by ? names.get(row.created_by) ?? null : null,
-    updatedByName: row?.updated_by ? names.get(row.updated_by) ?? null : null,
+    createdByName: created.name,
+    updatedByName: updated.name,
+    createdByUserId: created.userId,
+    updatedByUserId: updated.userId,
   };
 };

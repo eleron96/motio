@@ -73,12 +73,16 @@ describe('task attribution repository', () => {
     expect(await fetchTaskAttribution('task-1')).toEqual({ createdByName: null, updatedByName: null });
   });
 
-  it('keeps blank names and system edits empty', async () => {
+  it('keeps a blank name empty but says whose live account it is, and leaves system edits unnamed', async () => {
     mockQueries(
       { created_by: 'author-1', updated_by: null },
       [{ id: 'author-1', display_name: '   ', status: 'ACTIVE' }],
     );
-    expect(await fetchTaskAttribution('task-1')).toEqual({ createdByName: null, updatedByName: null });
+    expect(await fetchTaskAttribution('task-1')).toEqual({
+      createdByName: null,
+      updatedByName: null,
+      createdByUserId: 'author-1',
+    });
   });
 
   it('reports a denied task read without attempting a profile read', async () => {

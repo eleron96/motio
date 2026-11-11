@@ -42,8 +42,18 @@ const reassigned: TaskHistoryRow = {
 const page = (rows: TaskHistoryRow[], total = rows.length): TaskHistoryPage => ({
   rows,
   total,
-  actorNames: { boris: 'Boris' },
+  // Mark has a live account without a profile name; the purged account is absent.
+  actorNames: { boris: 'Boris', 'mark-user': null },
 });
+
+const renamedByNamelessMember: TaskHistoryRow = {
+  id: 'h-title',
+  actor_id: 'mark-user',
+  kind: 'title',
+  old_value: { v: 'Draft' },
+  new_value: { v: 'Final' },
+  created_at: at(8),
+};
 
 const renderButton = (isMobile = false) => render(
   <TaskHistoryButton
@@ -53,7 +63,10 @@ const renderButton = (isMobile = false) => render(
     isMobile={isMobile}
     statuses={[{ id: 'open', name: 'In progress' }]}
     projects={[]}
-    assignees={[]}
+    assignees={[
+      { id: 'mark-row', name: 'Mark Sullivan', userId: 'mark-user' },
+      { id: 'gone-row', name: 'Former Colleague', userId: 'gone-user' },
+    ]}
   />,
 );
 
@@ -83,6 +96,20 @@ describe('TaskHistoryButton', () => {
     expect(screen.getByText('Someone changed the status')).toBeInTheDocument();
     expect(screen.getByText(/In progress → — · 09:00/)).toBeInTheDocument();
     expect(mocks.fetchTaskHistory).toHaveBeenCalledWith('task-1', 5);
+  });
+
+  it('names a member with an empty profile by their row in the workspace', async () => {
+    const editedByRemovedAccount: TaskHistoryRow = {
+      id: 'h-description', actor_id: 'gone-user', kind: 'description', old_value: null, new_value: null, created_at: at(7),
+    };
+    mocks.fetchTaskHistory.mockResolvedValue(page([renamedByNamelessMember, editedByRemovedAccount]));
+    renderButton();
+
+    await userEvent.click(screen.getByRole('button', { name: /Updated by Boris/ }));
+
+    expect(await screen.findByText('Mark Sullivan renamed the task')).toBeInTheDocument();
+    // A removed account is not named by the row it left behind.
+    expect(screen.getByText('Someone edited the description')).toBeInTheDocument();
   });
 
   it('offers the rest of a long history and loads it on request', async () => {

@@ -25,6 +25,7 @@ import { useTaskDraftPresence } from '@/features/planner/hooks/useTaskDraftPrese
 import { useSerialFieldWrite } from '@/features/planner/hooks/useSerialFieldWrite';
 import { isTaskLiveDraftsEnabled } from '@/shared/lib/featureFlags';
 import { hasTaskUpdates } from '@/shared/domain/taskUpdates';
+import { rowNamesByUserId } from '@/features/planner/lib/personRowNames';
 import { formatTaskTimestamps } from '@/features/planner/lib/taskTimestamps';
 import { clampTaskDates } from '@/features/planner/lib/dateUtils';
 
@@ -216,9 +217,13 @@ export const TaskDetailPanel: React.FC = () => {
   // Attribution is fetched only for the open card, outside the timeline's data.
   const taskCreatedAt = task?.createdAt;
   const taskUpdatedAt = task?.updatedAt;
-  const { createdByName, updatedByName } = useTaskAttribution(taskId, taskUpdatedAt);
+  const attribution = useTaskAttribution(taskId, taskUpdatedAt);
+  const rowNames = useMemo(() => rowNamesByUserId(assignees), [assignees]);
   const timestampsMeta = formatTaskTimestamps(
-    taskCreatedAt, taskUpdatedAt, createdByName, updatedByName,
+    taskCreatedAt,
+    taskUpdatedAt,
+    attribution.createdByName ?? (attribution.createdByUserId ? rowNames.get(attribution.createdByUserId) ?? null : null),
+    attribution.updatedByName ?? (attribution.updatedByUserId ? rowNames.get(attribution.updatedByUserId) ?? null : null),
   );
 
   const descriptionSave = useTaskDescriptionSave({ task, selectedTaskId, canEdit, drafts });

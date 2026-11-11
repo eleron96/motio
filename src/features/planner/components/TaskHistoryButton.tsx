@@ -6,6 +6,7 @@ import { ChevronDown } from 'lucide-react';
 import { useIsDemo } from '@/features/demo/hooks/useIsDemo';
 import { useTaskHistory, type TaskHistoryState } from '@/features/planner/hooks/useTaskHistory';
 import { describeTaskHistoryEntry, type TaskHistoryNames } from '@/features/planner/lib/taskHistoryText';
+import { rowNamesByUserId } from '@/features/planner/lib/personRowNames';
 import { formatTimestampLabel } from '@/features/planner/lib/taskTimestamps';
 import { groupTaskHistoryByDay } from '@/shared/domain/taskHistory';
 import { useSheetDragDismiss } from '@/shared/hooks/useSheetDragDismiss';
@@ -27,7 +28,8 @@ interface TaskHistoryButtonProps {
   isMobile: boolean;
   statuses: NamedItem[];
   projects: NamedItem[];
-  assignees: NamedItem[];
+  /** People of the workspace; the ones with an account also name the authors. */
+  assignees: Array<NamedItem & { userId?: string | null }>;
 }
 
 const nameLookup = (items: NamedItem[]) => {
@@ -99,12 +101,18 @@ export const TaskHistoryButton: React.FC<TaskHistoryButtonProps> = ({
   const history = useTaskHistory(taskId, open, updatedAt);
   const drag = useSheetDragDismiss(() => setOpen(false));
 
-  const names = useMemo<TaskHistoryNames>(() => ({
-    actor: (id) => (id ? history.actorNames[id] ?? null : null),
-    status: nameLookup(statuses),
-    project: nameLookup(projects),
-    assignee: nameLookup(assignees),
-  }), [history.actorNames, statuses, projects, assignees]);
+  const names = useMemo<TaskHistoryNames>(() => {
+    const rowNames = rowNamesByUserId(assignees);
+    return {
+      // Only a live account falls back to its row; a removed one stays unnamed.
+      actor: (id) => (id && id in history.actorNames
+        ? history.actorNames[id] ?? rowNames.get(id) ?? null
+        : null),
+      status: nameLookup(statuses),
+      project: nameLookup(projects),
+      assignee: nameLookup(assignees),
+    };
+  }, [history.actorNames, statuses, projects, assignees]);
 
   // The sandbox keeps no history: the line stays plain text there.
   if (isDemo) return <p className="break-words [overflow-wrap:anywhere]">{label}</p>;

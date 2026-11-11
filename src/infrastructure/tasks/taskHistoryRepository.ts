@@ -6,7 +6,7 @@ export interface TaskHistoryPage {
   rows: TaskHistoryRow[];
   /** All rows of the last year, not only the loaded ones. */
   total: number;
-  /** Display names by profile id; a purged or nameless profile maps to null. */
+  /** Display names of live accounts by profile id, null when the profile has no name. A purged account is absent. */
   actorNames: Record<string, string | null>;
 }
 
@@ -48,7 +48,8 @@ export const fetchTaskHistory = async (taskId: string, limit: number): Promise<T
   const profileRows = (profiles ?? []) as unknown as ActorProfileRow[];
   const actorNames: Record<string, string | null> = {};
   for (const profile of profileRows) {
-    actorNames[profile.id] = profile.status === 'PURGED' ? null : profile.display_name?.trim() || null;
+    if (profile.status === 'PURGED') continue;
+    actorNames[profile.id] = profile.display_name?.trim() || null;
   }
   return { rows, total: count ?? rows.length, actorNames };
 };
