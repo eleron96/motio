@@ -46,10 +46,10 @@ that keeps climbing for one person is overload in slow motion.
 
 ## Workload heatmap
 
-**Dashboard → Heatmap** lays the months out as calendars, as many as fit your screen:
-last month first, then the current one, up to a year ahead. Scroll with the mouse wheel or
-trackpad to move a month at a time, like in a calendar, or use **‹** and **›** next to
-**Today**; on a tablet, swipe sideways. Up to a full day, a day is coloured
+**Dashboard → Heatmap** lays the months out as calendars, a year at a time, from three
+months back to a year ahead. It opens on the current month; scroll up and down as in the
+timeline's calendar, **‹** and **›** next to **Today** move a row of months, and
+**Today** brings you back. Up to a full day, a day is coloured
 from pale peach to terracotta. Over a full day it turns red, in three steps — over 100%,
 over 125% and over 150% — so an overloaded day stands out at once and you can tell which
 one is worse. Weekends are grey, green diamonds are milestones, hatched days are holidays.

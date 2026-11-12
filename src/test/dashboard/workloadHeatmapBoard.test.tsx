@@ -1,7 +1,7 @@
 import React from 'react';
 import { addDays, format } from 'date-fns';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // The board renders <Trans> children verbatim, which is exactly what we assert on.
@@ -100,68 +100,47 @@ describe('WorkloadHeatmapBoard month grid', () => {
     mocks.dashboard.heatmap = { ...mocks.dashboard.heatmap, days: [] };
   });
 
-  it('opens with last month and then the current one, and pages without losing the way back', async () => {
-    const user = userEvent.setup();
+  it('lays every month from last month to a year ahead into one scroll, a year at a time', async () => {
     await renderBoard();
+    const months = shownMonths();
     const current = format(today, 'yyyy-MM');
     const previous = format(addDays(new Date(today.getFullYear(), today.getMonth(), 1), -1), 'yyyy-MM');
-    expect(shownMonths().slice(0, 2)).toEqual([previous, current]);
-
-    await user.click(screen.getByRole('button', { name: 'Later' }));
-    expect(shownMonths()).not.toContain(previous);
-
-    await user.click(screen.getByRole('button', { name: 'Today' }));
-    expect(shownMonths().slice(0, 2)).toEqual([previous, current]);
-  });
-
-  it('scrolls a month at a time like a calendar: down goes forward, up goes back', async () => {
-    await renderBoard();
-    const grid = screen.getByTestId('heatmap-months');
-    const start = shownMonths();
-
-    fireEvent.wheel(grid, { deltaY: 100 });
-    expect(shownMonths()[0]).toBe(start[1]);
-
-    fireEvent.wheel(grid, { deltaY: -100, timeStamp: 1000 });
-    expect(shownMonths()).toEqual(start);
-  });
-
-  it('adds trackpad scrolling up before it moves, so a small nudge does nothing', async () => {
-    await renderBoard();
-    const grid = screen.getByTestId('heatmap-months');
-    const start = shownMonths();
-    fireEvent.wheel(grid, { deltaY: 30 });
-    expect(shownMonths()).toEqual(start);
-    fireEvent.wheel(grid, { deltaY: 30 });
-    fireEvent.wheel(grid, { deltaY: 25 });
-    expect(shownMonths()[0]).toBe(start[1]);
-  });
-
-  it('moves exactly one month per wheel notch, however big the notch', async () => {
-    await renderBoard();
-    const grid = screen.getByTestId('heatmap-months');
-    const start = shownMonths();
-    for (let notch = 0; notch < 3; notch += 1) fireEvent.wheel(grid, { deltaY: 120 });
-    expect(shownMonths()[0]).toBe(start[3]);
-  });
-
-  it('counts notches the browser merged into one event, and a Firefox notch in lines', async () => {
-    await renderBoard();
-    const grid = screen.getByTestId('heatmap-months');
-    const start = shownMonths();
-    fireEvent.wheel(grid, { deltaY: 300 });
-    expect(shownMonths()[0]).toBe(start[3]);
-    fireEvent.wheel(grid, { deltaY: -3, deltaMode: 1 });
-    expect(shownMonths()[0]).toBe(start[2]);
-  });
-
-  it('reaches a year ahead', async () => {
-    const user = userEvent.setup();
-    await renderBoard();
-    const later = screen.getByRole('button', { name: 'Later' });
-    for (let step = 0; step < 12 && !(later as HTMLButtonElement).disabled; step += 1) await user.click(later);
     const yearAhead = format(new Date(today.getFullYear() + 1, today.getMonth(), 1), 'yyyy-MM');
-    expect(shownMonths()).toContain(yearAhead);
+    expect(months).toEqual(expect.arrayContaining([previous, current, yearAhead]));
+    // In order, with no gaps between them — one continuous calendar.
+    expect([...months].sort()).toEqual(months);
+    // Each year once, as the label beside its months (a January opens the window's middle year).
+    expect(screen.getAllByTestId('heatmap-year').map((node) => node.textContent)).toEqual(
+      expect.arrayContaining([String(today.getFullYear()), String(today.getFullYear() + 1)]),
+    );
+  });
+
+  it('opens on the current month and scrolls back to it smoothly from Today', async () => {
+    const user = userEvent.setup();
+    const scrollTo = vi.spyOn(Element.prototype, 'scrollTo');
+    await renderBoard();
+    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ behavior: 'auto' }));
+    await user.click(screen.getByRole('button', { name: 'Today' }));
+    expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ behavior: 'smooth' }));
+    scrollTo.mockRestore();
+  });
+
+  it('moves a row of months down and back up with the arrows, smoothly', async () => {
+    const user = userEvent.setup();
+    if (typeof Element.prototype.scrollBy !== 'function') {
+      Element.prototype.scrollBy = (() => {}) as typeof Element.prototype.scrollBy;
+    }
+    const scrollBy = vi.spyOn(Element.prototype, 'scrollBy');
+    await renderBoard();
+    await user.click(screen.getByRole('button', { name: 'Later' }));
+    await user.click(screen.getByRole('button', { name: 'Earlier' }));
+    const calls = scrollBy.mock.calls.map(([options]) => options as ScrollToOptions);
+    expect(calls).toHaveLength(2);
+    expect(calls.every((options) => options.behavior === 'smooth')).toBe(true);
+    // jsdom has no layout, so a row is 0px tall here: only the direction is checked.
+    expect(Math.sign(calls[0].top ?? 0)).toBeGreaterThanOrEqual(0);
+    expect(Math.sign(calls[1].top ?? 0)).toBeLessThanOrEqual(0);
+    scrollBy.mockRestore();
   });
 
   it('says when the current overload ends, counting working days only', async () => {

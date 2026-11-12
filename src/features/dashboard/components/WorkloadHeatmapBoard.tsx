@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { eachDayOfInterval, endOfMonth, format, getDay, startOfMonth } from 'date-fns';
 import { t, Trans } from '@lingui/macro';
 import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
@@ -11,7 +11,6 @@ import {
   type HeatmapDayCell as DayCellData,
 } from '@/features/dashboard/hooks/useWorkloadHeatmapModel';
 import { useRemountSafeCanvasWidth } from '@/features/dashboard/hooks/useRemountSafeCanvasWidth';
-import { useMonthScrollPaging } from '@/features/dashboard/hooks/useMonthScrollPaging';
 import { MILESTONE_COLOR } from '@/features/dashboard/components/heatmapCellStyle';
 import {
   HeatmapDayButton,
@@ -20,53 +19,41 @@ import {
   HeatmapOutlookLine,
 } from '@/features/dashboard/components/HeatmapParts';
 
-const MONTH_GAP = 14;
-// The board's own chrome around the grid: title row, legend, gaps.
-const BOARD_CHROME = 130;
-// One month card around its six weeks: padding, name, weekday row, row gaps.
-const CARD_CHROME = 24 + 32 + 20 + 5 * 3;
+const MONTH_GAP = 16;
+// The year sits in its own column on the left, the way the timeline's calendar
+// shows it; on a narrow screen it goes above its months instead.
+const YEAR_COLUMN = 80;
+const YEAR_COLUMN_MIN_WIDTH = 760;
 const CARD_SIDE_CHROME = 24 + 6 * 3;
-const MIN_CELL = 28;
-const MAX_CELL = 44;
 const MIN_CARD_WIDTH = 230;
 // On a touch screen (a tablet) fewer, wider months, so a day is a finger's width.
 const MIN_TOUCH_CARD_WIDTH = 330;
-const MAX_COLUMNS = 6;
+const MAX_COLUMNS = 4;
+const MIN_CELL = 30;
+const MAX_CELL = 44;
 
-type GridLayout = { columns: number; rows: number; cell: number };
+type GridLayout = { columns: number; cell: number; yearColumn: boolean };
 
-/**
- * As many months as fit the screen without scrolling: two rows when both fit
- * with readable cells, otherwise one row of more, slimmer months. The cell
- * size follows whichever runs out first, width or height.
- */
-const layoutForSpace = (width: number, height: number, touch: boolean): GridLayout => {
+const layoutForWidth = (width: number, touch: boolean): GridLayout => {
+  const yearColumn = width >= YEAR_COLUMN_MIN_WIDTH;
+  const monthsWidth = width - (yearColumn ? YEAR_COLUMN + MONTH_GAP : 0);
   const minCard = touch ? MIN_TOUCH_CARD_WIDTH : MIN_CARD_WIDTH;
-  const fit = (rows: number): GridLayout => {
-    const columns = Math.min(MAX_COLUMNS, Math.max(2, Math.floor((width + MONTH_GAP) / (minCard + MONTH_GAP))));
-    const cardWidth = (width - (columns - 1) * MONTH_GAP) / columns;
-    const byWidth = (cardWidth - CARD_SIDE_CHROME) / 7;
-    const cardHeight = (height - BOARD_CHROME - (rows - 1) * MONTH_GAP) / rows;
-    const byHeight = (cardHeight - CARD_CHROME) / 6;
-    const cell = Math.floor(Math.min(MAX_CELL, byWidth, byHeight));
-    return { columns, rows, cell };
-  };
-  const two = fit(2);
-  if (two.cell >= 32) return two;
-  const one = fit(1);
-  return { ...one, cell: Math.max(MIN_CELL, one.cell) };
+  const columns = Math.min(MAX_COLUMNS, Math.max(1, Math.floor((monthsWidth + MONTH_GAP) / (minCard + MONTH_GAP))));
+  const cardWidth = (monthsWidth - (columns - 1) * MONTH_GAP) / columns;
+  const cell = Math.round(Math.min(MAX_CELL, Math.max(MIN_CELL, (cardWidth - CARD_SIDE_CHROME) / 7)));
+  return { columns, cell, yearColumn };
 };
 
-/** Room left below the board's top edge inside the window. */
+/** Room left below the board's top edge inside the window: the board's own height. */
 const useAvailableHeight = () => {
   const [node, setNode] = useState<HTMLElement | null>(null);
   const [height, setHeight] = useState(800);
   const measure = useCallback(() => {
     if (!node) return;
     let top = node.getBoundingClientRect().top;
-    // Measured as if the page were scrolled to the top, so scrolling never resizes the grid.
+    // Measured as if the page were scrolled to the top, so scrolling never resizes the board.
     for (let parent = node.parentElement; parent; parent = parent.parentElement) top += parent.scrollTop;
-    setHeight(Math.max(320, window.innerHeight - top - 16));
+    setHeight(Math.max(360, window.innerHeight - top - 16));
   }, [node]);
   useLayoutEffect(() => {
     measure();
@@ -77,9 +64,34 @@ const useAvailableHeight = () => {
 };
 
 /**
- * The board on anything wider than a phone: whole months in a grid sized to
- * the screen, opening with last month and then the current one. No sideways
- * scrolling and no scrolling down — the arrows page through the months. Phones get `WorkloadHeatmapMobile` instead — same
+ * The months grouped by year, like the timeline's calendar. The window's first
+ * year is trimmed from the front to whole rows, so it never starts with a lone
+ * month — but never past last month, which always stays in view.
+ */
+const groupByYear = (months: Date[], columns: number, todayIndex: number): Array<[number, Date[]]> => {
+  const groups = new Map<number, Date[]>();
+  months.forEach((month) => {
+    const list = groups.get(month.getFullYear()) ?? [];
+    list.push(month);
+    groups.set(month.getFullYear(), list);
+  });
+  const entries = Array.from(groups.entries());
+  if (entries.length > 0 && columns > 1) {
+    const [year, list] = entries[0];
+    let drop = list.length % columns;
+    // Months of this first year that are needed: from last month onward.
+    const keepFrom = Math.max(0, todayIndex - 1);
+    drop = Math.min(drop, keepFrom);
+    if (drop > 0 && drop < list.length) entries[0] = [year, list.slice(drop)];
+  }
+  return entries;
+};
+
+/**
+ * The board on anything wider than a phone: whole months in rows, a year at a
+ * time, in one scroll that runs smoothly up and down like a calendar. The
+ * title row and the legend stay put; only the months move. It opens on the row
+ * holding the current month. Phones get `WorkloadHeatmapMobile` instead — same
  * model, months stacked for a thumb.
  */
 export const WorkloadHeatmapBoard: React.FC = () => {
@@ -107,10 +119,7 @@ export const WorkloadHeatmapBoard: React.FC = () => {
       && window.matchMedia('(pointer: coarse)').matches,
     [],
   );
-  const { columns, rows, cell } = layoutForSpace(width, height, touch);
-  const visibleCount = columns * rows;
-  // A tablet: controls big enough for a finger.
-  const roomy = touch;
+  const { columns, cell, yearColumn } = layoutForWidth(width, touch);
   const setRefs = useCallback((node: HTMLDivElement | null) => {
     containerRef(node);
     heightRef(node);
@@ -120,16 +129,40 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     () => Math.max(0, months.findIndex((month) => format(month, 'yyyy-MM') === todayMonthKey)),
     [months, todayMonthKey],
   );
-  // Index of the first month on screen; null = last month, then today's.
-  const [offset, setOffset] = useState<number | null>(null);
-  const lastFirst = Math.max(0, months.length - visibleCount);
-  const first = Math.min(Math.max(0, offset ?? todayIndex - 1), lastFirst);
-  const visible = months.slice(first, first + visibleCount);
-  const shift = useCallback((by: number) => {
-    setOffset(Math.min(Math.max(0, first + by), lastFirst));
-  }, [first, lastFirst]);
-  // Wheel and trackpad move a month at a time, a swipe a screenful — like a calendar.
-  const gridRef = useMonthScrollPaging({ onStep: shift, swipeMonths: visibleCount });
+  const years = useMemo(() => groupByYear(months, columns, todayIndex), [months, columns, todayIndex]);
+
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const monthRefs = useRef(new Map<string, HTMLElement>());
+  const setMonthRef = useCallback((key: string) => (node: HTMLElement | null) => {
+    if (node) monthRefs.current.set(key, node);
+    else monthRefs.current.delete(key);
+  }, []);
+
+  const scrollToToday = useCallback((smooth: boolean) => {
+    const scroller = scrollerRef.current;
+    const target = monthRefs.current.get(todayMonthKey);
+    if (!scroller || !target) return;
+    const top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+    scroller.scrollTo({ top: Math.max(0, top - 4), behavior: smooth ? 'smooth' : 'auto' });
+  }, [todayMonthKey]);
+
+  // One row of months up or down, as the arrows do in the calendar.
+  const scrollByRow = useCallback((direction: 1 | -1) => {
+    const scroller = scrollerRef.current;
+    const card = monthRefs.current.get(todayMonthKey) ?? monthRefs.current.values().next().value;
+    if (!scroller || !card) return;
+    scroller.scrollBy({ top: direction * (card.offsetHeight + MONTH_GAP), behavior: 'smooth' });
+  }, [todayMonthKey]);
+
+  // Open on the current month's row. Wait for data: the board shows a loading
+  // state on the first fetch, and the months are not there to scroll to yet.
+  const didOpenOnToday = useRef(false);
+  const ready = !heatmap.error && !(heatmap.loading && heatmap.days.length === 0);
+  useEffect(() => {
+    if (!ready || didOpenOnToday.current) return;
+    didOpenOnToday.current = true;
+    scrollToToday(false);
+  }, [ready, scrollToToday]);
 
   if (heatmap.loading && heatmap.days.length === 0) {
     return (
@@ -154,9 +187,10 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     );
   }
 
+  const navSize = touch ? 'h-11 w-11' : 'h-9 w-9';
   return (
-    <div ref={setRefs} className="flex flex-col gap-4 px-1 pb-2">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <div ref={setRefs} className="flex flex-col gap-3 px-1" style={{ height }}>
+      <div className="flex shrink-0 flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-base font-medium">
             <Trans>Team workload</Trans>
@@ -164,98 +198,100 @@ export const WorkloadHeatmapBoard: React.FC = () => {
           {showHeat && <HeatmapOutlookLine outlook={outlook} dateLocale={dateLocale} />}
         </div>
         <div className="flex items-center gap-1.5">
-          <Button
-            variant="outline"
-            size="icon"
-            className={roomy ? 'h-11 w-11' : 'h-9 w-9'}
-            aria-label={t`Earlier`}
-            disabled={first === 0}
-            onClick={() => shift(-columns)}
-          >
+          <Button variant="outline" size="icon" className={navSize} aria-label={t`Earlier`} onClick={() => scrollByRow(-1)}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className={roomy ? 'h-11' : undefined}
-            onClick={() => setOffset(null)}
-          >
+          <Button variant="outline" size="sm" className={touch ? 'h-11' : undefined} onClick={() => scrollToToday(true)}>
             <Trans>Today</Trans>
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className={roomy ? 'h-11 w-11' : 'h-9 w-9'}
-            aria-label={t`Later`}
-            disabled={first + visibleCount >= months.length}
-            onClick={() => shift(columns)}
-          >
+          <Button variant="outline" size="icon" className={navSize} aria-label={t`Later`} onClick={() => scrollByRow(1)}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
       {!showHeat && (
-        <div className="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+        <div className="shrink-0 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
           <Trans>Add active assignees to see the workload gradient. Milestones are still shown.</Trans>
         </div>
       )}
 
       <div
-        ref={gridRef}
-        data-testid="heatmap-months"
-        className="grid touch-pan-y"
-        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap: MONTH_GAP }}
+        ref={scrollerRef}
+        data-testid="heatmap-scroller"
+        className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain scroll-smooth scrollbar-hidden rounded-lg"
       >
-        {visible.map((month) => {
-          const monthKey = format(month, 'yyyy-MM');
-          const monthStart = startOfMonth(month);
-          const monthDays = eachDayOfInterval({ start: monthStart, end: endOfMonth(month) });
-          const leadingBlanks = (getDay(monthStart) + 6) % 7;
-          return (
-            <section
-              key={monthKey}
-              data-testid="heatmap-month"
-              data-month={monthKey}
-              className={cn(
-                'rounded-lg border bg-card p-3',
-                monthKey === todayMonthKey ? 'border-foreground/25' : 'border-border',
-              )}
+        <div className="space-y-6 pb-4 pr-1">
+          {years.map(([year, yearMonths]) => (
+            <div
+              key={year}
+              className="grid gap-x-4 gap-y-2"
+              style={{ gridTemplateColumns: yearColumn ? `${YEAR_COLUMN}px minmax(0, 1fr)` : 'minmax(0, 1fr)' }}
             >
-              <h3 className="mb-2.5 truncate text-[15px] font-semibold capitalize">
-                {format(month, 'LLLL', { locale: dateLocale })}
-                <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-                  {format(month, 'yyyy')}
-                </span>
-              </h3>
-              <div className="grid grid-cols-7 gap-[3px]">
-                {weekdayLabels.map((label, index) => (
-                  <div key={`${monthKey}-wd-${index}`} className="pb-1 text-center text-[11px] text-muted-foreground">
-                    {label}
-                  </div>
-                ))}
-                {Array.from({ length: leadingBlanks }, (_, index) => (
-                  <div key={`${monthKey}-blank-${index}`} />
-                ))}
-                {monthDays.map((date) => (
-                  <HeatmapDayCell
-                    key={format(date, 'yyyy-MM-dd')}
-                    day={buildDay(date)}
-                    cell={cell}
-                    showHeat={showHeat}
-                    dateLocale={dateLocale}
-                    projectNameById={projectNameById}
-                    onOpenDay={openDay}
-                    onOpenMilestone={openMilestone}
-                  />
-                ))}
+              <div
+                data-testid="heatmap-year"
+                className={cn('text-lg font-semibold text-muted-foreground', yearColumn && 'pt-2')}
+              >
+                {year}
               </div>
-            </section>
-          );
-        })}
+              <div
+                className="grid"
+                style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap: MONTH_GAP }}
+              >
+                {yearMonths.map((month) => {
+                  const monthKey = format(month, 'yyyy-MM');
+                  const monthStart = startOfMonth(month);
+                  const monthDays = eachDayOfInterval({ start: monthStart, end: endOfMonth(month) });
+                  const leadingBlanks = (getDay(monthStart) + 6) % 7;
+                  return (
+                    <section
+                      key={monthKey}
+                      ref={setMonthRef(monthKey)}
+                      data-testid="heatmap-month"
+                      data-month={monthKey}
+                      className={cn(
+                        'rounded-lg border bg-card p-3',
+                        monthKey === todayMonthKey ? 'border-foreground/25' : 'border-border',
+                      )}
+                    >
+                      <h3 className="mb-2.5 truncate text-[15px] font-semibold capitalize">
+                        {format(month, 'LLLL', { locale: dateLocale })}
+                        <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                          {format(month, 'yyyy')}
+                        </span>
+                      </h3>
+                      <div className="grid grid-cols-7 gap-[3px]">
+                        {weekdayLabels.map((label, index) => (
+                          <div key={`${monthKey}-wd-${index}`} className="pb-1 text-center text-[11px] text-muted-foreground">
+                            {label}
+                          </div>
+                        ))}
+                        {Array.from({ length: leadingBlanks }, (_, index) => (
+                          <div key={`${monthKey}-blank-${index}`} />
+                        ))}
+                        {monthDays.map((date) => (
+                          <HeatmapDayCell
+                            key={format(date, 'yyyy-MM-dd')}
+                            day={buildDay(date)}
+                            cell={cell}
+                            showHeat={showHeat}
+                            dateLocale={dateLocale}
+                            projectNameById={projectNameById}
+                            onOpenDay={openDay}
+                            onOpenMilestone={openMilestone}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <HeatmapLegend>
+      <HeatmapLegend className="shrink-0 pb-1">
         {showHeat && (
           <span className="flex h-3 items-center">
             <Trans>Full day ≈ {capacityDisplay} tasks/person</Trans>
