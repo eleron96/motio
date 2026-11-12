@@ -100,18 +100,27 @@ describe('WorkloadHeatmapBoard month grid', () => {
     mocks.dashboard.heatmap = { ...mocks.dashboard.heatmap, days: [] };
   });
 
-  it('opens on the current month and pages a row at a time without losing the way back', async () => {
+  it('opens with last month and then the current one, and pages without losing the way back', async () => {
     const user = userEvent.setup();
     await renderBoard();
     const current = format(today, 'yyyy-MM');
-    expect(shownMonths()[0]).toBe(current);
+    const previous = format(addDays(new Date(today.getFullYear(), today.getMonth(), 1), -1), 'yyyy-MM');
+    expect(shownMonths().slice(0, 2)).toEqual([previous, current]);
 
-    await user.click(screen.getByRole('button', { name: 'Earlier' }));
-    expect(shownMonths()[0]).not.toBe(current);
-    expect(shownMonths()).toContain(current);
+    await user.click(screen.getByRole('button', { name: 'Later' }));
+    expect(shownMonths()).not.toContain(previous);
 
     await user.click(screen.getByRole('button', { name: 'Today' }));
-    expect(shownMonths()[0]).toBe(current);
+    expect(shownMonths().slice(0, 2)).toEqual([previous, current]);
+  });
+
+  it('reaches a year ahead', async () => {
+    const user = userEvent.setup();
+    await renderBoard();
+    const later = screen.getByRole('button', { name: 'Later' });
+    for (let step = 0; step < 12 && !(later as HTMLButtonElement).disabled; step += 1) await user.click(later);
+    const yearAhead = format(new Date(today.getFullYear() + 1, today.getMonth(), 1), 'yyyy-MM');
+    expect(shownMonths()).toContain(yearAhead);
   });
 
   it('says when the current overload ends, counting working days only', async () => {

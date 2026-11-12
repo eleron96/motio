@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { eachDayOfInterval, endOfMonth, format, getDay, startOfMonth } from 'date-fns';
 import { t, Trans } from '@lingui/macro';
 import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
@@ -19,23 +19,66 @@ import {
   HeatmapOutlookLine,
 } from '@/features/dashboard/components/HeatmapParts';
 
-// A month block needs about this much room to keep its cells finger- and
-// digit-sized; the grid fits as many as the width allows, two rows of them.
-const MONTH_MIN_WIDTH = 270;
 const MONTH_GAP = 14;
-const MIN_COLUMNS = 2;
-const MAX_COLUMNS = 4;
-const ROWS = 2;
+// The board's own chrome around the grid: title row, legend, gaps.
+const BOARD_CHROME = 130;
+// One month card around its six weeks: padding, name, weekday row, row gaps.
+const CARD_CHROME = 24 + 32 + 20 + 5 * 3;
+const CARD_SIDE_CHROME = 24 + 6 * 3;
+const MIN_CELL = 28;
+const MAX_CELL = 44;
+const MIN_CARD_WIDTH = 230;
+// On a touch screen (a tablet) fewer, wider months, so a day is a finger's width.
+const MIN_TOUCH_CARD_WIDTH = 330;
+const MAX_COLUMNS = 6;
 
-const monthColumnsForWidth = (width: number): number => Math.min(
-  MAX_COLUMNS,
-  Math.max(MIN_COLUMNS, Math.floor((width + MONTH_GAP) / (MONTH_MIN_WIDTH + MONTH_GAP))),
-);
+type GridLayout = { columns: number; rows: number; cell: number };
 
 /**
- * The board on anything wider than a phone: whole months in a grid, two rows,
- * opening on the current month. No sideways scrolling — the arrows move the
- * grid a row at a time. Phones get `WorkloadHeatmapMobile` instead — same
+ * As many months as fit the screen without scrolling: two rows when both fit
+ * with readable cells, otherwise one row of more, slimmer months. The cell
+ * size follows whichever runs out first, width or height.
+ */
+const layoutForSpace = (width: number, height: number, touch: boolean): GridLayout => {
+  const minCard = touch ? MIN_TOUCH_CARD_WIDTH : MIN_CARD_WIDTH;
+  const fit = (rows: number): GridLayout => {
+    const columns = Math.min(MAX_COLUMNS, Math.max(2, Math.floor((width + MONTH_GAP) / (minCard + MONTH_GAP))));
+    const cardWidth = (width - (columns - 1) * MONTH_GAP) / columns;
+    const byWidth = (cardWidth - CARD_SIDE_CHROME) / 7;
+    const cardHeight = (height - BOARD_CHROME - (rows - 1) * MONTH_GAP) / rows;
+    const byHeight = (cardHeight - CARD_CHROME) / 6;
+    const cell = Math.floor(Math.min(MAX_CELL, byWidth, byHeight));
+    return { columns, rows, cell };
+  };
+  const two = fit(2);
+  if (two.cell >= 32) return two;
+  const one = fit(1);
+  return { ...one, cell: Math.max(MIN_CELL, one.cell) };
+};
+
+/** Room left below the board's top edge inside the window. */
+const useAvailableHeight = () => {
+  const [node, setNode] = useState<HTMLElement | null>(null);
+  const [height, setHeight] = useState(800);
+  const measure = useCallback(() => {
+    if (!node) return;
+    let top = node.getBoundingClientRect().top;
+    // Measured as if the page were scrolled to the top, so scrolling never resizes the grid.
+    for (let parent = node.parentElement; parent; parent = parent.parentElement) top += parent.scrollTop;
+    setHeight(Math.max(320, window.innerHeight - top - 16));
+  }, [node]);
+  useLayoutEffect(() => {
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [measure]);
+  return { height, ref: setNode };
+};
+
+/**
+ * The board on anything wider than a phone: whole months in a grid sized to
+ * the screen, opening with last month and then the current one. No sideways
+ * scrolling and no scrolling down — the arrows page through the months. Phones get `WorkloadHeatmapMobile` instead — same
  * model, months stacked for a thumb.
  */
 export const WorkloadHeatmapBoard: React.FC = () => {
@@ -57,18 +100,28 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     openMilestone,
   } = useWorkloadHeatmapModel();
   const { width, containerRef } = useRemountSafeCanvasWidth();
-  const columns = monthColumnsForWidth(width);
-  const visibleCount = columns * ROWS;
-  // Two columns means a narrow screen, usually a tablet: cells big enough for a finger.
-  const roomy = columns === MIN_COLUMNS;
+  const { height, ref: heightRef } = useAvailableHeight();
+  const touch = useMemo(
+    () => typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      && window.matchMedia('(pointer: coarse)').matches,
+    [],
+  );
+  const { columns, rows, cell } = layoutForSpace(width, height, touch);
+  const visibleCount = columns * rows;
+  // A tablet: controls big enough for a finger.
+  const roomy = touch;
+  const setRefs = useCallback((node: HTMLDivElement | null) => {
+    containerRef(node);
+    heightRef(node);
+  }, [containerRef, heightRef]);
 
   const todayIndex = useMemo(
     () => Math.max(0, months.findIndex((month) => format(month, 'yyyy-MM') === todayMonthKey)),
     [months, todayMonthKey],
   );
-  // Index of the first month on screen; null = follow today.
+  // Index of the first month on screen; null = last month, then today's.
   const [offset, setOffset] = useState<number | null>(null);
-  const first = Math.min(Math.max(0, offset ?? todayIndex), Math.max(0, months.length - 1));
+  const first = Math.min(Math.max(0, offset ?? todayIndex - 1), Math.max(0, months.length - visibleCount));
   const visible = months.slice(first, first + visibleCount);
 
   if (heatmap.loading && heatmap.days.length === 0) {
@@ -95,7 +148,7 @@ export const WorkloadHeatmapBoard: React.FC = () => {
   }
 
   return (
-    <div ref={containerRef} className="flex flex-col gap-4 px-1 pb-2">
+    <div ref={setRefs} className="flex flex-col gap-4 px-1 pb-2">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-base font-medium">
@@ -155,9 +208,12 @@ export const WorkloadHeatmapBoard: React.FC = () => {
               key={monthKey}
               data-testid="heatmap-month"
               data-month={monthKey}
-              className="rounded-lg border border-border bg-card p-3"
+              className={cn(
+                'rounded-lg border bg-card p-3',
+                monthKey === todayMonthKey ? 'border-foreground/25' : 'border-border',
+              )}
             >
-              <h3 className="mb-2.5 text-[15px] font-semibold capitalize">
+              <h3 className="mb-2.5 truncate text-[15px] font-semibold capitalize">
                 {format(month, 'LLLL', { locale: dateLocale })}
                 <span className="ml-1.5 text-xs font-normal text-muted-foreground">
                   {format(month, 'yyyy')}
@@ -176,7 +232,7 @@ export const WorkloadHeatmapBoard: React.FC = () => {
                   <HeatmapDayCell
                     key={format(date, 'yyyy-MM-dd')}
                     day={buildDay(date)}
-                    roomy={roomy}
+                    cell={cell}
                     showHeat={showHeat}
                     dateLocale={dateLocale}
                     projectNameById={projectNameById}
@@ -209,7 +265,7 @@ export const WorkloadHeatmapBoard: React.FC = () => {
 
 type HeatmapDayCellProps = {
   day: DayCellData;
-  roomy: boolean;
+  cell: number;
   showHeat: boolean;
   dateLocale: DateFnsLocale;
   projectNameById: Map<string, string>;
@@ -219,17 +275,17 @@ type HeatmapDayCellProps = {
 
 const HeatmapDayCell: React.FC<HeatmapDayCellProps> = ({
   day,
-  roomy,
+  cell,
   showHeat,
   dateLocale,
   projectNameById,
   onOpenDay,
   onOpenMilestone,
 }) => {
-  const height = roomy ? 'h-11 text-[15px]' : 'h-9 text-sm';
+  const size = { height: cell, fontSize: cell >= 40 ? 15 : cell >= 32 ? 14 : 13 };
   if (!day.inRange) {
     return (
-      <div className={cn('flex items-center justify-center rounded-md text-muted-foreground/40', height)}>
+      <div className="flex items-center justify-center rounded-md text-muted-foreground/40" style={size}>
         {day.dayNumber}
       </div>
     );
@@ -242,7 +298,8 @@ const HeatmapDayCell: React.FC<HeatmapDayCellProps> = ({
           day={day}
           showHeat={showHeat}
           dateLocale={dateLocale}
-          className={cn(height, 'data-[state=open]:z-20 data-[state=open]:outline data-[state=open]:outline-2 data-[state=open]:outline-offset-2 data-[state=open]:outline-foreground')}
+          style={size}
+          className={cn('data-[state=open]:z-20 data-[state=open]:outline data-[state=open]:outline-2 data-[state=open]:outline-offset-2 data-[state=open]:outline-foreground')}
         />
       </PopoverTrigger>
       <PopoverContent side="right" align="start" sideOffset={10} collisionPadding={12} className="w-64">

@@ -154,7 +154,7 @@ describe('WorkloadHeatmapMobile', () => {
     const now = new Date();
     const expected = eachMonthOfInterval({
       start: startOfWeek(subWeeks(now, 13), { weekStartsOn: 1 }),
-      end: endOfWeek(addWeeks(now, 26), { weekStartsOn: 1 }),
+      end: endOfWeek(addWeeks(now, 52), { weekStartsOn: 1 }),
     }).map((month) => format(month, 'yyyy-MM'));
 
     const rendered = screen.getAllByTestId('heatmap-month').map((node) => node.dataset.month);

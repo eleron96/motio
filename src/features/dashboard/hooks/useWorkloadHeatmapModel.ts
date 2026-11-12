@@ -45,11 +45,11 @@ import {
 } from '@/features/dashboard/lib/workloadHeatmap';
 import { useInstanceSetting } from '@/shared/store/instanceSettingsStore';
 
-// Fixed, non-configurable window: ~3 months of context before today, ~6 months
-// ahead. The desktop strip opens with the current month flush to the left, the
-// phone list with it at the top.
+// Fixed, non-configurable window: ~3 months of context before today, a year
+// ahead — planning reaches past half a year, and the board pages through months
+// instead of scrolling, so a longer window costs no screen space.
 export const WEEKS_BEFORE = 13;
-export const WEEKS_AFTER = 26;
+export const WEEKS_AFTER = 52;
 
 export type DateFnsLocale = ReturnType<typeof resolveDateFnsLocale>;
 

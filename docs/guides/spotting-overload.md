@@ -36,7 +36,8 @@ that keeps climbing for one person is overload in slow motion.
 
 ## The months ahead: the workload heatmap
 
-**Dashboard → Heatmap** lays the months out as calendars, starting with the current one.
+**Dashboard → Heatmap** lays the months out as calendars, last month first, then the
+current one, up to a year ahead.
 Up to a full day, a day is coloured from pale peach to terracotta; over a full day it
 turns red, in three steps — over 100%, 125% and 150%. Weekends are grey, green diamonds
 are milestones, hatched days are public holidays — the country's, plus your region's if

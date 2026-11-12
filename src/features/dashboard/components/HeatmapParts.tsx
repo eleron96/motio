@@ -93,7 +93,7 @@ type HeatmapDayButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
  * digits, the milestone mark and the today ring are the same on every screen.
  */
 export const HeatmapDayButton = React.forwardRef<HTMLButtonElement, HeatmapDayButtonProps>(
-  ({ day, showHeat, dateLocale, className, ...rest }, ref) => {
+  ({ day, showHeat, dateLocale, className, style, ...rest }, ref) => {
     const look = resolveDayCellStyle(day, showHeat);
     const hasMilestones = day.milestones.length > 0;
     const date = format(day.date, 'd MMMM yyyy', { locale: dateLocale });
@@ -114,7 +114,7 @@ export const HeatmapDayButton = React.forwardRef<HTMLButtonElement, HeatmapDayBu
           day.isToday && 'heatmap-today z-10',
           className,
         )}
-        style={look.style}
+        style={{ ...style, ...look.style }}
       >
         <span className="leading-none">{day.dayNumber}</span>
         {hasMilestones && (
