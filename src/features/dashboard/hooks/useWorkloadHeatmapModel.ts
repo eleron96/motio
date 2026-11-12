@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import {
   addDays,
-  addWeeks,
   eachMonthOfInterval,
-  endOfWeek,
   format,
   getYear,
   isWeekend,
+  startOfDay,
   startOfMonth,
   startOfWeek,
   subWeeks,
@@ -28,25 +27,31 @@ import {
   awayCountByDate,
   awayPercentByDate,
   capacityPercentByAssignee,
-  dayPercent,
+  dayLoad,
   headcountByDate,
   historyLoadPerPerson,
   levelForPercent,
   milestoneKernelSum,
+  overloadOutlook,
   parseIsoDate,
   resolveCapacity,
   teamPercentByDate,
   teamPresence,
   workloadMilestones,
   type HeatmapLevel,
+  type OverloadOutlook,
 } from '@/features/dashboard/lib/workloadHeatmap';
 import { useInstanceSetting } from '@/shared/store/instanceSettingsStore';
 
-// Fixed, non-configurable window: ~3 months of context before today, ~6 months
-// ahead. The desktop strip opens with the current month flush to the left, the
-// phone list with it at the top.
-export const WEEKS_BEFORE = 13;
-export const WEEKS_AFTER = 26;
+// Whole calendar years — last year, this one and the next — the same window as
+// the timeline's calendar (planner/lib/calendarMonths.ts): the board scrolls like
+// that calendar and starts on 1 January and ends on 31 December, instead of
+// cutting both end years in the middle.
+const YEARS_BACK = 1;
+const YEARS_FORWARD = 1;
+// The "full day" is calibrated on this much recent history only, as it always
+// was: a whole extra year of past days would shift every day's percent.
+const CALIBRATION_WEEKS = 13;
 
 export type DateFnsLocale = ReturnType<typeof resolveDateFnsLocale>;
 
@@ -60,6 +65,9 @@ export type HeatmapDayCell = {
   holidayNames: string[] | null;
   level: HeatmapLevel;
   percent: number;
+  /** What the percent is made of; the two add up to it. */
+  taskPercent: number;
+  milestonePercent: number;
   taskCount: number;
   /** People away that day, and that day's whole team for the "N of M" reading. */
   awayCount: number;
@@ -112,14 +120,9 @@ export const useWorkloadHeatmapModel = () => {
   }, [basePath, navigate]);
 
   const now = useMemo(() => new Date(), []);
-  const rangeStart = useMemo(
-    () => startOfWeek(subWeeks(now, WEEKS_BEFORE), { weekStartsOn: 1 }),
-    [now],
-  );
-  const rangeEnd = useMemo(
-    () => endOfWeek(addWeeks(now, WEEKS_AFTER), { weekStartsOn: 1 }),
-    [now],
-  );
+  const rangeStart = useMemo(() => new Date(now.getFullYear() - YEARS_BACK, 0, 1), [now]);
+  const rangeEnd = useMemo(() => new Date(now.getFullYear() + YEARS_FORWARD, 11, 31), [now]);
+  const calibrationStartIso = format(subWeeks(now, CALIBRATION_WEEKS), 'yyyy-MM-dd');
   const startIso = format(rangeStart, 'yyyy-MM-dd');
   const endIso = format(rangeEnd, 'yyyy-MM-dd');
   const todayIso = format(now, 'yyyy-MM-dd');
@@ -243,7 +246,7 @@ export const useWorkloadHeatmapModel = () => {
   const historyLoads = useMemo(() => {
     const loads: number[] = [];
     heatmap.days.forEach((day) => {
-      if (day.date >= todayIso) return;
+      if (day.date >= todayIso || day.date < calibrationStartIso) return;
       if (isWeekend(parseIsoDate(day.date)) || holidayMap[day.date]) return;
       // Past days count against who actually worked them, so a stretch of holidays
       // doesn't drag the team's "normal day" down and make every other day look hot.
@@ -251,7 +254,7 @@ export const useWorkloadHeatmapModel = () => {
       if (load !== null) loads.push(load);
     });
     return loads;
-  }, [heatmap.days, todayIso, holidayMap, availableOn]);
+  }, [heatmap.days, todayIso, calibrationStartIso, holidayMap, availableOn]);
   const autoCapacity = useMemo(() => autoCapacityPerPerson(historyLoads), [historyLoads]);
   useEffect(() => {
     setHeatmapAutoCapacity(autoCapacity);
@@ -270,11 +273,12 @@ export const useWorkloadHeatmapModel = () => {
 
   const weekdayLabels = useMemo(
     () => Array.from({ length: 7 }, (_, index) => formatWeekdayLabel(
-      addDays(rangeStart, index),
+      // Any Monday will do; the window itself starts on 1 January, any weekday.
+      addDays(startOfWeek(now, { weekStartsOn: 1 }), index),
       locale,
       { style: 'short', dateLocale },
     )),
-    [rangeStart, locale, dateLocale],
+    [now, locale, dateLocale],
   );
 
   const buildDay = useCallback((date: Date): HeatmapDayCell => {
@@ -291,9 +295,10 @@ export const useWorkloadHeatmapModel = () => {
     // it bordeaux would confuse "no one to do it" with "too much to do".
     const isTeamAway = hasTeam && available === 0;
     const isWorkday = !weekend && !holidayNames && !isTeamAway;
-    const percent = hasTeam && !isTeamAway
-      ? dayPercent(taskCount, available, capacity, milestoneKernelSum(iso, loadBearingMilestones))
-      : 0;
+    const load = hasTeam && !isTeamAway
+      ? dayLoad(taskCount, available, capacity, milestoneKernelSum(iso, loadBearingMilestones))
+      : { percent: 0, taskPercent: 0, milestonePercent: 0 };
+    const { percent } = load;
     return {
       date,
       iso,
@@ -304,6 +309,8 @@ export const useWorkloadHeatmapModel = () => {
       holidayNames,
       level: hasTeam && isWorkday ? levelForPercent(percent) : 0,
       percent,
+      taskPercent: load.taskPercent,
+      milestonePercent: load.milestonePercent,
       taskCount,
       awayCount,
       headcount: headcountByDay.get(iso) ?? 0,
@@ -326,8 +333,24 @@ export const useWorkloadHeatmapModel = () => {
     milestonesByDate,
   ]);
 
+  // The one sentence above the calendar: is the team overloaded now, until when,
+  // or when the next overload starts. Counted over working days from today on.
+  const outlook = useMemo<OverloadOutlook>(() => {
+    if (!showHeat) return { kind: 'clear' };
+    const workdays: Array<{ iso: string; percent: number }> = [];
+    // Local calendar days, the same way the month grids build their cells.
+    for (let date = startOfDay(now); format(date, 'yyyy-MM-dd') <= endIso; date = addDays(date, 1)) {
+      const day = buildDay(date);
+      if (!day.isWeekend && !day.holidayNames && !day.isTeamAway) {
+        workdays.push({ iso: day.iso, percent: day.percent });
+      }
+    }
+    return overloadOutlook(workdays);
+  }, [showHeat, now, endIso, buildDay]);
+
   return {
     heatmap,
+    outlook,
     retry,
     showHeat,
     capacityDisplay,

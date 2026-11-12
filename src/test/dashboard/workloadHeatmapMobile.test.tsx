@@ -1,12 +1,8 @@
 import React from 'react';
 import {
   addDays,
-  addWeeks,
   eachMonthOfInterval,
-  endOfWeek,
   format,
-  startOfWeek,
-  subWeeks,
 } from 'date-fns';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -121,7 +117,8 @@ const renderBoard = async () => {
   return render(<WorkloadHeatmapMobile />);
 };
 
-const dayLabel = (iso: string) => format(new Date(`${iso}T12:00:00Z`), 'd MMMM yyyy');
+// The day's button is named by its date first; the load and its level follow.
+const dayLabel = (iso: string) => new RegExp(`^${format(new Date(`${iso}T12:00:00Z`), 'd MMMM yyyy')}\\b`);
 
 describe('WorkloadHeatmapMobile', () => {
   // A weekday a couple of weeks out: inside the window, never a weekend.
@@ -152,8 +149,9 @@ describe('WorkloadHeatmapMobile', () => {
 
     const now = new Date();
     const expected = eachMonthOfInterval({
-      start: startOfWeek(subWeeks(now, 13), { weekStartsOn: 1 }),
-      end: endOfWeek(addWeeks(now, 26), { weekStartsOn: 1 }),
+      // Whole years: last, this and next, January to December.
+      start: new Date(now.getFullYear() - 1, 0, 1),
+      end: new Date(now.getFullYear() + 1, 11, 31),
     }).map((month) => format(month, 'yyyy-MM'));
 
     const rendered = screen.getAllByTestId('heatmap-month').map((node) => node.dataset.month);
@@ -183,7 +181,7 @@ describe('WorkloadHeatmapMobile', () => {
 
     const sheet = await screen.findByRole('dialog');
     // (20 / 6) / 5 = 0.67
-    expect(sheet).toHaveTextContent('Load67%');
+    expect(sheet).toHaveTextContent(/Load\s*high\s*67%/);
     expect(within(sheet).getByText('Deliver the guidelines')).toBeInTheDocument();
     expect(within(sheet).getByText('Brand Refresh')).toBeInTheDocument();
 

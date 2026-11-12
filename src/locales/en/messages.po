@@ -869,6 +869,10 @@ msgstr "All subscribers"
 msgid "All tasks"
 msgstr "All tasks"
 
+#: src/features/dashboard/components/heatmapLevelLabel.ts
+msgid "almost full"
+msgstr "almost full"
+
 #: src/features/workspace/components/InviteResultNotice.tsx
 msgid "Already a member"
 msgstr "Already a member"
@@ -1073,7 +1077,7 @@ msgstr "Away"
 #. placeholder {0}: day.awayCount
 #. placeholder {1}: day.headcount
 #: src/features/dashboard/components/HeatmapDaySheet.tsx
-#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/dashboard/components/HeatmapParts.tsx
 msgid "Away: {0} of {1}"
 msgstr "Away: {0} of {1}"
 
@@ -1989,6 +1993,10 @@ msgstr "Creates the specified number of repeats."
 msgid "Crews on sites and field work: who is where this week."
 msgstr "Crews on sites and field work: who is where this week."
 
+#: src/features/dashboard/components/heatmapLevelLabel.ts
+msgid "critically overloaded"
+msgstr "critically overloaded"
+
 #: src/features/members/components/AssignGroupDialog.tsx
 #: src/features/members/components/AssignGroupDialog.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
@@ -2135,7 +2143,7 @@ msgid "Day"
 msgstr "Day"
 
 #: src/features/dashboard/components/HeatmapDaySheet.tsx
-#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/dashboard/components/HeatmapParts.tsx
 #: src/features/planner/components/timeline/TimeOffBar.tsx
 msgid "Day off"
 msgstr "Day off"
@@ -2700,6 +2708,10 @@ msgstr "Each row is a person, each bar is one of their tasks. Scroll down for th
 #: src/features/onboarding/lib/onboardingTour.ts
 msgid "Each row is a project, each bar is one of its tasks. The red-striped column is today."
 msgstr "Each row is a project, each bar is one of its tasks. The red-striped column is today."
+
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Earlier"
+msgstr "Earlier"
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Easter eggs"
@@ -3325,6 +3337,10 @@ msgstr "Force purge scheduled"
 msgid "Forgot password"
 msgstr "Forgot password"
 
+#: src/features/dashboard/components/heatmapLevelLabel.ts
+msgid "free"
+msgstr "free"
+
 #: src/features/marketing/pages/LandingPage.tsx
 msgid "Free, open-source team planner: people, projects and workload on one shared timeline. Spot overload early. Live demo, no sign-up."
 msgstr "Free, open-source team planner: people, projects and workload on one shared timeline. Spot overload early. Live demo, no sign-up."
@@ -3522,6 +3538,10 @@ msgstr "Handover to the contractor"
 msgid "Heatmap"
 msgstr "Heatmap"
 
+#: src/features/dashboard/components/heatmapLevelLabel.ts
+msgid "heavily overloaded"
+msgstr "heavily overloaded"
+
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 #: src/shared/ui/help-link.tsx
 msgid "Help"
@@ -3547,6 +3567,10 @@ msgstr "Hide filters"
 #: src/features/projects/components/projectCard/MilestonesBlock.tsx
 msgid "Hide past"
 msgstr "Hide past"
+
+#: src/features/dashboard/components/heatmapLevelLabel.ts
+msgid "high"
+msgstr "high"
 
 #: src/features/planner/components/AddTaskParameters.tsx
 #: src/features/planner/components/TaskDetailParameters.tsx
@@ -3574,9 +3598,8 @@ msgid "Hold the widget header to enable moving."
 msgstr "Hold the widget header to enable moving."
 
 #: src/features/dashboard/components/HeatmapDaySheet.tsx
-#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
-#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
-#: src/features/dashboard/components/WorkloadHeatmapMobile.tsx
+#: src/features/dashboard/components/HeatmapParts.tsx
+#: src/features/dashboard/components/HeatmapParts.tsx
 #: src/features/dashboard/hooks/useWorkloadHeatmapModel.ts
 #: src/features/planner/components/timeline/CalendarTimeline.tsx
 #: src/features/planner/components/timeline/hooks/useTimelineHolidays.ts
@@ -3903,6 +3926,10 @@ msgstr "Last sign-in"
 msgid "last used {0}"
 msgstr "last used {0}"
 
+#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+msgid "Later"
+msgstr "Later"
+
 #: src/features/admin/pages/AdminOverviewPage.tsx
 msgid "Latest backup"
 msgstr "Latest backup"
@@ -3983,15 +4010,17 @@ msgid "Live updates"
 msgstr "Live updates"
 
 #: src/features/dashboard/components/HeatmapDaySheet.tsx
-#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
-#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
-#: src/features/dashboard/components/WorkloadHeatmapMobile.tsx
+#: src/features/dashboard/components/HeatmapParts.tsx
 msgid "Load"
 msgstr "Load"
 
 #: src/features/planner/components/TaskCommentSection.tsx
 msgid "Load older comments"
 msgstr "Load older comments"
+
+#: src/features/dashboard/components/HeatmapParts.tsx
+msgid "Load, %"
+msgstr "Load, %"
 
 #: src/features/workspace/components/WorkspaceGeneralSettings.tsx
 #: src/features/workspace/components/WorkspaceGeneralSettings.tsx
@@ -4101,6 +4130,10 @@ msgstr "Loading..."
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Loading…"
 msgstr "Loading…"
+
+#: src/features/dashboard/components/heatmapLevelLabel.ts
+msgid "low"
+msgstr "low"
 
 #: src/features/planner/components/AddTaskParameters.tsx
 #: src/features/planner/components/TaskDetailParameters.tsx
@@ -4252,8 +4285,7 @@ msgstr "Message"
 msgid "Messaging"
 msgstr "Messaging"
 
-#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
-#: src/features/dashboard/components/WorkloadHeatmapMobile.tsx
+#: src/features/dashboard/components/HeatmapParts.tsx
 #: src/features/projects/components/MilestonesMobileSection.tsx
 msgid "Milestone"
 msgstr "Milestone"
@@ -4270,7 +4302,6 @@ msgstr "Milestone name..."
 
 #: src/features/dashboard/components/HeatmapDaySheet.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
-#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 #: src/features/planner/components/timeline/CalendarDayHoverContent.tsx
 #: src/features/planner/components/timeline/calendarLegendRows.tsx
 #: src/features/planner/components/timeline/MilestoneLayer.tsx
@@ -4317,6 +4348,10 @@ msgstr "Model exchange with the contractor"
 #: src/features/workspace/lib/starterTemplates/designTemplate.ts
 msgid "Modelling"
 msgstr "Modelling"
+
+#: src/features/dashboard/components/heatmapLevelLabel.ts
+msgid "moderate"
+msgstr "moderate"
 
 #: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
 msgid "Monday crew briefing"
@@ -4855,7 +4890,6 @@ msgid "No milestones match the current filters."
 msgstr "No milestones match the current filters."
 
 #: src/features/dashboard/components/HeatmapDaySheet.tsx
-#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
 msgid "No milestones on this day"
 msgstr "No milestones on this day"
 
@@ -4891,6 +4925,15 @@ msgstr "No open invitations."
 #: src/features/dashboard/components/WidgetFilterGroupsEditor.tsx
 msgid "No options"
 msgstr "No options"
+
+#: src/features/dashboard/components/HeatmapParts.tsx
+msgid "No overload in the coming months."
+msgstr "No overload in the coming months."
+
+#. placeholder {0}: day(outlook.from)
+#: src/features/dashboard/components/HeatmapParts.tsx
+msgid "No overload now. The next one starts {0}."
+msgstr "No overload now. The next one starts {0}."
 
 #: src/features/projects/components/ProjectsSidebar.tsx
 msgid "No past milestones."
@@ -5415,10 +5458,14 @@ msgstr "overdue"
 msgid "Overdue"
 msgstr "Overdue"
 
-#: src/features/dashboard/components/HeatmapDaySheet.tsx
-#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/dashboard/components/heatmapLevelLabel.ts
 msgid "overloaded"
 msgstr "overloaded"
+
+#. placeholder {0}: day(outlook.until)
+#: src/features/dashboard/components/HeatmapParts.tsx
+msgid "Overloaded until {0}, calmer after that."
+msgstr "Overloaded until {0}, calmer after that."
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Overview"
@@ -5624,6 +5671,11 @@ msgstr "Plumbing"
 #: src/features/workspace/lib/starterTemplates/constructionTemplate.ts
 msgid "Plumbing rough-in"
 msgstr "Plumbing rough-in"
+
+#: src/features/dashboard/components/HeatmapDaySheet.tsx
+#: src/features/dashboard/components/HeatmapParts.tsx
+msgid "Preparing deliveries"
+msgstr "Preparing deliveries"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "Preparing your data…"
@@ -7240,11 +7292,6 @@ msgstr "Task dates changed"
 msgid "Task deleted"
 msgstr "Task deleted"
 
-#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
-#: src/features/dashboard/components/WorkloadHeatmapMobile.tsx
-msgid "Task density and milestones across the coming months"
-msgstr "Task density and milestones across the coming months"
-
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/members/components/TaskDetailsDialog.tsx
 #: src/features/planner/components/TaskDetailFrame.tsx
@@ -7297,7 +7344,7 @@ msgstr "Task was created, but subtasks were not saved."
 #: src/features/dashboard/components/DashboardChartWidget.tsx
 #: src/features/dashboard/components/DashboardChartWidget.tsx
 #: src/features/dashboard/components/HeatmapDaySheet.tsx
-#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/dashboard/components/HeatmapParts.tsx
 #: src/features/planner/components/timeline/MobileDaySheet.tsx
 #: src/features/projects/components/projectCard/TasksBlock.tsx
 #: src/features/workspace/components/WorkspaceDisplaySettings.tsx
@@ -7476,7 +7523,7 @@ msgid "The tool I wanted to use"
 msgstr "The tool I wanted to use"
 
 #: src/features/dashboard/components/HeatmapDaySheet.tsx
-#: src/features/dashboard/components/WorkloadHeatmapBoard.tsx
+#: src/features/dashboard/components/HeatmapParts.tsx
 msgid "The whole team is away"
 msgstr "The whole team is away"
 

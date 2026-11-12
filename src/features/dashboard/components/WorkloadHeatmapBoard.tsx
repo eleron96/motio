@@ -1,30 +1,91 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { eachDayOfInterval, endOfMonth, format, getDay, startOfMonth } from 'date-fns';
-import { Trans } from '@lingui/macro';
-import { ExternalLink } from 'lucide-react';
+import { t, Trans } from '@lingui/macro';
+import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
+import { Button } from '@/shared/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { cn } from '@/shared/lib/classNames';
-import { colorForLevel } from '@/features/dashboard/lib/workloadHeatmap';
 import {
   useWorkloadHeatmapModel,
   type DateFnsLocale,
   type HeatmapDayCell as DayCellData,
 } from '@/features/dashboard/hooks/useWorkloadHeatmapModel';
+import { useRemountSafeCanvasWidth } from '@/features/dashboard/hooks/useRemountSafeCanvasWidth';
+import { MILESTONE_COLOR } from '@/features/dashboard/components/heatmapCellStyle';
 import {
-  HOLIDAY_HATCH,
-  LEGEND_LEVELS,
-  MILESTONE_COLOR,
-  resolveDayCellStyle,
-} from '@/features/dashboard/components/heatmapCellStyle';
+  HeatmapDayButton,
+  HeatmapDayFacts,
+  HeatmapLegend,
+  HeatmapOutlookLine,
+} from '@/features/dashboard/components/HeatmapParts';
+
+const MONTH_GAP = 16;
+// The year sits in its own column on the left, the way the timeline's calendar
+// shows it; on a narrow screen it goes above its months instead.
+const YEAR_COLUMN = 80;
+const YEAR_COLUMN_MIN_WIDTH = 760;
+const CARD_SIDE_CHROME = 24 + 6 * 3;
+const MIN_CARD_WIDTH = 230;
+// On a touch screen (a tablet) fewer, wider months, so a day is a finger's width.
+const MIN_TOUCH_CARD_WIDTH = 330;
+const MAX_COLUMNS = 4;
+const MIN_CELL = 30;
+const MAX_CELL = 44;
+
+type GridLayout = { columns: number; cell: number; yearColumn: boolean };
+
+const layoutForWidth = (width: number, touch: boolean): GridLayout => {
+  const yearColumn = width >= YEAR_COLUMN_MIN_WIDTH;
+  const monthsWidth = width - (yearColumn ? YEAR_COLUMN + MONTH_GAP : 0);
+  const minCard = touch ? MIN_TOUCH_CARD_WIDTH : MIN_CARD_WIDTH;
+  const columns = Math.min(MAX_COLUMNS, Math.max(1, Math.floor((monthsWidth + MONTH_GAP) / (minCard + MONTH_GAP))));
+  const cardWidth = (monthsWidth - (columns - 1) * MONTH_GAP) / columns;
+  const cell = Math.round(Math.min(MAX_CELL, Math.max(MIN_CELL, (cardWidth - CARD_SIDE_CHROME) / 7)));
+  return { columns, cell, yearColumn };
+};
+
+/** Room left below the board's top edge inside the window: the board's own height. */
+const useAvailableHeight = () => {
+  const [node, setNode] = useState<HTMLElement | null>(null);
+  const [height, setHeight] = useState(800);
+  const measure = useCallback(() => {
+    if (!node) return;
+    let top = node.getBoundingClientRect().top;
+    // Measured as if the page were scrolled to the top, so scrolling never resizes the board.
+    for (let parent = node.parentElement; parent; parent = parent.parentElement) top += parent.scrollTop;
+    setHeight(Math.max(360, window.innerHeight - top - 16));
+  }, [node]);
+  useLayoutEffect(() => {
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [measure]);
+  return { height, ref: setNode };
+};
+
+/** The months grouped by year, like the timeline's calendar. */
+const groupByYear = (months: Date[]): Array<[number, Date[]]> => {
+  const groups = new Map<number, Date[]>();
+  months.forEach((month) => {
+    const list = groups.get(month.getFullYear()) ?? [];
+    list.push(month);
+    groups.set(month.getFullYear(), list);
+  });
+  return Array.from(groups.entries());
+};
 
 /**
- * The desktop board: months side by side in a strip that opens with the current
- * month flush to the left and scrolls horizontally. Phones get
- * `WorkloadHeatmapMobile` instead — same model, months stacked for a thumb.
+ * The board on anything wider than a phone: whole months in rows, a year at a
+ * time — last year, this one and the next, like the timeline's calendar — in
+ * one scroll that runs smoothly up and down. The
+ * title row and the legend stay put; only the months move. It opens on the row
+ * holding the current month. Phones get `WorkloadHeatmapMobile` instead — same
+ * model, months stacked for a thumb.
  */
 export const WorkloadHeatmapBoard: React.FC = () => {
   const {
     heatmap,
+    outlook,
     retry,
     showHeat,
     capacityDisplay,
@@ -39,179 +100,69 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     openDay,
     openMilestone,
   } = useWorkloadHeatmapModel();
+  const { width, containerRef } = useRemountSafeCanvasWidth();
+  const { height, ref: heightRef } = useAvailableHeight();
+  const touch = useMemo(
+    () => typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      && window.matchMedia('(pointer: coarse)').matches,
+    [],
+  );
+  const { columns, cell, yearColumn } = layoutForWidth(width, touch);
+  const setRefs = useCallback((node: HTMLDivElement | null) => {
+    containerRef(node);
+    heightRef(node);
+  }, [containerRef, heightRef]);
 
-  const stripRef = useRef<HTMLDivElement>(null);
-  const todayMonthRef = useRef<HTMLDivElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const thumbRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef(0);
-  const dragRef = useRef<{ startX: number; startLeft: number } | null>(null);
-  // Click-and-drag panning of the strip itself (mouse only). Tracks a pending
-  // press until it crosses the threshold, then takes over as a pan.
-  const panRef = useRef<{ pointerId: number; startX: number; startLeft: number; active: boolean } | null>(null);
-  const suppressClickRef = useRef(false);
-  const didAutoScroll = useRef(false);
-  const [nav, setNav] = useState({ todayVisible: true });
-  const [isPanning, setIsPanning] = useState(false);
+  const years = useMemo(() => groupByYear(months), [months]);
 
-  const syncScrollUi = useCallback(() => {
-    const strip = stripRef.current;
-    if (!strip) return;
-    const { scrollLeft, scrollWidth, clientWidth } = strip;
-    const maxScroll = Math.max(1, scrollWidth - clientWidth);
-    const posFrac = Math.min(1, Math.max(0, scrollLeft / maxScroll));
-    if (thumbRef.current && trackRef.current) {
-      const usable = Math.max(0, trackRef.current.clientWidth - thumbRef.current.offsetWidth);
-      thumbRef.current.style.left = `${posFrac * usable}px`;
-    }
-    let todayVisible = true;
-    const target = todayMonthRef.current;
-    if (target) {
-      const s = strip.getBoundingClientRect();
-      const rect = target.getBoundingClientRect();
-      todayVisible = rect.right > s.left + 8 && rect.left < s.right - 8;
-    }
-    setNav((prev) => (prev.todayVisible === todayVisible ? prev : { todayVisible }));
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const monthRefs = useRef(new Map<string, HTMLElement>());
+  const setMonthRef = useCallback((key: string) => (node: HTMLElement | null) => {
+    if (node) monthRefs.current.set(key, node);
+    else monthRefs.current.delete(key);
   }, []);
 
-  const onScroll = useCallback(() => {
-    if (rafRef.current) return;
-    rafRef.current = window.requestAnimationFrame(() => {
-      rafRef.current = 0;
-      syncScrollUi();
-    });
-  }, [syncScrollUi]);
+  const scrollToToday = useCallback((smooth: boolean) => {
+    const scroller = scrollerRef.current;
+    const target = monthRefs.current.get(todayMonthKey);
+    if (!scroller || !target) return;
+    const top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+    // 'instant', not 'auto': the scroller is scroll-smooth, and 'auto' would
+    // animate the opening jump too, which the board's own re-layout cuts short.
+    scroller.scrollTo({ top: Math.max(0, top - 4), behavior: smooth ? 'smooth' : 'instant' });
+  }, [todayMonthKey]);
 
-  const alignTodayLeft = useCallback((smooth: boolean) => {
-    const strip = stripRef.current;
-    const target = todayMonthRef.current;
-    if (!strip || !target) return;
-    const s = strip.getBoundingClientRect();
-    const rect = target.getBoundingClientRect();
-    const contentLeft = (rect.left - s.left) + strip.scrollLeft;
-    strip.scrollTo({ left: Math.max(0, contentLeft - 4), behavior: smooth ? 'smooth' : 'auto' });
-  }, []);
+  // One row of months up or down, as the arrows do in the calendar.
+  const scrollByRow = useCallback((direction: 1 | -1) => {
+    const scroller = scrollerRef.current;
+    const card = monthRefs.current.get(todayMonthKey) ?? monthRefs.current.values().next().value;
+    if (!scroller || !card) return;
+    scroller.scrollBy({ top: direction * (card.offsetHeight + MONTH_GAP), behavior: 'smooth' });
+  }, [todayMonthKey]);
 
-  const onThumbPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    const strip = stripRef.current;
-    if (!strip) return;
-    event.preventDefault();
-    event.stopPropagation();
-    dragRef.current = { startX: event.clientX, startLeft: strip.scrollLeft };
-    event.currentTarget.setPointerCapture(event.pointerId);
-  }, []);
-
-  const onThumbPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    const drag = dragRef.current;
-    const strip = stripRef.current;
-    const track = trackRef.current;
-    if (!drag || !strip || !track) return;
-    const maxScroll = strip.scrollWidth - strip.clientWidth;
-    const usable = track.clientWidth - (thumbRef.current?.offsetWidth ?? 0);
-    const deltaScroll = usable > 0 ? ((event.clientX - drag.startX) / usable) * maxScroll : 0;
-    strip.scrollLeft = drag.startLeft + deltaScroll;
-  }, []);
-
-  const onThumbPointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    dragRef.current = null;
-    try {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    } catch {
-      // pointer capture may already be released
-    }
-  }, []);
-
-  const onTrackPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (thumbRef.current?.contains(event.target as Node)) return;
-    const strip = stripRef.current;
-    const track = trackRef.current;
-    if (!strip || !track) return;
-    const rect = track.getBoundingClientRect();
-    const capWidth = thumbRef.current?.offsetWidth ?? 0;
-    const usable = Math.max(1, rect.width - capWidth);
-    const frac = Math.min(1, Math.max(0, (event.clientX - rect.left - capWidth / 2) / usable));
-    strip.scrollTo({ left: frac * (strip.scrollWidth - strip.clientWidth), behavior: 'smooth' });
-  }, []);
-
-  // Drag-to-scroll the whole strip by holding the left mouse button. Touch/pen
-  // keep their native scroll; a press only becomes a pan after it moves past a
-  // small threshold, so a plain click still opens the day popover.
-  const PAN_THRESHOLD = 4;
-
-  const onStripPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType !== 'mouse' || event.button !== 0) return;
-    const strip = stripRef.current;
-    if (!strip) return;
-    suppressClickRef.current = false;
-    panRef.current = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startLeft: strip.scrollLeft,
-      active: false,
-    };
-  }, []);
-
-  const onStripPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    const pan = panRef.current;
-    const strip = stripRef.current;
-    if (!pan || !strip) return;
-    const dx = event.clientX - pan.startX;
-    if (!pan.active) {
-      if (Math.abs(dx) < PAN_THRESHOLD) return;
-      pan.active = true;
-      suppressClickRef.current = true;
-      setIsPanning(true);
-      try {
-        strip.setPointerCapture(pan.pointerId);
-      } catch {
-        // pointer capture may be unavailable; the pan still works without it
-      }
-    }
-    strip.scrollLeft = pan.startLeft - dx;
-  }, []);
-
-  const onStripPointerUp = useCallback(() => {
-    const pan = panRef.current;
-    panRef.current = null;
-    if (!pan) return;
-    if (pan.active) {
-      setIsPanning(false);
-      try {
-        stripRef.current?.releasePointerCapture(pan.pointerId);
-      } catch {
-        // pointer capture may already be released
-      }
-    }
-  }, []);
-
-  // Swallow the click that trails a drag so panning never opens a day popover.
-  const onStripClickCapture = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    if (!suppressClickRef.current) return;
-    suppressClickRef.current = false;
-    event.preventDefault();
-    event.stopPropagation();
-  }, []);
-
-  // Open on the current month, flush left. Wait for data so the strip is mounted
-  // and laid out (it briefly unmounts behind the loading state on first fetch).
+  // Open on the current month's row. Wait for data: the board shows a loading
+  // state on the first fetch, and the months are not there to scroll to yet.
+  const didOpenOnToday = useRef(false);
+  const ready = !heatmap.error && !(heatmap.loading && heatmap.days.length === 0);
+  // Re-done while the layout settles (the width and height arrive a frame
+  // late), until the person scrolls on their own.
+  useLayoutEffect(() => {
+    if (!ready || didOpenOnToday.current) return;
+    scrollToToday(false);
+  }, [ready, scrollToToday, columns, cell, height]);
   useEffect(() => {
-    if (didAutoScroll.current) return;
-    if (heatmap.days.length === 0) return;
-    if (!stripRef.current || !todayMonthRef.current) return;
-    didAutoScroll.current = true;
-    alignTodayLeft(false);
-    syncScrollUi();
-  }, [heatmap.days.length, months, alignTodayLeft, syncScrollUi]);
-
-  useEffect(() => {
-    const handler = () => syncScrollUi();
-    window.addEventListener('resize', handler);
-    syncScrollUi();
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const stop = () => { didOpenOnToday.current = true; };
+    scroller.addEventListener('wheel', stop, { passive: true });
+    scroller.addEventListener('touchstart', stop, { passive: true });
+    scroller.addEventListener('keydown', stop);
     return () => {
-      window.removeEventListener('resize', handler);
-      if (rafRef.current) window.cancelAnimationFrame(rafRef.current);
+      scroller.removeEventListener('wheel', stop);
+      scroller.removeEventListener('touchstart', stop);
+      scroller.removeEventListener('keydown', stop);
     };
-  }, [syncScrollUi]);
+  }, [ready]);
 
   if (heatmap.loading && heatmap.days.length === 0) {
     return (
@@ -236,142 +187,132 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     );
   }
 
+  const navSize = touch ? 'h-11 w-11' : 'h-9 w-9';
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-start justify-between gap-3 px-1">
-        <div>
+    // As wide as the timeline's calendar at most (max-w-6xl) and centred: on a
+    // wide screen the months keep their size instead of stretching across it.
+    <div ref={setRefs} className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-1" style={{ height }}>
+      <div className="flex shrink-0 flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
           <h2 className="text-base font-medium">
             <Trans>Team workload</Trans>
           </h2>
-          <p className="text-xs text-muted-foreground">
-            <Trans>Task density and milestones across the coming months</Trans>
-          </p>
-          {showHeat && (
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              <Trans>Full day ≈ {capacityDisplay} tasks/person</Trans>
-              {' · '}
-              {capacityOverride
-                ? <Trans>set manually</Trans>
-                : autoCapacity
-                  ? <Trans>auto from history</Trans>
-                  : <Trans>default</Trans>}
-            </p>
-          )}
+          {showHeat && <HeatmapOutlookLine outlook={outlook} dateLocale={dateLocale} />}
         </div>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            {LEGEND_LEVELS.map((level) => (
-              <span
-                key={level}
-                className="h-3 w-3 rounded-[3px]"
-                style={{ backgroundColor: colorForLevel(level).bg }}
-              />
-            ))}
-            <span className="ml-1"><Trans>Load</Trans></span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rotate-45" style={{ backgroundColor: MILESTONE_COLOR }} />
-            <Trans>Milestone</Trans>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-[3px] border border-border" style={HOLIDAY_HATCH} />
-            <Trans>Holiday</Trans>
-          </span>
+        <div className="flex items-center gap-1.5">
+          <Button variant="outline" size="icon" className={navSize} aria-label={t`Earlier`} onClick={() => scrollByRow(-1)}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" className={touch ? 'h-11' : undefined} onClick={() => scrollToToday(true)}>
+            <Trans>Today</Trans>
+          </Button>
+          <Button variant="outline" size="icon" className={navSize} aria-label={t`Later`} onClick={() => scrollByRow(1)}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
       {!showHeat && (
-        <div className="mx-1 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+        <div className="shrink-0 rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
           <Trans>Add active assignees to see the workload gradient. Milestones are still shown.</Trans>
         </div>
       )}
 
       <div
-        ref={stripRef}
-        onScroll={onScroll}
-        onPointerDown={onStripPointerDown}
-        onPointerMove={onStripPointerMove}
-        onPointerUp={onStripPointerUp}
-        onPointerCancel={onStripPointerUp}
-        onClickCapture={onStripClickCapture}
-        className={`overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden cursor-grab ${
-          isPanning ? 'cursor-grabbing select-none [&_*]:!cursor-grabbing' : ''
-        }`}
+        ref={scrollerRef}
+        data-testid="heatmap-scroller"
+        className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain scroll-smooth scrollbar-hidden rounded-lg"
       >
-        <div className="flex gap-6 px-1 pb-1">
-            {months.map((month) => {
-              const monthKey = format(month, 'yyyy-MM');
-              const monthStart = startOfMonth(month);
-              const monthDays = eachDayOfInterval({ start: monthStart, end: endOfMonth(month) });
-              const leadingBlanks = (getDay(monthStart) + 6) % 7;
-              const isTodayMonth = monthKey === todayMonthKey;
-              return (
-                <div key={monthKey} ref={isTodayMonth ? todayMonthRef : undefined} className="shrink-0">
-                  <p className="mb-1.5 text-sm font-medium capitalize">
-                    {format(month, 'LLLL yyyy', { locale: dateLocale })}
-                  </p>
-                  <div className="grid grid-cols-7 gap-1" style={{ width: 7 * 34 }}>
-                    {weekdayLabels.map((label, index) => (
-                      <div
-                        key={`${monthKey}-wd-${index}`}
-                        className="pb-0.5 text-center text-[10px] text-muted-foreground"
-                      >
-                        {label}
+        <div className="space-y-6 pb-4 pr-1">
+          {years.map(([year, yearMonths]) => (
+            <div
+              key={year}
+              className="grid gap-x-4 gap-y-2"
+              style={{ gridTemplateColumns: yearColumn ? `${YEAR_COLUMN}px minmax(0, 1fr)` : 'minmax(0, 1fr)' }}
+            >
+              <div
+                data-testid="heatmap-year"
+                className={cn('text-lg font-semibold text-muted-foreground', yearColumn && 'pt-2')}
+              >
+                {year}
+              </div>
+              <div
+                className="grid"
+                style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap: MONTH_GAP }}
+              >
+                {yearMonths.map((month) => {
+                  const monthKey = format(month, 'yyyy-MM');
+                  const monthStart = startOfMonth(month);
+                  const monthDays = eachDayOfInterval({ start: monthStart, end: endOfMonth(month) });
+                  const leadingBlanks = (getDay(monthStart) + 6) % 7;
+                  return (
+                    <section
+                      key={monthKey}
+                      ref={setMonthRef(monthKey)}
+                      data-testid="heatmap-month"
+                      data-month={monthKey}
+                      className={cn(
+                        'rounded-lg border bg-card p-3',
+                        monthKey === todayMonthKey ? 'border-foreground/25' : 'border-border',
+                      )}
+                    >
+                      <h3 className="mb-2.5 truncate text-[15px] font-semibold capitalize">
+                        {format(month, 'LLLL', { locale: dateLocale })}
+                        <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+                          {format(month, 'yyyy')}
+                        </span>
+                      </h3>
+                      <div className="grid grid-cols-7 gap-[3px]">
+                        {weekdayLabels.map((label, index) => (
+                          <div key={`${monthKey}-wd-${index}`} className="pb-1 text-center text-[11px] text-muted-foreground">
+                            {label}
+                          </div>
+                        ))}
+                        {Array.from({ length: leadingBlanks }, (_, index) => (
+                          <div key={`${monthKey}-blank-${index}`} />
+                        ))}
+                        {monthDays.map((date) => (
+                          <HeatmapDayCell
+                            key={format(date, 'yyyy-MM-dd')}
+                            day={buildDay(date)}
+                            cell={cell}
+                            showHeat={showHeat}
+                            dateLocale={dateLocale}
+                            projectNameById={projectNameById}
+                            onOpenDay={openDay}
+                            onOpenMilestone={openMilestone}
+                          />
+                        ))}
                       </div>
-                    ))}
-                    {Array.from({ length: leadingBlanks }, (_, index) => (
-                      <div key={`${monthKey}-blank-${index}`} />
-                    ))}
-                    {monthDays.map((date) => (
-                      <HeatmapDayCell
-                        key={format(date, 'yyyy-MM-dd')}
-                        day={buildDay(date)}
-                        showHeat={showHeat}
-                        dateLocale={dateLocale}
-                        projectNameById={projectNameById}
-                        onOpenDay={openDay}
-                        onOpenMilestone={openMilestone}
-                      />
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                    </section>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
-
-      <div className="flex items-center gap-2 px-1">
-        <div
-          ref={trackRef}
-          onPointerDown={onTrackPointerDown}
-          className="relative h-6 flex-1 cursor-pointer"
-        >
-          <div className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-muted-foreground/40" />
-          <div
-            ref={thumbRef}
-            onPointerDown={onThumbPointerDown}
-            onPointerMove={onThumbPointerMove}
-            onPointerUp={onThumbPointerUp}
-            onPointerCancel={onThumbPointerUp}
-            className="absolute top-1/2 h-4 w-12 -translate-y-1/2 cursor-grab select-none rounded-full border border-border bg-card transition-colors hover:border-muted-foreground/60 active:cursor-grabbing"
-          />
-        </div>
-        {!nav.todayVisible && (
-          <button
-            type="button"
-            onClick={() => alignTodayLeft(true)}
-            className="ml-1 shrink-0 rounded-full border border-border px-3 py-1 text-xs text-foreground hover:bg-muted"
-          >
-            <Trans>Today</Trans>
-          </button>
-        )}
       </div>
+
+      <HeatmapLegend className="shrink-0 pb-1">
+        {showHeat && (
+          <span className="flex h-3 items-center">
+            <Trans>Full day ≈ {capacityDisplay} tasks/person</Trans>
+            {' · '}
+            {capacityOverride
+              ? <Trans>set manually</Trans>
+              : autoCapacity
+                ? <Trans>auto from history</Trans>
+                : <Trans>default</Trans>}
+          </span>
+        )}
+      </HeatmapLegend>
     </div>
   );
 };
 
 type HeatmapDayCellProps = {
   day: DayCellData;
+  cell: number;
   showHeat: boolean;
   dateLocale: DateFnsLocale;
   projectNameById: Map<string, string>;
@@ -381,126 +322,60 @@ type HeatmapDayCellProps = {
 
 const HeatmapDayCell: React.FC<HeatmapDayCellProps> = ({
   day,
+  cell,
   showHeat,
   dateLocale,
   projectNameById,
   onOpenDay,
   onOpenMilestone,
 }) => {
+  const size = { height: cell, fontSize: cell >= 40 ? 15 : cell >= 32 ? 14 : 13 };
   if (!day.inRange) {
     return (
-      <div className="flex h-8 items-center justify-center rounded-[4px] text-[11px] text-muted-foreground/40">
+      <div className="flex items-center justify-center rounded-md text-muted-foreground/40" style={size}>
         {day.dayNumber}
       </div>
     );
   }
 
-  const { style: cellStyle, colored, isHoliday } = resolveDayCellStyle(day, showHeat);
-  const hasMilestones = day.milestones.length > 0;
-  const neutralText = !colored;
-
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            'relative flex h-8 items-center justify-center rounded-[4px] text-[11px]',
-            'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            !cellStyle && 'border border-border',
-            neutralText && 'text-muted-foreground',
-            day.isToday && 'heatmap-today relative z-10 font-semibold',
-          )}
-          style={cellStyle}
-          aria-label={format(day.date, 'd MMMM yyyy', { locale: dateLocale })}
-        >
-          <span className="leading-none">{day.dayNumber}</span>
-          {hasMilestones && (
-            <span
-              className="absolute bottom-0.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rotate-45"
-              style={{ backgroundColor: MILESTONE_COLOR }}
-            />
-          )}
-        </button>
+        <HeatmapDayButton
+          day={day}
+          showHeat={showHeat}
+          dateLocale={dateLocale}
+          style={size}
+          className={cn('data-[state=open]:z-20 data-[state=open]:outline data-[state=open]:outline-2 data-[state=open]:outline-offset-2 data-[state=open]:outline-foreground')}
+        />
       </PopoverTrigger>
-      <PopoverContent align="center" className="w-64">
-        <p className="text-sm font-medium capitalize">
-          {format(day.date, 'd MMMM yyyy', { locale: dateLocale })}
+      <PopoverContent side="right" align="start" sideOffset={10} collisionPadding={12} className="w-64">
+        <p className="mb-2 text-sm font-medium capitalize">
+          {format(day.date, 'EEEE, d MMMM', { locale: dateLocale })}
         </p>
-        {isHoliday ? (
-          <p className="mt-1 text-xs text-muted-foreground">
-            <Trans>Holiday</Trans>
-            {' — '}
-            {day.holidayNames?.join(', ')}
-          </p>
-        ) : day.isWeekend ? (
-          <p className="mt-1 text-xs text-muted-foreground">
-            <Trans>Day off</Trans>
-          </p>
-        ) : day.isTeamAway ? (
-          <p className="mt-1 text-xs text-muted-foreground">
-            <Trans>The whole team is away</Trans>
-          </p>
-        ) : null}
-        <p className="mt-1 text-xs text-muted-foreground">
-          <Trans>Tasks</Trans>
-          {`: ${day.taskCount}`}
-          {showHeat && !day.isTeamAway && (
-            <>
-              {' · '}
-              <Trans>Load</Trans>
-              {`: ${day.percent}%`}
-              {day.percent > 100 && (
-                <span className="text-destructive">
-                  {' · '}
-                  <Trans>overloaded</Trans>
-                </span>
-              )}
-            </>
-          )}
-        </p>
-        {/* Explains why a day reads hotter than its task count suggests. */}
-        {showHeat && !day.isTeamAway && day.awayCount > 0 && (
-          <p className="mt-1 text-xs text-muted-foreground">
-            <Trans>Away: {day.awayCount} of {day.headcount}</Trans>
-          </p>
+        <HeatmapDayFacts day={day} showHeat={showHeat} />
+        {day.milestones.length > 0 && (
+          <ul className="mt-3 space-y-1 border-t border-border pt-2">
+            {day.milestones.map((milestone) => {
+              const projectName = projectNameById.get(milestone.projectId);
+              return (
+                <li key={milestone.id}>
+                  <button
+                    type="button"
+                    onClick={() => onOpenMilestone(milestone.id)}
+                    className="-mx-1.5 flex w-[calc(100%+0.75rem)] items-start gap-2 rounded-md px-1.5 py-1 text-left text-xs transition-colors hover:bg-muted"
+                  >
+                    <span className="mt-1 h-2 w-2 shrink-0 rotate-45" style={{ backgroundColor: MILESTONE_COLOR }} />
+                    <span className="min-w-0">
+                      <span className="block text-foreground">{milestone.title}</span>
+                      {projectName && <span className="block text-muted-foreground">{projectName}</span>}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
         )}
-        <div className="mt-3 border-t border-border pt-2">
-          <p className="mb-1 text-xs font-medium">
-            <Trans>Milestones</Trans>
-          </p>
-          {hasMilestones ? (
-            <ul className="space-y-1.5">
-              {day.milestones.map((milestone) => {
-                const projectName = projectNameById.get(milestone.projectId);
-                return (
-                  <li key={milestone.id}>
-                    <button
-                      type="button"
-                      onClick={() => onOpenMilestone(milestone.id)}
-                      className="flex w-full items-start gap-2 rounded-md px-1.5 py-1 text-left text-xs transition-colors hover:bg-muted"
-                    >
-                      <span
-                        className="mt-1 h-2 w-2 shrink-0 rotate-45"
-                        style={{ backgroundColor: MILESTONE_COLOR }}
-                      />
-                      <span className="min-w-0">
-                        <span className="text-foreground">{milestone.title}</span>
-                        {projectName && (
-                          <span className="text-muted-foreground"> · {projectName}</span>
-                        )}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              <Trans>No milestones on this day</Trans>
-            </p>
-          )}
-        </div>
         <button
           type="button"
           onClick={() => onOpenDay(day.iso)}
