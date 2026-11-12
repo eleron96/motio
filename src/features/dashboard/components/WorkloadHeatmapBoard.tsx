@@ -189,7 +189,9 @@ export const WorkloadHeatmapBoard: React.FC = () => {
 
   const navSize = touch ? 'h-11 w-11' : 'h-9 w-9';
   return (
-    <div ref={setRefs} className="flex flex-col gap-3 px-1" style={{ height }}>
+    // As wide as the timeline's calendar at most (max-w-6xl) and centred: on a
+    // wide screen the months keep their size instead of stretching across it.
+    <div ref={setRefs} className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-1" style={{ height }}>
       <div className="flex shrink-0 flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-base font-medium">
