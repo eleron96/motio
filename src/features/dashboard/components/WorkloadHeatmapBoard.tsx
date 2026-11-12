@@ -11,6 +11,7 @@ import {
   type HeatmapDayCell as DayCellData,
 } from '@/features/dashboard/hooks/useWorkloadHeatmapModel';
 import { useRemountSafeCanvasWidth } from '@/features/dashboard/hooks/useRemountSafeCanvasWidth';
+import { useMonthScrollPaging } from '@/features/dashboard/hooks/useMonthScrollPaging';
 import { MILESTONE_COLOR } from '@/features/dashboard/components/heatmapCellStyle';
 import {
   HeatmapDayButton,
@@ -121,8 +122,14 @@ export const WorkloadHeatmapBoard: React.FC = () => {
   );
   // Index of the first month on screen; null = last month, then today's.
   const [offset, setOffset] = useState<number | null>(null);
-  const first = Math.min(Math.max(0, offset ?? todayIndex - 1), Math.max(0, months.length - visibleCount));
+  const lastFirst = Math.max(0, months.length - visibleCount);
+  const first = Math.min(Math.max(0, offset ?? todayIndex - 1), lastFirst);
   const visible = months.slice(first, first + visibleCount);
+  const shift = useCallback((by: number) => {
+    setOffset(Math.min(Math.max(0, first + by), lastFirst));
+  }, [first, lastFirst]);
+  // Wheel and trackpad move a month at a time, a swipe a screenful — like a calendar.
+  const gridRef = useMonthScrollPaging({ onStep: shift, swipeMonths: visibleCount });
 
   if (heatmap.loading && heatmap.days.length === 0) {
     return (
@@ -163,7 +170,7 @@ export const WorkloadHeatmapBoard: React.FC = () => {
             className={roomy ? 'h-11 w-11' : 'h-9 w-9'}
             aria-label={t`Earlier`}
             disabled={first === 0}
-            onClick={() => setOffset(Math.max(0, first - columns))}
+            onClick={() => shift(-columns)}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -181,7 +188,7 @@ export const WorkloadHeatmapBoard: React.FC = () => {
             className={roomy ? 'h-11 w-11' : 'h-9 w-9'}
             aria-label={t`Later`}
             disabled={first + visibleCount >= months.length}
-            onClick={() => setOffset(first + columns)}
+            onClick={() => shift(columns)}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -195,7 +202,9 @@ export const WorkloadHeatmapBoard: React.FC = () => {
       )}
 
       <div
-        className="grid"
+        ref={gridRef}
+        data-testid="heatmap-months"
+        className="grid touch-pan-y"
         style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap: MONTH_GAP }}
       >
         {visible.map((month) => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { addDays, format } from 'date-fns';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 // The board renders <Trans> children verbatim, which is exactly what we assert on.
@@ -112,6 +112,47 @@ describe('WorkloadHeatmapBoard month grid', () => {
 
     await user.click(screen.getByRole('button', { name: 'Today' }));
     expect(shownMonths().slice(0, 2)).toEqual([previous, current]);
+  });
+
+  it('scrolls a month at a time like a calendar: down goes forward, up goes back', async () => {
+    await renderBoard();
+    const grid = screen.getByTestId('heatmap-months');
+    const start = shownMonths();
+
+    fireEvent.wheel(grid, { deltaY: 100 });
+    expect(shownMonths()[0]).toBe(start[1]);
+
+    fireEvent.wheel(grid, { deltaY: -100, timeStamp: 1000 });
+    expect(shownMonths()).toEqual(start);
+  });
+
+  it('adds trackpad scrolling up before it moves, so a small nudge does nothing', async () => {
+    await renderBoard();
+    const grid = screen.getByTestId('heatmap-months');
+    const start = shownMonths();
+    fireEvent.wheel(grid, { deltaY: 30 });
+    expect(shownMonths()).toEqual(start);
+    fireEvent.wheel(grid, { deltaY: 30 });
+    fireEvent.wheel(grid, { deltaY: 25 });
+    expect(shownMonths()[0]).toBe(start[1]);
+  });
+
+  it('moves exactly one month per wheel notch, however big the notch', async () => {
+    await renderBoard();
+    const grid = screen.getByTestId('heatmap-months');
+    const start = shownMonths();
+    for (let notch = 0; notch < 3; notch += 1) fireEvent.wheel(grid, { deltaY: 120 });
+    expect(shownMonths()[0]).toBe(start[3]);
+  });
+
+  it('counts notches the browser merged into one event, and a Firefox notch in lines', async () => {
+    await renderBoard();
+    const grid = screen.getByTestId('heatmap-months');
+    const start = shownMonths();
+    fireEvent.wheel(grid, { deltaY: 300 });
+    expect(shownMonths()[0]).toBe(start[3]);
+    fireEvent.wheel(grid, { deltaY: -3, deltaMode: 1 });
+    expect(shownMonths()[0]).toBe(start[2]);
   });
 
   it('reaches a year ahead', async () => {
