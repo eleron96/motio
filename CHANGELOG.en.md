@@ -8,7 +8,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [Unreleased]
 
 ### Changed
-- The workload heatmap is calmer and easier to read: months sit side by side as separate calendars with no sideways scrolling, the dates are bigger, and overload stands out in red in three steps — over 100, 125 and 150%. A line under the title says until when the team is overloaded, and a day's details show what its load is made of.
+- The workload heatmap is calmer and easier to read: months are laid out by year like the timeline's calendar — last year, this year and next — and scroll smoothly up and down. Dates are bigger, weekends are grey, and overload stands out in red in three steps — over 100, 125 and 150%. A line under the title says until when the team is overloaded, and a day's details show what its load is made of.
 
 ## [0.10.74] - 2026-11-11
 ### Fixed
