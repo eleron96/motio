@@ -7,6 +7,7 @@ import {
   format,
   getYear,
   isWeekend,
+  startOfDay,
   startOfMonth,
   startOfWeek,
   subWeeks,
@@ -28,17 +29,19 @@ import {
   awayCountByDate,
   awayPercentByDate,
   capacityPercentByAssignee,
-  dayPercent,
+  dayLoad,
   headcountByDate,
   historyLoadPerPerson,
   levelForPercent,
   milestoneKernelSum,
+  overloadOutlook,
   parseIsoDate,
   resolveCapacity,
   teamPercentByDate,
   teamPresence,
   workloadMilestones,
   type HeatmapLevel,
+  type OverloadOutlook,
 } from '@/features/dashboard/lib/workloadHeatmap';
 import { useInstanceSetting } from '@/shared/store/instanceSettingsStore';
 
@@ -60,6 +63,9 @@ export type HeatmapDayCell = {
   holidayNames: string[] | null;
   level: HeatmapLevel;
   percent: number;
+  /** What the percent is made of; the two add up to it. */
+  taskPercent: number;
+  milestonePercent: number;
   taskCount: number;
   /** People away that day, and that day's whole team for the "N of M" reading. */
   awayCount: number;
@@ -291,9 +297,10 @@ export const useWorkloadHeatmapModel = () => {
     // it bordeaux would confuse "no one to do it" with "too much to do".
     const isTeamAway = hasTeam && available === 0;
     const isWorkday = !weekend && !holidayNames && !isTeamAway;
-    const percent = hasTeam && !isTeamAway
-      ? dayPercent(taskCount, available, capacity, milestoneKernelSum(iso, loadBearingMilestones))
-      : 0;
+    const load = hasTeam && !isTeamAway
+      ? dayLoad(taskCount, available, capacity, milestoneKernelSum(iso, loadBearingMilestones))
+      : { percent: 0, taskPercent: 0, milestonePercent: 0 };
+    const { percent } = load;
     return {
       date,
       iso,
@@ -304,6 +311,8 @@ export const useWorkloadHeatmapModel = () => {
       holidayNames,
       level: hasTeam && isWorkday ? levelForPercent(percent) : 0,
       percent,
+      taskPercent: load.taskPercent,
+      milestonePercent: load.milestonePercent,
       taskCount,
       awayCount,
       headcount: headcountByDay.get(iso) ?? 0,
@@ -326,8 +335,24 @@ export const useWorkloadHeatmapModel = () => {
     milestonesByDate,
   ]);
 
+  // The one sentence above the calendar: is the team overloaded now, until when,
+  // or when the next overload starts. Counted over working days from today on.
+  const outlook = useMemo<OverloadOutlook>(() => {
+    if (!showHeat) return { kind: 'clear' };
+    const workdays: Array<{ iso: string; percent: number }> = [];
+    // Local calendar days, the same way the month grids build their cells.
+    for (let date = startOfDay(now); format(date, 'yyyy-MM-dd') <= endIso; date = addDays(date, 1)) {
+      const day = buildDay(date);
+      if (!day.isWeekend && !day.holidayNames && !day.isTeamAway) {
+        workdays.push({ iso: day.iso, percent: day.percent });
+      }
+    }
+    return overloadOutlook(workdays);
+  }, [showHeat, now, endIso, buildDay]);
+
   return {
     heatmap,
+    outlook,
     retry,
     showHeat,
     capacityDisplay,

@@ -121,7 +121,8 @@ const renderBoard = async () => {
   return render(<WorkloadHeatmapMobile />);
 };
 
-const dayLabel = (iso: string) => format(new Date(`${iso}T12:00:00Z`), 'd MMMM yyyy');
+// The day's button is named by its date first; the load and its level follow.
+const dayLabel = (iso: string) => new RegExp(`^${format(new Date(`${iso}T12:00:00Z`), 'd MMMM yyyy')}\\b`);
 
 describe('WorkloadHeatmapMobile', () => {
   // A weekday a couple of weeks out: inside the window, never a weekend.
@@ -183,7 +184,7 @@ describe('WorkloadHeatmapMobile', () => {
 
     const sheet = await screen.findByRole('dialog');
     // (20 / 6) / 5 = 0.67
-    expect(sheet).toHaveTextContent('Load67%');
+    expect(sheet).toHaveTextContent(/Load\s*high\s*67%/);
     expect(within(sheet).getByText('Deliver the guidelines')).toBeInTheDocument();
     expect(within(sheet).getByText('Brand Refresh')).toBeInTheDocument();
 

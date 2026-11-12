@@ -36,10 +36,12 @@ that keeps climbing for one person is overload in slow motion.
 
 ## The months ahead: the workload heatmap
 
-**Dashboard → Heatmap** lays the coming months out as calendars. Each day is coloured
-from pale (quiet) to dark red (over capacity); green diamonds are milestones, hatched
-days are public holidays — the country's, plus your region's if one is picked in
-**Workspace settings → General → Holiday calendar**.
+**Dashboard → Heatmap** lays the months out as calendars, starting with the current one.
+Up to a full day, a day is coloured from pale peach to terracotta; over a full day it
+turns red, in three steps — over 100%, 125% and 150%. Weekends are grey, green diamonds
+are milestones, hatched days are public holidays — the country's, plus your region's if
+one is picked in **Workspace settings → General → Holiday calendar**. The line under the
+title says whether the team is overloaded now and until when.
 
 ![The workload heatmap: the team's load per day for the coming months](images/heatmap.png)
 
@@ -49,7 +51,7 @@ How a day gets its colour, in plain words:
   actually there. With two of six on vacation, the same work lands on four, and the day
   turns hotter.
 - **Measured against your team's normal.** A full day means full for *this* team. Motio
-  works it out from your own recent history and shows it above the calendars — for
+  works it out from your own recent history and shows it under the calendars — for
   example, "Full day ≈ 0.8 tasks/person". An admin can set it by hand instead, and,
   where your server allows it, give each person a share of a day: someone who only
   coordinates counts 0%, a part-timer 50%.
@@ -57,8 +59,9 @@ How a day gets its colour, in plain words:
   barely visible four days out, at its peak the day before. Several deliveries on the
   same day hit a small team hard — which is exactly what you want to see coming.
 
-Click a day to see its milestones and how many people are away, then
-**Open on timeline** to jump straight to that date and move things around.
+Click a day to see its load and what it is made of, its milestones and how many people
+are away, then **Open on timeline** to jump straight to that date and move things
+around.
 
 Two habits keep the picture honest:
 

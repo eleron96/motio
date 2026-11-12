@@ -92,7 +92,13 @@ const openDayPopover = async (iso: string): Promise<HTMLElement> => {
   const user = userEvent.setup();
   const { WorkloadHeatmapBoard } = await import('@/features/dashboard/components/WorkloadHeatmapBoard');
   render(<WorkloadHeatmapBoard />);
-  const label = format(new Date(`${iso}T12:00:00Z`), 'd MMMM yyyy');
+  // Named by the date first; the load and its level follow.
+  const label = new RegExp(`^${format(new Date(`${iso}T12:00:00Z`), 'd MMMM yyyy')}\\b`);
+  // The grid opens on the current month; a past day is reached with "Earlier",
+  // the way a person would get to it.
+  for (let step = 0; step < 6 && !screen.queryByRole('button', { name: label }); step += 1) {
+    await user.click(screen.getByRole('button', { name: 'Earlier' }));
+  }
   await user.click(screen.getByRole('button', { name: label }));
   return screen.findByRole('dialog');
 };

@@ -8,7 +8,10 @@ import {
   capacityPercentByAssignee,
   normalizeCapacityPercent,
   colorForLevel,
+  dayLoad,
   dayPercent,
+  isOverloadLevel,
+  overloadOutlook,
   DEFAULT_CAPACITY_PER_PERSON,
   FOUNDING_DAYS,
   headcountByDate,
@@ -154,14 +157,67 @@ describe('dayPercent', () => {
 });
 
 describe('levelForPercent', () => {
-  it('buckets into five levels plus an overload level', () => {
+  it('buckets a normal day into four levels and an overload into three steps', () => {
     expect(levelForPercent(0)).toBe(0);
     expect(levelForPercent(25)).toBe(1);
     expect(levelForPercent(50)).toBe(2);
     expect(levelForPercent(75)).toBe(3);
     expect(levelForPercent(100)).toBe(4);
     expect(levelForPercent(101)).toBe(5);
-    expect(levelForPercent(180)).toBe(5);
+    expect(levelForPercent(125)).toBe(5);
+    expect(levelForPercent(126)).toBe(6);
+    expect(levelForPercent(150)).toBe(6);
+    expect(levelForPercent(151)).toBe(7);
+    expect(levelForPercent(400)).toBe(7);
+  });
+
+  it('calls only the levels over 100% an overload', () => {
+    expect(isOverloadLevel(levelForPercent(100))).toBe(false);
+    expect(isOverloadLevel(levelForPercent(101))).toBe(true);
+    expect(isOverloadLevel(levelForPercent(200))).toBe(true);
+  });
+});
+
+describe('dayLoad', () => {
+  it('splits the day into tasks and deliveries that add up to the day', () => {
+    // 4 people, capacity 1: 4 tasks = 100%; one delivery at peak pins 1.4 people = 35%.
+    expect(dayLoad(4, 4, 1, 1)).toEqual({ percent: 135, taskPercent: 100, milestonePercent: 35 });
+    expect(dayLoad(4, 4, 1, 0)).toEqual({ percent: 100, taskPercent: 100, milestonePercent: 0 });
+  });
+
+  it('never lets the rounded parts drift from the rounded whole', () => {
+    for (let tasks = 0; tasks <= 9; tasks += 1) {
+      for (const kernel of [0, 0.15, 0.5, 0.85, 1, 2.3]) {
+        const load = dayLoad(tasks, 3, 0.7, kernel);
+        expect(load.taskPercent + load.milestonePercent).toBe(load.percent);
+        expect(load.percent).toBe(dayPercent(tasks, 3, 0.7, kernel));
+        expect(load.milestonePercent).toBeGreaterThanOrEqual(0);
+      }
+    }
+  });
+});
+
+describe('overloadOutlook', () => {
+  const days = (...percents: number[]) => percents.map((percent, index) => ({
+    iso: `2026-11-${String(index + 10).padStart(2, '0')}`,
+    percent,
+  }));
+
+  it('says nothing is wrong when no working day is over 100%', () => {
+    expect(overloadOutlook(days(40, 100, 90))).toEqual({ kind: 'clear' });
+    expect(overloadOutlook([])).toEqual({ kind: 'clear' });
+  });
+
+  it('names the first overloaded day when the team is fine today', () => {
+    expect(overloadOutlook(days(40, 60, 120, 130))).toEqual({ kind: 'ahead', from: '2026-11-12' });
+  });
+
+  it('runs an overload on through a short breather and ends it at a calm stretch', () => {
+    // Overloaded today; one calm day on the 12th does not end it; five calm days do.
+    expect(overloadOutlook(days(120, 110, 80, 140, 90, 90, 90, 90, 90, 150))).toEqual({
+      kind: 'now',
+      until: '2026-11-13',
+    });
   });
 });
 
@@ -284,7 +340,7 @@ describe('dayPercent with absences', () => {
 describe('colorForLevel', () => {
   it('gives a transparent fill for free days and solid fills otherwise', () => {
     expect(colorForLevel(0).bg).toBe('transparent');
-    for (const level of [1, 2, 3, 4, 5] as const) {
+    for (const level of [1, 2, 3, 4, 5, 6, 7] as const) {
       expect(colorForLevel(level).bg).toMatch(/^#[0-9A-Fa-f]{6}$/);
     }
   });

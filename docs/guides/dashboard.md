@@ -46,9 +46,13 @@ that keeps climbing for one person is overload in slow motion.
 
 ## Workload heatmap
 
-**Dashboard → Heatmap** lays the coming months out as calendars. Each day is coloured from
-pale (quiet) to dark red (over capacity); green diamonds are milestones, hatched days are
-holidays.
+**Dashboard → Heatmap** lays the months out as calendars, starting with the current one;
+**‹** and **›** next to **Today** page through them. Up to a full day, a day is coloured
+from pale peach to terracotta. Over a full day it turns red, in three steps — over 100%,
+over 125% and over 150% — so an overloaded day stands out at once and you can tell which
+one is worse. Weekends are grey, green diamonds are milestones, hatched days are holidays.
+The line under the title says whether the team is overloaded now and until when, or when
+the next overload starts.
 
 ![The workload heatmap: the team's load per day for the coming months](images/heatmap.png)
 
@@ -63,14 +67,15 @@ How a day gets its colour:
   from the start. People switched off before Motio began recording the day someone
   leaves are left out of every day.)
 - **Measured against your team's normal.** Motio works out what a full day means for
-  *this* team from its recent history and shows it above the calendars, for example
+  *this* team from its recent history and shows it under the calendars, for example
   "Full day ≈ 0.8 tasks/person". An admin can set it by hand instead.
 - **Deliveries take people.** A milestone ties up a small crew in the days before it:
   barely visible four days out, at its peak the day before. Milestones with
   **Counts toward department workload** unticked are left out.
 
-Click a day to see its milestones and who is away, then **Open on timeline** to jump to
-that date and move things around.
+Click a day to see its load and what it is made of — tasks, and preparing for nearby
+deliveries — its milestones and who is away, then **Open on timeline** to jump to that
+date and move things around.
 
 > [!NOTE]
 > The heatmap is off by default and marked *experimental*. An admin turns it on in

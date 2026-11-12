@@ -34,7 +34,8 @@ export type WorkloadDay = {
   taskCount: number;
 };
 
-export type HeatmapLevel = 0 | 1 | 2 | 3 | 4 | 5;
+// 0 = no load, 1–4 = up to a full day, 5–7 = overload (over 100, 125 and 150%).
+export type HeatmapLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 // Milestone kernel: how strongly a day feels a delivery N days away. A half-cosine
 // ramp — barely visible from afar, most of the climb over the last 2 days — that
@@ -337,26 +338,46 @@ export const resolveCapacity = (
   return DEFAULT_CAPACITY_PER_PERSON;
 };
 
+/** A day's load and what it is made of; the two parts always add up to `percent`. */
+export type DayLoad = {
+  percent: number;
+  /** The day's tasks over the people who can do them. */
+  taskPercent: number;
+  /** People pinned by nearby deliveries. */
+  milestonePercent: number;
+};
+
 // Percent of a full day. Not clamped: >100 is overload and is shown as such.
 // `available` is the people who can work that day (headcount minus absences), so
 // the milestone crew is capped at the people who are actually there — deadlines
 // can't pin more than that — and overload past 100% always comes from real tasks.
 // The floor of 1 is a divide-by-zero guard only: a day with nobody available is
 // rendered as a non-working day and never reaches this function.
-export const dayPercent = (
+export const dayLoad = (
   taskCount: number,
   available: number,
   capacity: number,
   kernelSum: number,
-): number => {
+): DayLoad => {
   const safeCapacity = capacity > 0 ? capacity : DEFAULT_CAPACITY_PER_PERSON;
   // With shares a day can have half a person; without them `available` is a
   // whole number and this is the same divide-by-zero guard as before.
   const safeAvailable = available > 0 ? available : 1;
   const taskShare = (taskCount / safeAvailable) / safeCapacity;
   const pinnedPeople = Math.min(kernelSum * MILESTONE_CREW, safeAvailable);
-  return Math.round((taskShare + pinnedPeople / safeAvailable) * 100);
+  const percent = Math.round((taskShare + pinnedPeople / safeAvailable) * 100);
+  // Rounded once, as a whole, and split after: two parts rounded on their own
+  // could add up to one more or one less than the day's own figure.
+  const taskPercent = Math.min(Math.round(taskShare * 100), percent);
+  return { percent, taskPercent, milestonePercent: percent - taskPercent };
 };
+
+export const dayPercent = (
+  taskCount: number,
+  available: number,
+  capacity: number,
+  kernelSum: number,
+): number => dayLoad(taskCount, available, capacity, kernelSum).percent;
 
 export const levelForPercent = (percent: number): HeatmapLevel => {
   if (percent <= 0) return 0;
@@ -364,21 +385,67 @@ export const levelForPercent = (percent: number): HeatmapLevel => {
   if (percent <= 60) return 2;
   if (percent <= 85) return 3;
   if (percent <= 100) return 4;
-  return 5; // overload
+  // Overload has steps of its own: a day at 105% and a day at 170% are not the
+  // same problem, and both must stand out from a merely full day.
+  if (percent <= 125) return 5;
+  if (percent <= 150) return 6;
+  return 7;
 };
 
-// Temperature ramp: soft yellow → amber for the lower load, the reddening held
-// back until near a full day, and a deep bordeaux for anything over 100%. Opaque
-// fills read on both light and dark surfaces; `fg` is a readable tone on each.
+export const isOverloadLevel = (level: HeatmapLevel): boolean => level >= 5;
+
+// Two families. Up to a full day: a calm peach-to-terracotta ramp with dark
+// digits, so a busy-but-fine month never looks alarming. Over 100%: a separate
+// red family with white digits, darker with every step — it has to stand out
+// from the calm ramp at a glance and still say which day is worse. The overload
+// steps are spread in lightness so the lightest red is not the loudest one.
+const DARK_DIGITS = '#1C1F26';
 const LEVEL_COLORS: Record<HeatmapLevel, { bg: string; fg: string }> = {
   0: { bg: 'transparent', fg: 'inherit' },
-  1: { bg: '#FEF7E6', fg: '#8A6A28' }, // ≤30% — very pale cream (light, barely there)
-  2: { bg: '#FBE8C2', fg: '#846017' }, // ≤60% — light pale amber
-  3: { bg: '#EEB878', fg: '#6F3F14' }, // ≤85% — warm amber/orange (not red yet)
-  4: { bg: '#D9694A', fg: '#FCEEE9' }, // ≤100% — red, near a full day
-  5: { bg: '#8C2A22', fg: '#F8E3DF' }, // >100% — bordeaux, overload
+  1: { bg: '#FADFCB', fg: DARK_DIGITS }, // ≤30%
+  2: { bg: '#F3C9AC', fg: DARK_DIGITS }, // ≤60%
+  3: { bg: '#EBB08A', fg: DARK_DIGITS }, // ≤85%
+  4: { bg: '#DD8E5E', fg: DARK_DIGITS }, // ≤100% — a full day
+  5: { bg: '#CC5245', fg: '#FFFFFF' }, // >100% — overload
+  6: { bg: '#A61E1A', fg: '#FFFFFF' }, // >125%
+  7: { bg: '#5F0B10', fg: '#FFFFFF' }, // >150%
 };
 
 export const colorForLevel = (level: HeatmapLevel): { bg: string; fg: string } => (
   LEVEL_COLORS[level]
 );
+
+export type OverloadOutlook =
+  | { kind: 'now'; until: string }
+  | { kind: 'ahead'; from: string }
+  | { kind: 'clear' };
+
+// Working days in a row without overload that end a stretch of overload: one
+// calm day between two hot ones is a breather, not the end of the crunch.
+export const CALM_DAYS_TO_END_OVERLOAD = 5;
+
+/**
+ * The one sentence the board says about the coming weeks, from today's working
+ * days onward (in date order, today first). Overloaded now: until when — the last
+ * overloaded day before a calm stretch. Not now: when the next overload starts.
+ */
+export const overloadOutlook = (
+  workdays: ReadonlyArray<{ iso: string; percent: number }>,
+): OverloadOutlook => {
+  const first = workdays.findIndex((day) => day.percent > 100);
+  if (first === -1) return { kind: 'clear' };
+  // "Now" means today, or the very next working day when today is a weekend.
+  if (first > 0) return { kind: 'ahead', from: workdays[first].iso };
+  let until = workdays[0].iso;
+  let calm = 0;
+  for (const day of workdays) {
+    if (day.percent > 100) {
+      until = day.iso;
+      calm = 0;
+    } else {
+      calm += 1;
+      if (calm >= CALM_DAYS_TO_END_OVERLOAD) break;
+    }
+  }
+  return { kind: 'now', until };
+};

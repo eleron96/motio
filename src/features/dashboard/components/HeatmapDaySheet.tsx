@@ -7,6 +7,7 @@ import { useSheetDragDismiss } from '@/shared/hooks/useSheetDragDismiss';
 import { MobileListGroup, MobileListRow } from '@/shared/ui/mobile-list';
 import type { DateFnsLocale, HeatmapDayCell } from '@/features/dashboard/hooks/useWorkloadHeatmapModel';
 import { MILESTONE_COLOR } from '@/features/dashboard/components/heatmapCellStyle';
+import { HeatmapLevelPill } from '@/features/dashboard/components/HeatmapParts';
 
 interface HeatmapDaySheetProps {
   /** The day being read, or null while the sheet is closed. */
@@ -44,6 +45,8 @@ export const HeatmapDaySheet: React.FC<HeatmapDaySheetProps> = ({
 }) => {
   const drag = useSheetDragDismiss(() => onOpenChange(false));
   const isHoliday = Boolean(day?.holidayNames && day.holidayNames.length > 0);
+  // Load is measured on working days only, the same days the grid paints.
+  const measured = Boolean(day && showHeat && !day.isTeamAway && !day.isWeekend && !isHoliday);
 
   return (
     <Sheet open={day !== null} onOpenChange={onOpenChange}>
@@ -87,22 +90,24 @@ export const HeatmapDaySheet: React.FC<HeatmapDaySheetProps> = ({
             )}
 
             <MobileListGroup>
-              <MobileListRow title={<Trans>Tasks</Trans>} value={String(day.taskCount)} />
-              {showHeat && !day.isTeamAway && (
+              {measured && (
                 <MobileListRow
                   title={<Trans>Load</Trans>}
                   value={(
-                    <span>
-                      {`${day.percent}%`}
-                      {day.percent > 100 && (
-                        <span className="text-destructive">
-                          {' · '}
-                          <Trans>overloaded</Trans>
-                        </span>
-                      )}
+                    <span className="flex items-center gap-2">
+                      {day.level > 0 && <HeatmapLevelPill level={day.level} />}
+                      <span className="font-semibold tabular-nums text-foreground">{`${day.percent}%`}</span>
                     </span>
                   )}
                 />
+              )}
+              <MobileListRow
+                title={<Trans>Tasks</Trans>}
+                value={measured && day.milestonePercent > 0 ? `${day.taskCount} — ${day.taskPercent}%` : String(day.taskCount)}
+              />
+              {/* What else makes the day hot: the crews pinned by nearby deliveries. */}
+              {measured && day.milestonePercent > 0 && (
+                <MobileListRow title={<Trans>Preparing deliveries</Trans>} value={`${day.milestonePercent}%`} />
               )}
               {/* Explains why a day reads hotter than its task count suggests. */}
               {showHeat && !day.isTeamAway && day.awayCount > 0 && (

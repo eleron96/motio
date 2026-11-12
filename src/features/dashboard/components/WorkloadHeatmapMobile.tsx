@@ -1,19 +1,16 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { eachDayOfInterval, endOfMonth, format, getDay, startOfMonth } from 'date-fns';
 import { Trans } from '@lingui/macro';
-import { cn } from '@/shared/lib/classNames';
-import { colorForLevel } from '@/features/dashboard/lib/workloadHeatmap';
 import {
   useWorkloadHeatmapModel,
   type DateFnsLocale,
   type HeatmapDayCell,
 } from '@/features/dashboard/hooks/useWorkloadHeatmapModel';
 import {
-  HOLIDAY_HATCH,
-  LEGEND_LEVELS,
-  MILESTONE_COLOR,
-  resolveDayCellStyle,
-} from '@/features/dashboard/components/heatmapCellStyle';
+  HeatmapDayButton,
+  HeatmapLegend,
+  HeatmapOutlookLine,
+} from '@/features/dashboard/components/HeatmapParts';
 import { HeatmapDaySheet } from '@/features/dashboard/components/HeatmapDaySheet';
 
 /**
@@ -46,6 +43,7 @@ const scrollToMonth = (scroller: HTMLElement, target: HTMLElement, smooth: boole
 export const WorkloadHeatmapMobile: React.FC = () => {
   const {
     heatmap,
+    outlook,
     retry,
     showHeat,
     capacityDisplay,
@@ -141,40 +139,20 @@ export const WorkloadHeatmapMobile: React.FC = () => {
         <h2 className="text-base font-medium">
           <Trans>Team workload</Trans>
         </h2>
-        <p className="text-xs text-muted-foreground">
-          <Trans>Task density and milestones across the coming months</Trans>
-        </p>
-        {showHeat && (
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            <Trans>Full day ≈ {capacityDisplay} tasks/person</Trans>
-            {' · '}
-            {capacityOverride
-              ? <Trans>set manually</Trans>
-              : autoCapacity
-                ? <Trans>auto from history</Trans>
-                : <Trans>default</Trans>}
-          </p>
-        )}
-        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1">
-            {LEGEND_LEVELS.map((level) => (
-              <span
-                key={level}
-                className="h-3 w-3 rounded-[3px]"
-                style={{ backgroundColor: colorForLevel(level).bg }}
-              />
-            ))}
-            <span className="ml-1"><Trans>Load</Trans></span>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rotate-45" style={{ backgroundColor: MILESTONE_COLOR }} />
-            <Trans>Milestone</Trans>
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-[3px] border border-border" style={HOLIDAY_HATCH} />
-            <Trans>Holiday</Trans>
-          </span>
-        </div>
+        {showHeat && <HeatmapOutlookLine outlook={outlook} dateLocale={dateLocale} className="text-xs" />}
+        <HeatmapLegend className="mt-3 gap-x-4">
+          {showHeat && (
+            <span className="flex h-3 items-center">
+              <Trans>Full day ≈ {capacityDisplay} tasks/person</Trans>
+              {' · '}
+              {capacityOverride
+                ? <Trans>set manually</Trans>
+                : autoCapacity
+                  ? <Trans>auto from history</Trans>
+                  : <Trans>default</Trans>}
+            </span>
+          )}
+        </HeatmapLegend>
       </div>
 
       {!showHeat && (
@@ -200,9 +178,10 @@ export const WorkloadHeatmapMobile: React.FC = () => {
             {/* Pinned while the month's weeks scroll under it. The negative
                 margin lets it cover the gutters too, so no cell peeks out
                 beside the header on its way up. */}
-            <div className="sticky top-0 z-20 -mx-4 bg-background px-4 pb-1.5 pt-1">
-              <h3 className="text-sm font-medium capitalize">
-                {format(month, 'LLLL yyyy', { locale: dateLocale })}
+            <div className="sticky top-0 z-20 -mx-4 border-b border-border bg-background px-4 pb-1.5 pt-2">
+              <h3 className="text-[15px] font-semibold capitalize">
+                {format(month, 'LLLL', { locale: dateLocale })}
+                <span className="ml-1.5 text-xs font-normal text-muted-foreground">{format(month, 'yyyy')}</span>
               </h3>
               <div className="mt-1.5 grid grid-cols-7 gap-1">
                 {weekdayLabels.map((label, index) => (
@@ -215,7 +194,7 @@ export const WorkloadHeatmapMobile: React.FC = () => {
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-7 gap-1">
+            <div className="grid grid-cols-7 gap-1 pt-1.5">
               {Array.from({ length: leadingBlanks }, (_, index) => (
                 <div key={`${monthKey}-blank-${index}`} />
               ))}
@@ -273,38 +252,21 @@ type MobileDayCellProps = {
 const MobileDayCell: React.FC<MobileDayCellProps> = ({ day, showHeat, dateLocale, onSelect }) => {
   if (!day.inRange) {
     return (
-      <div className="flex h-11 items-center justify-center rounded-md text-sm text-muted-foreground/40">
+      <div className="flex h-11 items-center justify-center rounded-md text-[15px] text-muted-foreground/40">
         {day.dayNumber}
       </div>
     );
   }
 
-  const { style, colored } = resolveDayCellStyle(day, showHeat);
-  const hasMilestones = day.milestones.length > 0;
-
   return (
-    <button
-      type="button"
+    <HeatmapDayButton
+      day={day}
+      showHeat={showHeat}
+      dateLocale={dateLocale}
       onClick={() => onSelect(day.date)}
-      className={cn(
-        // 44px tall: the touch minimum, and what the strip's 32px cells were not.
-        'relative flex h-11 items-center justify-center rounded-md text-sm [-webkit-tap-highlight-color:transparent]',
-        'transition-opacity active:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-        !style && 'border border-border',
-        !colored && 'text-muted-foreground',
-        day.isToday && 'heatmap-today relative z-10 font-semibold',
-      )}
-      style={style}
-      aria-label={format(day.date, 'd MMMM yyyy', { locale: dateLocale })}
-    >
-      <span className="leading-none">{day.dayNumber}</span>
-      {hasMilestones && (
-        <span
-          className="absolute bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45"
-          style={{ backgroundColor: MILESTONE_COLOR }}
-        />
-      )}
-    </button>
+      // 44px tall: the touch minimum.
+      className="h-11 rounded-lg text-[15px] [-webkit-tap-highlight-color:transparent] active:opacity-70"
+    />
   );
 };
 
