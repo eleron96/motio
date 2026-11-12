@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import {
   addDays,
-  addWeeks,
   eachMonthOfInterval,
-  endOfWeek,
   format,
   getYear,
   isWeekend,
@@ -45,11 +43,15 @@ import {
 } from '@/features/dashboard/lib/workloadHeatmap';
 import { useInstanceSetting } from '@/shared/store/instanceSettingsStore';
 
-// Fixed, non-configurable window: ~3 months of context before today, a year
-// ahead — planning reaches past half a year, and the board pages through months
-// instead of scrolling, so a longer window costs no screen space.
-export const WEEKS_BEFORE = 13;
-export const WEEKS_AFTER = 52;
+// Whole calendar years — last year, this one and the next — the same window as
+// the timeline's calendar (planner/lib/calendarMonths.ts): the board scrolls like
+// that calendar and starts on 1 January and ends on 31 December, instead of
+// cutting both end years in the middle.
+const YEARS_BACK = 1;
+const YEARS_FORWARD = 1;
+// The "full day" is calibrated on this much recent history only, as it always
+// was: a whole extra year of past days would shift every day's percent.
+const CALIBRATION_WEEKS = 13;
 
 export type DateFnsLocale = ReturnType<typeof resolveDateFnsLocale>;
 
@@ -118,14 +120,9 @@ export const useWorkloadHeatmapModel = () => {
   }, [basePath, navigate]);
 
   const now = useMemo(() => new Date(), []);
-  const rangeStart = useMemo(
-    () => startOfWeek(subWeeks(now, WEEKS_BEFORE), { weekStartsOn: 1 }),
-    [now],
-  );
-  const rangeEnd = useMemo(
-    () => endOfWeek(addWeeks(now, WEEKS_AFTER), { weekStartsOn: 1 }),
-    [now],
-  );
+  const rangeStart = useMemo(() => new Date(now.getFullYear() - YEARS_BACK, 0, 1), [now]);
+  const rangeEnd = useMemo(() => new Date(now.getFullYear() + YEARS_FORWARD, 11, 31), [now]);
+  const calibrationStartIso = format(subWeeks(now, CALIBRATION_WEEKS), 'yyyy-MM-dd');
   const startIso = format(rangeStart, 'yyyy-MM-dd');
   const endIso = format(rangeEnd, 'yyyy-MM-dd');
   const todayIso = format(now, 'yyyy-MM-dd');
@@ -249,7 +246,7 @@ export const useWorkloadHeatmapModel = () => {
   const historyLoads = useMemo(() => {
     const loads: number[] = [];
     heatmap.days.forEach((day) => {
-      if (day.date >= todayIso) return;
+      if (day.date >= todayIso || day.date < calibrationStartIso) return;
       if (isWeekend(parseIsoDate(day.date)) || holidayMap[day.date]) return;
       // Past days count against who actually worked them, so a stretch of holidays
       // doesn't drag the team's "normal day" down and make every other day look hot.
@@ -257,7 +254,7 @@ export const useWorkloadHeatmapModel = () => {
       if (load !== null) loads.push(load);
     });
     return loads;
-  }, [heatmap.days, todayIso, holidayMap, availableOn]);
+  }, [heatmap.days, todayIso, calibrationStartIso, holidayMap, availableOn]);
   const autoCapacity = useMemo(() => autoCapacityPerPerson(historyLoads), [historyLoads]);
   useEffect(() => {
     setHeatmapAutoCapacity(autoCapacity);
@@ -276,11 +273,12 @@ export const useWorkloadHeatmapModel = () => {
 
   const weekdayLabels = useMemo(
     () => Array.from({ length: 7 }, (_, index) => formatWeekdayLabel(
-      addDays(rangeStart, index),
+      // Any Monday will do; the window itself starts on 1 January, any weekday.
+      addDays(startOfWeek(now, { weekStartsOn: 1 }), index),
       locale,
       { style: 'short', dateLocale },
     )),
-    [rangeStart, locale, dateLocale],
+    [now, locale, dateLocale],
   );
 
   const buildDay = useCallback((date: Date): HeatmapDayCell => {

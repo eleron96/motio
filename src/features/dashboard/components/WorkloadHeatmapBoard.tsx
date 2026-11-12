@@ -63,33 +63,21 @@ const useAvailableHeight = () => {
   return { height, ref: setNode };
 };
 
-/**
- * The months grouped by year, like the timeline's calendar. The window's first
- * year is trimmed from the front to whole rows, so it never starts with a lone
- * month — but never past last month, which always stays in view.
- */
-const groupByYear = (months: Date[], columns: number, todayIndex: number): Array<[number, Date[]]> => {
+/** The months grouped by year, like the timeline's calendar. */
+const groupByYear = (months: Date[]): Array<[number, Date[]]> => {
   const groups = new Map<number, Date[]>();
   months.forEach((month) => {
     const list = groups.get(month.getFullYear()) ?? [];
     list.push(month);
     groups.set(month.getFullYear(), list);
   });
-  const entries = Array.from(groups.entries());
-  if (entries.length > 0 && columns > 1) {
-    const [year, list] = entries[0];
-    let drop = list.length % columns;
-    // Months of this first year that are needed: from last month onward.
-    const keepFrom = Math.max(0, todayIndex - 1);
-    drop = Math.min(drop, keepFrom);
-    if (drop > 0 && drop < list.length) entries[0] = [year, list.slice(drop)];
-  }
-  return entries;
+  return Array.from(groups.entries());
 };
 
 /**
  * The board on anything wider than a phone: whole months in rows, a year at a
- * time, in one scroll that runs smoothly up and down like a calendar. The
+ * time — last year, this one and the next, like the timeline's calendar — in
+ * one scroll that runs smoothly up and down. The
  * title row and the legend stay put; only the months move. It opens on the row
  * holding the current month. Phones get `WorkloadHeatmapMobile` instead — same
  * model, months stacked for a thumb.
@@ -125,11 +113,7 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     heightRef(node);
   }, [containerRef, heightRef]);
 
-  const todayIndex = useMemo(
-    () => Math.max(0, months.findIndex((month) => format(month, 'yyyy-MM') === todayMonthKey)),
-    [months, todayMonthKey],
-  );
-  const years = useMemo(() => groupByYear(months, columns, todayIndex), [months, columns, todayIndex]);
+  const years = useMemo(() => groupByYear(months), [months]);
 
   const scrollerRef = useRef<HTMLDivElement>(null);
   const monthRefs = useRef(new Map<string, HTMLElement>());
@@ -143,7 +127,9 @@ export const WorkloadHeatmapBoard: React.FC = () => {
     const target = monthRefs.current.get(todayMonthKey);
     if (!scroller || !target) return;
     const top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-    scroller.scrollTo({ top: Math.max(0, top - 4), behavior: smooth ? 'smooth' : 'auto' });
+    // 'instant', not 'auto': the scroller is scroll-smooth, and 'auto' would
+    // animate the opening jump too, which the board's own re-layout cuts short.
+    scroller.scrollTo({ top: Math.max(0, top - 4), behavior: smooth ? 'smooth' : 'instant' });
   }, [todayMonthKey]);
 
   // One row of months up or down, as the arrows do in the calendar.
@@ -158,11 +144,25 @@ export const WorkloadHeatmapBoard: React.FC = () => {
   // state on the first fetch, and the months are not there to scroll to yet.
   const didOpenOnToday = useRef(false);
   const ready = !heatmap.error && !(heatmap.loading && heatmap.days.length === 0);
-  useEffect(() => {
+  // Re-done while the layout settles (the width and height arrive a frame
+  // late), until the person scrolls on their own.
+  useLayoutEffect(() => {
     if (!ready || didOpenOnToday.current) return;
-    didOpenOnToday.current = true;
     scrollToToday(false);
-  }, [ready, scrollToToday]);
+  }, [ready, scrollToToday, columns, cell, height]);
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    const stop = () => { didOpenOnToday.current = true; };
+    scroller.addEventListener('wheel', stop, { passive: true });
+    scroller.addEventListener('touchstart', stop, { passive: true });
+    scroller.addEventListener('keydown', stop);
+    return () => {
+      scroller.removeEventListener('wheel', stop);
+      scroller.removeEventListener('touchstart', stop);
+      scroller.removeEventListener('keydown', stop);
+    };
+  }, [ready]);
 
   if (heatmap.loading && heatmap.days.length === 0) {
     return (

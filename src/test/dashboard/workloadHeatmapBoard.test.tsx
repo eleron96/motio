@@ -100,18 +100,20 @@ describe('WorkloadHeatmapBoard month grid', () => {
     mocks.dashboard.heatmap = { ...mocks.dashboard.heatmap, days: [] };
   });
 
-  it('lays every month from last month to a year ahead into one scroll, a year at a time', async () => {
+  it('lays whole years — last, this and next — into one scroll, like the calendar', async () => {
     await renderBoard();
     const months = shownMonths();
     const current = format(today, 'yyyy-MM');
     const previous = format(addDays(new Date(today.getFullYear(), today.getMonth(), 1), -1), 'yyyy-MM');
     const yearAhead = format(new Date(today.getFullYear() + 1, today.getMonth(), 1), 'yyyy-MM');
     expect(months).toEqual(expect.arrayContaining([previous, current, yearAhead]));
+    expect(months[0]).toBe(`${today.getFullYear() - 1}-01`);
+    expect(months[months.length - 1]).toBe(`${today.getFullYear() + 1}-12`);
+    expect(months).toHaveLength(36);
     // In order, with no gaps between them — one continuous calendar.
     expect([...months].sort()).toEqual(months);
-    // Each year once, as the label beside its months (a January opens the window's middle year).
     expect(screen.getAllByTestId('heatmap-year').map((node) => node.textContent)).toEqual(
-      expect.arrayContaining([String(today.getFullYear()), String(today.getFullYear() + 1)]),
+      [today.getFullYear() - 1, today.getFullYear(), today.getFullYear() + 1].map(String),
     );
   });
 
@@ -119,7 +121,7 @@ describe('WorkloadHeatmapBoard month grid', () => {
     const user = userEvent.setup();
     const scrollTo = vi.spyOn(Element.prototype, 'scrollTo');
     await renderBoard();
-    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ behavior: 'auto' }));
+    expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ behavior: 'instant' }));
     await user.click(screen.getByRole('button', { name: 'Today' }));
     expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ behavior: 'smooth' }));
     scrollTo.mockRestore();

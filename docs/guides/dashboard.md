@@ -46,8 +46,8 @@ that keeps climbing for one person is overload in slow motion.
 
 ## Workload heatmap
 
-**Dashboard → Heatmap** lays the months out as calendars, a year at a time, from three
-months back to a year ahead. It opens on the current month; scroll up and down as in the
+**Dashboard → Heatmap** lays the months out as calendars, a year at a time — last year,
+this year and next, like the timeline's calendar. It opens on the current month; scroll up and down as in the
 timeline's calendar, **‹** and **›** next to **Today** move a row of months, and
 **Today** brings you back. Up to a full day, a day is coloured
 from pale peach to terracotta. Over a full day it turns red, in three steps — over 100%,

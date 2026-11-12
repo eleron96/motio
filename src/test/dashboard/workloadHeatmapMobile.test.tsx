@@ -1,12 +1,8 @@
 import React from 'react';
 import {
   addDays,
-  addWeeks,
   eachMonthOfInterval,
-  endOfWeek,
   format,
-  startOfWeek,
-  subWeeks,
 } from 'date-fns';
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -153,8 +149,9 @@ describe('WorkloadHeatmapMobile', () => {
 
     const now = new Date();
     const expected = eachMonthOfInterval({
-      start: startOfWeek(subWeeks(now, 13), { weekStartsOn: 1 }),
-      end: endOfWeek(addWeeks(now, 52), { weekStartsOn: 1 }),
+      // Whole years: last, this and next, January to December.
+      start: new Date(now.getFullYear() - 1, 0, 1),
+      end: new Date(now.getFullYear() + 1, 11, 31),
     }).map((month) => format(month, 'yyyy-MM'));
 
     const rendered = screen.getAllByTestId('heatmap-month').map((node) => node.dataset.month);
