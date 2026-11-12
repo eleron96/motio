@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.76] - 2026-11-12
 ### Fixed
 - On a wide screen the workload heatmap no longer stretches: it is as wide as the calendar and sits in the middle.
 

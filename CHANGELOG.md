@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.76] - 2026-11-12
 ### Fixed
 - На широком экране тепловая карта больше не растягивается: она шириной с календарь и стоит по центру.
 
