@@ -746,6 +746,11 @@ msgstr "Добавить задачи и даты"
 msgid "Add team member"
 msgstr "Добавить в команду"
 
+#. placeholder {0}: recipe.file ?? ''
+#: src/features/workspace/components/McpConnectRecipes.tsx
+msgid "Add this to the file {0}. If the file already lists other servers, put \"motio\" next to them."
+msgstr "Добавьте это в файл {0}. Если в файле уже есть другие серверы, поставьте «motio» рядом с ними."
+
 #: src/features/dashboard/pages/DashboardPage.tsx
 msgid "Add widget"
 msgstr "Добавить виджет"
@@ -911,8 +916,8 @@ msgid "Always"
 msgstr "Всегда"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
-msgid "An assistant that supports MCP can read this workspace and answer questions about it. Give it this address and a token that may read the workspace. It cannot change anything."
-msgstr "Ассистент с поддержкой MCP может читать это пространство и отвечать на вопросы о нём. Дайте ему этот адрес и токен с правом чтения. Изменить он ничего не может."
+msgid "An assistant that supports MCP can read this workspace and answer questions about it; it cannot change anything. Create a token that may read the workspace: the ready text for your assistant appears right after. Or use the address and the text below."
+msgstr "Ассистент с поддержкой MCP может читать это пространство и отвечать на вопросы о нём; изменить он ничего не может. Создайте токен с правом чтения — сразу после этого появится готовый текст для вашего ассистента. Или возьмите адрес и текст ниже."
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "An SMTP server is set, but MAILER_DRY_RUN=1 in .env keeps Motio's own emails (welcome, broadcasts) from being sent. Invitations and password resets go through Keycloak and are not affected. Set it to 0 and run install.sh up."
@@ -1716,6 +1721,10 @@ msgid "Configure widget type, display style, and filters."
 msgstr "Настройте тип виджета, стиль отображения и фильтры."
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Connect an AI assistant"
+msgstr "Подключить ИИ-ассистента"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Connect another program to this workspace: for reports, or to bring in absences from your time tracking. Create a separate token for each program."
 msgstr "Подключите к пространству другую программу: для отчётов или чтобы отсутствия приходили из учёта времени. Для каждой программы создайте свой токен."
 
@@ -1778,6 +1787,7 @@ msgstr "Координация"
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/projectCard/ContactPopup.tsx
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
+#: src/features/workspace/components/McpConnectRecipes.tsx
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Copied"
@@ -1817,6 +1827,11 @@ msgstr "Скопировать телефон"
 #: src/features/workspace/hooks/useCopyInviteLink.ts
 msgid "Copy the invitation link"
 msgstr "Скопируйте ссылку-приглашение"
+
+#. placeholder {0}: recipe.label
+#: src/features/workspace/components/McpConnectRecipes.tsx
+msgid "Copy the text for {0}"
+msgstr "Скопировать текст для {0}"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Copy token"
@@ -5583,6 +5598,10 @@ msgstr "Пароли и восстановление аккаунта управ
 msgid "Past"
 msgstr "Прошлые"
 
+#: src/features/workspace/components/McpConnectRecipes.tsx
+msgid "Paste this into a terminal and press Enter."
+msgstr "Вставьте это в терминал и нажмите Enter."
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Pastel dawn"
 msgstr "Пастельный рассвет"
@@ -6217,6 +6236,10 @@ msgstr "Повторяющаяся задача"
 #: src/features/planner/components/RepeatPopoverField.tsx
 msgid "Repeats until the selected date."
 msgstr "Повторяется до выбранной даты."
+
+#: src/features/workspace/components/McpConnectRecipes.tsx
+msgid "Replace {MCP_TOKEN_PLACEHOLDER} with a token that may read the workspace."
+msgstr "Замените {MCP_TOKEN_PLACEHOLDER} на токен с правом чтения."
 
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Replace the display name of a deleted (purged) account. The change applies everywhere this user is referenced."
@@ -7583,6 +7606,10 @@ msgstr "Роль суперадмина приходит через группу
 #: src/features/admin/lib/serverSettingLabels.ts
 msgid "The super admin role may come from a Keycloak group, not only from the person's own roles."
 msgstr "Роль суперадмина может прийти из группы Keycloak, а не только из собственных ролей человека."
+
+#: src/features/workspace/components/McpConnectRecipes.tsx
+msgid "The token is already in the text: keep it to yourself."
+msgstr "Токен уже вставлен в текст: никому его не показывайте."
 
 #: src/features/marketing/components/landing/LandingSections.tsx
 msgid "The tool I wanted to use"

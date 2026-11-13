@@ -114,6 +114,21 @@ describe('SettingsPanel API section', () => {
     expect(screen.queryByRole('button', { name: 'API' })).not.toBeInTheDocument();
   });
 
+  it('does not offer to connect an assistant with a token that only imports absences', async () => {
+    flags.workspaceApi = true;
+    const user = userEvent.setup();
+    renderPanel();
+
+    await user.click(screen.getByRole('button', { name: 'API' }));
+    await user.click((await screen.findAllByRole('button', { name: 'Create token' }))[0]);
+    await user.type(screen.getByLabelText('Name'), 'HR');
+    await user.click(screen.getByRole('checkbox', { name: /Import absences/ }));
+    await user.click(screen.getAllByRole('button', { name: 'Create token' }).at(-1)!);
+
+    expect(await screen.findByText('Copy your token now')).toBeInTheDocument();
+    expect(screen.queryByText('Connect an AI assistant')).not.toBeInTheDocument();
+  });
+
   it('lists tokens and shows a new one exactly once', async () => {
     flags.workspaceApi = true;
     const user = userEvent.setup();
@@ -125,6 +140,11 @@ describe('SettingsPanel API section', () => {
     // The address an AI assistant connects to sits next to the tokens.
     expect(screen.getByText('https://planner.example/functions/v1/mcp')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'How to connect' })).toHaveAttribute('href', expect.stringContaining('docs/mcp.md'));
+    // Ready text per assistant, with a placeholder while no token is on screen.
+    expect(screen.getByText(/claude mcp add --transport http motio https:\/\/planner\.example\/functions\/v1\/mcp .*motio_YOUR_TOKEN/)).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'Codex' }));
+    expect(screen.getByText(/\[mcp_servers\.motio\]/)).toBeInTheDocument();
+    expect(screen.getByText(/Add this to the file ~\/\.codex\/config\.toml/)).toBeInTheDocument();
 
     await user.click(screen.getAllByRole('button', { name: 'Create token' })[0]);
     await user.type(screen.getByLabelText('Name'), 'Time tracking');
@@ -136,9 +156,13 @@ describe('SettingsPanel API section', () => {
     expect(repo.createWorkspaceApiToken).toHaveBeenCalledWith('workspace-1', 'Time tracking', ['read']);
     expect(await screen.findByText('Copy your token now')).toBeInTheDocument();
     expect(screen.getByText(`motio_9f8e7d6c${'0'.repeat(56)}`)).toBeInTheDocument();
+    // A token that may read comes with the text to connect an assistant, the token already in it.
+    expect(screen.getByText('Connect an AI assistant')).toBeInTheDocument();
+    expect(screen.getByText(new RegExp(`claude mcp add .*Bearer motio_9f8e7d6c${'0'.repeat(56)}`))).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Done' }));
     expect(screen.queryByText(`motio_9f8e7d6c${'0'.repeat(56)}`)).not.toBeInTheDocument();
+    expect(screen.queryByText(new RegExp(`Bearer motio_9f8e7d6c`))).not.toBeInTheDocument();
     expect(screen.getByText('Time tracking')).toBeInTheDocument();
     // Each token says what it may do: the old one imports, the new one reads.
     expect(screen.getByText(/motio_1a2b3c4d…/).parentElement).toHaveTextContent('Import absences');

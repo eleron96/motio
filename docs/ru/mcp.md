@@ -31,31 +31,79 @@
 ничего. Клиент, который умеет подключаться только через OAuth, пользоваться им не
 сможет.
 
-В Claude Code:
+### Быстрый способ
+
+В Motio откройте **Настройки рабочего пространства → API** и создайте токен с
+правом **Чтение пространства**. В окне с новым токеном сразу показан готовый текст
+для вашего ассистента — с вашим адресом и уже вставленным токеном: выберите
+ассистента, скопируйте, вставьте. Рецепты ниже — тот же текст, но с адресом для
+примера.
+
+В каждом из них замените `planner.example.com` на адрес вашего Motio, а
+`motio_YOUR_TOKEN` — на ваш токен.
+
+### Claude Code
+
+Вставьте в терминал:
 
 ```bash
-claude mcp add --transport http motio https://planner.example.com/functions/v1/mcp --header "Authorization: Bearer $MOTIO_TOKEN"
+claude mcp add --transport http motio https://planner.example.com/functions/v1/mcp --header "Authorization: Bearer motio_YOUR_TOKEN"
 ```
 
-Или в файле `.mcp.json` проекта — так токен лежит в переменной окружения, а не в
-файле:
+### Codex
+
+Добавьте в файл `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.motio]
+url = "https://planner.example.com/functions/v1/mcp"
+http_headers = { "Authorization" = "Bearer motio_YOUR_TOKEN" }
+```
+
+### Gemini CLI
+
+Вставьте в терминал:
+
+```bash
+gemini mcp add --scope user --transport http --header "Authorization: Bearer motio_YOUR_TOKEN" motio https://planner.example.com/functions/v1/mcp
+```
+
+### Kimi Code
+
+Добавьте в файл `~/.kimi-code/mcp.json` (если в нём уже есть другие серверы,
+поставьте `motio` рядом с ними):
 
 ```json
 {
   "mcpServers": {
     "motio": {
-      "type": "http",
       "url": "https://planner.example.com/functions/v1/mcp",
       "headers": {
-        "Authorization": "Bearer ${MOTIO_TOKEN}"
+        "Authorization": "Bearer motio_YOUR_TOKEN"
       }
     }
   }
 }
 ```
 
-Другим клиентам MCP нужны те же две вещи — адрес и заголовок — в их собственных
-настройках.
+### Проверьте, что работает
+
+Запустите ассистента и спросите: «К какому пространству Motio ты подключён?» Он
+должен ответить названием вашего пространства.
+
+### Другие ассистенты и токен вне файлов
+
+Любому клиенту MCP нужны те же две вещи — адрес и заголовок — в его собственных
+настройках. Рецепты выше кладут токен прямо в команду или файл настроек: так
+проще всего, но команда ещё и остаётся в истории терминала. Чтобы держать токен в
+переменной окружения, у каждого клиента свой способ: Claude Code подставляет
+`${MOTIO_TOKEN}` в файле `.mcp.json` проекта, Codex принимает
+`bearer_token_env_var = "MOTIO_TOKEN"`, Kimi Code —
+`"bearerTokenEnvVar": "MOTIO_TOKEN"`.
+
+Рецепты составлены по документации самих клиентов на ноябрь 2026 года. Само
+подключение проверено с Claude Code и официальной клиентской библиотекой MCP; если
+рецепт для другого клиента перестал работать, сверьтесь с его документацией.
 
 ## О чём может спросить ассистент
 
