@@ -29,6 +29,16 @@ type TokenRow = {
   token?: string;
 };
 
+/**
+ * The address an AI assistant connects to (the MCP server, docs/mcp.md): the
+ * server the app itself talks to, or this site when that is not a full URL.
+ */
+export const workspaceMcpUrl = (): string => {
+  const configured = (import.meta.env.VITE_SUPABASE_URL ?? '').trim().replace(/\/+$/, '');
+  const base = /^https?:\/\//.test(configured) ? configured : window.location.origin;
+  return `${base}/functions/v1/mcp`;
+};
+
 export type ApiTokenErrorCode = 'limit' | 'invalid_name' | 'invalid_scopes' | 'not_allowed' | 'unknown';
 
 const toErrorCode = (message: string | undefined): ApiTokenErrorCode => {

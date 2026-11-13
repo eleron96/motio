@@ -95,6 +95,24 @@ The workspace's own lists:
 - **Save as my own set** keeps this workspace's statuses, types and tags as your own
   template, offered as **My own set** when you create a workspace.
 
+### API
+
+Admins only, and only where your server has it turned on. Here another program gets
+access to the workspace:
+
+- **Create token** — a key for one program. Choose what it may do: **Read the workspace**
+  (people, projects, tasks, milestones and absences — for reports) and/or **Import
+  absences** (from your time tracking or HR system). The token is shown once: copy it
+  right away. The bin next to a token revokes it, and that program loses access at once.
+- **AI assistants** — an assistant that supports MCP can read the workspace and answer
+  questions such as "who is free next week?". Give it the address shown here and a token
+  that may read the workspace. It cannot change anything.
+
+Anyone who holds a token reads the whole workspace, whatever their own role: make one
+token per program and revoke it when it is no longer needed. Details for the person who
+sets it up: [API](https://github.com/eleron96/motio/blob/main/docs/api.md) and
+[MCP server](https://github.com/eleron96/motio/blob/main/docs/mcp.md).
+
 ### Danger zone
 
 - **Transfer ownership** (owner only) — another member becomes the owner; you stay an

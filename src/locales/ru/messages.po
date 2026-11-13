@@ -806,6 +806,10 @@ msgstr "Расширенные фильтры"
 msgid "After the grace period, all data (comments, tasks, profile) will be anonymized and cannot be recovered."
 msgstr "После окончания периода восстановления все данные (комментарии, задачи, профиль) будут обезличены и не подлежат восстановлению."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "AI assistants"
+msgstr "ИИ-ассистенты"
+
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
@@ -892,6 +896,10 @@ msgstr "Также учитываются: {regionHolidayList}."
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Always"
 msgstr "Всегда"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "An assistant that supports MCP can read this workspace and answer questions about it. Give it this address and a token that may read the workspace. It cannot change anything."
+msgstr "Ассистент с поддержкой MCP может читать это пространство и отвечать на вопросы о нём. Дайте ему этот адрес и токен с правом чтения. Изменить он ничего не может."
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "An SMTP server is set, but MAILER_DRY_RUN=1 in .env keeps Motio's own emails (welcome, broadcasts) from being sent. Invitations and password resets go through Keycloak and are not affected. Set it to 0 and run install.sh up."
@@ -1758,12 +1766,17 @@ msgstr "Координация"
 #: src/features/projects/components/projectCard/ContactPopup.tsx
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Copied"
 msgstr "Скопировано"
 
 #: src/features/dashboard/hooks/useDashboardTransfer.ts
 msgid "Copied as {name}."
 msgstr "Скопировано как «{name}»."
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Copy address"
+msgstr "Скопировать адрес"
 
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/projectCard/ContactPopup.tsx
@@ -3642,6 +3655,10 @@ msgstr "Праздники"
 #: src/features/workspace/lib/starterTemplates/bimTemplate.ts
 msgid "Hospital wing"
 msgstr "Корпус больницы"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "How to connect"
+msgstr "Как подключить"
 
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 msgid "How to work in Motio"

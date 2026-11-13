@@ -34,6 +34,7 @@ const { plannerState, authState, flags, repo } = vi.hoisted(() => ({
       token: { id: 't-2', name, tokenPrefix: 'motio_9f8e7d6c', createdAt: '2026-10-28T10:00:00Z', lastUsedAt: null, scopes, token: `motio_9f8e7d6c${'0'.repeat(56)}` },
     })),
     revokeWorkspaceApiToken: vi.fn(async () => ({})),
+    workspaceMcpUrl: () => 'https://planner.example/functions/v1/mcp',
   },
   plannerState: {
     statuses: [],
@@ -121,6 +122,9 @@ describe('SettingsPanel API section', () => {
     await user.click(screen.getByRole('button', { name: 'API' }));
     expect(await screen.findByText('HR sync')).toBeInTheDocument();
     expect(screen.getByText('motio_1a2b3c4d…')).toBeInTheDocument();
+    // The address an AI assistant connects to sits next to the tokens.
+    expect(screen.getByText('https://planner.example/functions/v1/mcp')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'How to connect' })).toHaveAttribute('href', expect.stringContaining('docs/mcp.md'));
 
     await user.click(screen.getAllByRole('button', { name: 'Create token' })[0]);
     await user.type(screen.getByLabelText('Name'), 'Time tracking');

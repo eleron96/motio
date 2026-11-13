@@ -20,9 +20,15 @@ import { localeIntlTags } from '@/shared/lib/locale';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { Block } from '@/features/workspace/components/settingsBlocks';
 import { useWorkspaceApiTokens } from '@/features/workspace/hooks/useWorkspaceApiTokens';
-import type { ApiTokenErrorCode, ApiTokenScope, WorkspaceApiToken } from '@/infrastructure/workspace/apiTokenRepository';
+import {
+  workspaceMcpUrl,
+  type ApiTokenErrorCode,
+  type ApiTokenScope,
+  type WorkspaceApiToken,
+} from '@/infrastructure/workspace/apiTokenRepository';
 
 const API_DOCS_URL = 'https://github.com/eleron96/motio/blob/main/docs/api.md';
+const MCP_DOCS_URL = 'https://github.com/eleron96/motio/blob/main/docs/mcp.md';
 
 const errorText = (code: ApiTokenErrorCode) => {
   switch (code) {
@@ -66,6 +72,8 @@ export const WorkspaceApiTokensSection: React.FC<{ workspaceId: string | null }>
   const [scopes, setScopes] = useState<ApiTokenScope[]>([]);
   const [revokeTarget, setRevokeTarget] = useState<WorkspaceApiToken | null>(null);
   const [copied, setCopied] = useState(false);
+  const [addressCopied, setAddressCopied] = useState(false);
+  const mcpUrl = workspaceMcpUrl();
 
   const formatDate = (value: string) => new Date(value).toLocaleDateString(localeIntlTags[locale]);
 
@@ -91,6 +99,15 @@ export const WorkspaceApiTokensSection: React.FC<{ workspaceId: string | null }>
     setScopes((current) => (on ? [...current.filter((item) => item !== scope), scope] : current.filter((item) => item !== scope)));
   };
   const canCreate = Boolean(name.trim()) && scopes.length > 0 && !busy;
+
+  const handleCopyAddress = async () => {
+    try {
+      await navigator.clipboard.writeText(mcpUrl);
+      setAddressCopied(true);
+    } catch {
+      setAddressCopied(false);
+    }
+  };
 
   const closeCreated = () => {
     setCopied(false);
@@ -155,6 +172,31 @@ export const WorkspaceApiTokensSection: React.FC<{ workspaceId: string | null }>
             ))}
           </ul>
         )}
+      </Block>
+
+      <Block
+        title={t`AI assistants`}
+        description={t`An assistant that supports MCP can read this workspace and answer questions about it. Give it this address and a token that may read the workspace. It cannot change anything.`}
+      >
+        <div className="flex items-center gap-2">
+          <code className="min-w-0 flex-1 break-all rounded-md border border-border bg-muted px-3 py-2 font-mono text-xs">
+            {mcpUrl}
+          </code>
+          <Button variant="outline" size="sm" onClick={() => void handleCopyAddress()} aria-label={t`Copy address`}>
+            <Copy className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          <a
+            href={MCP_DOCS_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-4 hover:text-foreground"
+          >
+            {t`How to connect`}
+          </a>
+          {addressCopied && <span>{t`Copied`}</span>}
+        </div>
       </Block>
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
