@@ -206,6 +206,37 @@ curl -s -o /dev/null -D - "https://test.motio.nikog.net/auth/v1/authorize?provid
 
 The `Location` must start with `https://test.motio.nikog.net/realms/timeline/`.
 
+## Testing stops answering over HTTPS for one network, the server is fine
+
+Seen on the testing stand: right after a client opened the sign-in page, every
+HTTPS request from that client's network to the server timed out for about ten
+minutes, then came back by itself. Nothing was wrong on the server — the
+packets were dropped on the way to it. How to tell this from a real outage:
+
+```bash
+# from the affected machine: HTTPS times out, plain HTTP still answers 301
+curl -s -o /dev/null -m 8 -w '%{http_code}\n' https://test.motio.nikog.net/
+curl -s -o /dev/null -m 8 -w '%{http_code}\n' http://test.motio.nikog.net/
+# from any other network (the production server will do): 200
+ssh root@94.141.162.237 "curl -s -o /dev/null -m 8 -w '%{http_code}\n' https://test.motio.nikog.net/"
+```
+
+If the second network gets `200` and containers are up, do not restart or
+redeploy anything. On the server, `tcpdump -ni eth0 'host <client IP> and tcp
+port 443'` shows the picture: the TCP handshake completes, then the client's
+TLS packets never arrive, with no reset and no ICMP, while the server keeps
+retransmitting.
+
+What set it off: the host nginx served HTTP/1.1 only, so loading the sign-in
+page opened six TLS connections within half a second, and a filter between the
+client and the server cut the whole address pair off. The exact rule of that
+filter is not known; the server's IP also carries a busy UDP service on port
+443 from the same network, which may have made it look suspicious. Since
+`infra/nginx/motio-test.conf` listens with `http2`, a client keeps one
+connection and the cut-offs stopped. Production is served by Caddy, which has
+spoken HTTP/2 and HTTP/3 from the start. If it comes back, test from a network
+that does not use that UDP service before touching the stand.
+
 ## Many `password authentication failed for user "postgres"` in the db log
 
 A burst of these lines in `docker logs infra-db-1` over a short time is a
