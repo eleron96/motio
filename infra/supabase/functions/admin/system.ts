@@ -7,8 +7,9 @@ import {
   createTestEmailThrottle,
   describeMailError,
   isUpdateCheckEnabled,
-  parseLatestRelease,
-  type LatestRelease,
+  parseReleaseList,
+  type ReleaseInfo,
+  type UpdateInfo,
   type EmailOffReason,
   type ServiceCheck,
   type SystemServiceKey,
@@ -17,9 +18,11 @@ import {
 
 const CHECK_TIMEOUT_MS = 3000;
 const RELEASE_CACHE_MS = 6 * 60 * 60 * 1000;
-const RELEASES_URL = "https://api.github.com/repos/eleron96/motio/releases/latest";
+// One page of releases, not just the latest: an install several releases behind
+// is shown the notes of every release it skipped.
+const RELEASES_URL = "https://api.github.com/repos/eleron96/motio/releases?per_page=30";
 
-let releaseCache: { at: number; release: LatestRelease | null; ok: boolean } | null = null;
+let releaseCache: { at: number; releases: ReleaseInfo[]; ok: boolean } | null = null;
 const throttleTestEmail = createTestEmailThrottle();
 
 const timed = async (key: SystemServiceKey, probe: () => Promise<boolean>): Promise<ServiceCheck> => {
@@ -41,20 +44,40 @@ const httpOk = (url: string, accept: (status: number) => boolean = (status) => s
     return accept(response.status);
   };
 
-const latestRelease = async (): Promise<{ release: LatestRelease | null; ok: boolean }> => {
+const publishedReleases = async (): Promise<{ releases: ReleaseInfo[]; ok: boolean }> => {
   if (releaseCache && Date.now() - releaseCache.at < RELEASE_CACHE_MS) return releaseCache;
+  let releases: ReleaseInfo[] = [];
   try {
     const response = await fetch(RELEASES_URL, {
       headers: { Accept: "application/vnd.github+json", "User-Agent": "motio-update-check" },
       signal: AbortSignal.timeout(5000),
     });
-    const release = response.ok ? parseLatestRelease(await response.json()) : null;
-    releaseCache = { at: Date.now(), release, ok: Boolean(release) };
+    if (response.ok) releases = parseReleaseList(await response.json());
+    else await response.body?.cancel();
   } catch (_error) {
-    // Keep a failed answer for a short while only, so a network blip heals soon.
-    releaseCache = { at: Date.now() - RELEASE_CACHE_MS + 10 * 60 * 1000, release: null, ok: false };
+    releases = [];
   }
+  const ok = releases.length > 0;
+  // Keep a failed answer for a short while only, so a network blip heals soon.
+  const at = ok ? Date.now() : Date.now() - RELEASE_CACHE_MS + 10 * 60 * 1000;
+  releaseCache = { at, releases, ok };
   return releaseCache;
+};
+
+const isSelfHosted = () => (Deno.env.get("MOTIO_SELF_HOSTED") ?? "") === "true";
+
+/**
+ * What the "update available" mark of the admin console needs, and nothing
+ * else: no service is probed, so every console page can ask for it.
+ */
+export const getUpdateInfo = async (): Promise<UpdateInfo> => {
+  const updateCheckOn = isUpdateCheckEnabled(Deno.env.get("MOTIO_UPDATE_CHECK"));
+  const published = updateCheckOn ? await publishedReleases() : null;
+  return {
+    updateCheck: !updateCheckOn ? "disabled" : published?.ok ? "ok" : "unavailable",
+    selfHosted: isSelfHosted(),
+    releases: published?.releases ?? [],
+  };
 };
 
 export const getSystemStatus = async (
@@ -66,7 +89,7 @@ export const getSystemStatus = async (
   const base = supabaseUrl.replace(/\/+$/, "");
   const updateCheckOn = isUpdateCheckEnabled(Deno.env.get("MOTIO_UPDATE_CHECK"));
 
-  const [services, release] = await Promise.all([
+  const [services, published] = await Promise.all([
     Promise.all([
       timed("gateway", httpOk(`${base}/health`)),
       timed("database", async () => {
@@ -87,15 +110,15 @@ export const getSystemStatus = async (
       ),
       timed("backup", httpOk(`${base}/backup/health`)),
     ]),
-    updateCheckOn ? latestRelease() : Promise.resolve(null),
+    updateCheckOn ? publishedReleases() : Promise.resolve(null),
   ]);
 
   const mailer = getMailerConfig();
   return {
     services,
-    latestRelease: release?.release ?? null,
-    updateCheck: !updateCheckOn ? "disabled" : release?.ok ? "ok" : "unavailable",
-    selfHosted: (Deno.env.get("MOTIO_SELF_HOSTED") ?? "") === "true",
+    latestRelease: latestOf(published?.releases ?? []),
+    updateCheck: !updateCheckOn ? "disabled" : published?.ok ? "ok" : "unavailable",
+    selfHosted: isSelfHosted(),
     configured: {
       email: !mailer.dryRun,
       // Why Motio's own emails are off: no SMTP server at all, or MAILER_DRY_RUN=1
@@ -105,6 +128,11 @@ export const getSystemStatus = async (
       errorTracking: Boolean(Deno.env.get("GLITCHTIP_DSN")),
     },
   };
+};
+
+const latestOf = (releases: ReleaseInfo[]) => {
+  const latest = releases[0];
+  return latest ? { tag: latest.tag, url: latest.url, publishedAt: latest.publishedAt } : null;
 };
 
 const emailOffReason = (mailer: MailerConfig): EmailOffReason | null => {

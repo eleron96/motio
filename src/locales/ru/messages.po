@@ -17,6 +17,10 @@ msgstr ""
 msgid "— pick member —"
 msgstr "— выберите участника —"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "…and {hiddenChanges} more."
+msgstr "…и ещё {hiddenChanges}."
+
 #. placeholder {0}: groupDeleteTarget?.name ?? ''
 #: src/features/members/components/MemberGroupDialogs.tsx
 msgid "\"{0}\" disappears from the workspace. The people in it stay, just without a group."
@@ -3316,6 +3320,10 @@ msgstr "Для всех в этом пространстве на компьют
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "For grouping — e.g. a field or department: Design, Development, АР"
 msgstr "Для группировки — напр. направление или отдел: дизайн, разработка, АР"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "For your own servers — read before updating"
+msgstr "Для своих серверов — прочитайте перед обновлением"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Force purge account"
@@ -8167,6 +8175,11 @@ msgstr "Предстоящая"
 msgid "Update"
 msgstr "Обновить"
 
+#: src/features/admin/components/AdminLayout.tsx
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Update available"
+msgstr "Доступно обновление"
+
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Update check is off (MOTIO_UPDATE_CHECK=false)."
 msgstr "Проверка обновлений выключена (MOTIO_UPDATE_CHECK=false)."
@@ -8287,6 +8300,8 @@ msgid "Version {0}"
 msgstr "Версия {0}"
 
 #. placeholder {0}: latest.tag
+#. placeholder {0}: update.latest.tag
+#: src/features/admin/pages/AdminOverviewPage.tsx
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Version {0} is available."
 msgstr "Доступна версия {0}."
@@ -8414,6 +8429,10 @@ msgstr "Еженедельная планёрка"
 #: src/features/admin/pages/AdminAuditPage.tsx
 msgid "What"
 msgstr "Что"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "What changed since your version:"
+msgstr "Что изменилось с вашей версии:"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/StarterTemplateChooser.tsx

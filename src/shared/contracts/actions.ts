@@ -42,6 +42,8 @@ export const ADMIN_ACTIONS = {
   // System section: read-only status of the install and a test email.
   SYSTEM_STATUS: 'system.status',
   SYSTEM_TEST_EMAIL: 'system.testEmail',
+  // The "update available" mark: published releases and their notes, no probes.
+  SYSTEM_VERSION: 'system.version',
   // Settings section: server switches, all off by default (instance_settings, 0176).
   SETTINGS_LIST: 'settings.list',
   SETTINGS_UPDATE: 'settings.update',

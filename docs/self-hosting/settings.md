@@ -86,7 +86,7 @@ settings with their defaults and lists them; the defaults keep things as they we
 | `BACKUP_CRON` | `0 3 * * *` | when the nightly backup runs |
 | `BACKUP_RETENTION_COUNT` | `30` | how many nightly database dumps to keep |
 | `S3_*`, `BACKUP_AGE_RECIPIENT` | empty | encrypted copies of the backups in an S3 bucket ([Backups](./backups.md#off-site-copies)) |
-| `MOTIO_UPDATE_CHECK` | `true` | Admin → System asks GitHub for a newer release, at most every 6 hours; `false` turns it off |
+| `MOTIO_UPDATE_CHECK` | `true` | the admin console asks GitHub for newer releases, at most every 6 hours, and marks its System section when one is out; `false` turns it off |
 
 #### Network
 

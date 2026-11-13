@@ -3,7 +3,7 @@ import { ADMIN_ACTIONS, INVITE_ROLE_VALUES } from "../_shared/actions.ts";
 import { captureException } from "../_shared/sentryCapture.ts";
 import { buildUnsubscribeUrl, getMailerConfig, sendEmail } from "../_shared/mailer.ts";
 import { renderBroadcastEmail } from "../_shared/broadcastEmail.ts";
-import { getSystemStatus, sendTestEmail } from "./system.ts";
+import { getSystemStatus, getUpdateInfo, sendTestEmail } from "./system.ts";
 import {
   createGroupWorkspaceMapping,
   deleteGroupWorkspaceMapping,
@@ -290,6 +290,9 @@ const adminRequestSchema = z.discriminatedUnion("action", [
   }).strict(),
   z.object({
     action: z.literal(ADMIN_ACTIONS.SYSTEM_TEST_EMAIL),
+  }).strict(),
+  z.object({
+    action: z.literal(ADMIN_ACTIONS.SYSTEM_VERSION),
   }).strict(),
   z.object({
     action: z.literal(ADMIN_ACTIONS.SETTINGS_LIST),
@@ -2040,6 +2043,8 @@ export const handler = async (req: Request) => {
       return jsonResponse({
         status: await getSystemStatus(supabaseAdmin, supabaseUrl, keycloakConfig.baseUrl, keycloakConfig.realm),
       });
+    case ADMIN_ACTIONS.SYSTEM_VERSION:
+      return jsonResponse({ update: await getUpdateInfo() });
     case ADMIN_ACTIONS.SYSTEM_TEST_EMAIL:
       return jsonResponse({ result: await sendTestEmail(authResult.user.id, authResult.user.email) });
     case ADMIN_ACTIONS.SETTINGS_LIST:

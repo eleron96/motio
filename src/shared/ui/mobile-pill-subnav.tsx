@@ -6,6 +6,7 @@ const GAP = 6;
 const PILL_PADDING_LEFT = 12;
 const PILL_PADDING_RIGHT = 14;
 const PILL_ICON_GAP = 6;
+const DOT = 6;
 // The last entry is the press dip from `.press` (src/app/index.css): an inline
 // transition overrides the class's, so the pill has to carry it itself.
 const TRANSITION = 'width 320ms cubic-bezier(.4,.8,.3,1.05), padding 320ms cubic-bezier(.4,.8,.3,1.05), background-color 200ms ease, color 200ms ease, scale var(--press-t, 0ms) var(--press-ease, ease)';
@@ -16,6 +17,9 @@ export interface MobilePillSubnavItem {
   icon?: React.ReactNode;
   /** Sections that destroy things read in the destructive colour. */
   tone?: 'danger';
+  /** A small mark after the label: something in this section wants a look. Its meaning goes into `dotLabel`. */
+  dot?: boolean;
+  dotLabel?: string;
 }
 
 interface MobilePillSubnavProps {
@@ -40,9 +44,11 @@ const Pill: React.FC<PillProps> = ({ item, active, width, onClick, innerRef }) =
   // With icons, inactive items collapse to a circle and only the active one
   // shows its label — same expanding-pill mechanic as WorkspacePillNav.
   const showLabel = active || !hasIcon;
+  const showDot = Boolean(item.dot) && showLabel;
+  const labelWidth = width + (showDot ? PILL_ICON_GAP + DOT : 0);
   const targetWidth = active && hasIcon
-    ? ROUND + PILL_ICON_GAP + PILL_PADDING_RIGHT + width
-    : (hasIcon ? ROUND : ROUND + PILL_PADDING_LEFT + PILL_PADDING_RIGHT + width);
+    ? ROUND + PILL_ICON_GAP + PILL_PADDING_RIGHT + labelWidth
+    : (hasIcon ? ROUND : ROUND + PILL_PADDING_LEFT + PILL_PADDING_RIGHT + labelWidth);
 
   const danger = item.tone === 'danger';
 
@@ -51,7 +57,7 @@ const Pill: React.FC<PillProps> = ({ item, active, width, onClick, innerRef }) =
       type="button"
       ref={innerRef}
       onClick={onClick}
-      aria-label={item.label}
+      aria-label={item.dot && item.dotLabel ? `${item.label} — ${item.dotLabel}` : item.label}
       aria-pressed={active}
       className={cn(
         'press inline-flex shrink-0 items-center overflow-hidden whitespace-nowrap rounded-full text-ui-sm font-semibold',
@@ -76,6 +82,9 @@ const Pill: React.FC<PillProps> = ({ item, active, width, onClick, innerRef }) =
         </span>
       ) : null}
       {showLabel ? <span className="leading-none">{item.label}</span> : null}
+      {showDot ? (
+        <span aria-hidden="true" className="shrink-0 rounded-full bg-primary" style={{ width: DOT, height: DOT }} />
+      ) : null}
     </button>
   );
 };

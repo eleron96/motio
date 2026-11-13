@@ -15,6 +15,7 @@ vi.mock('@/infrastructure/auth/functionsGateway', () => ({ invokeAdminFunction: 
 
 import AdminSystemPage from '@/features/admin/pages/AdminSystemPage';
 import { isNewerVersion } from '@/features/admin/lib/systemStatus';
+import { useUpdateInfoStore } from '@/features/admin/store/updateInfoStore';
 
 const status = (overrides: Record<string, unknown> = {}) => ({
   services: [
@@ -55,6 +56,7 @@ const mockByAction = {
 describe('AdminSystemPage', () => {
   beforeEach(() => {
     answers.clear();
+    useUpdateInfoStore.setState({ info: null, loading: false, loaded: false });
     invoke.mockReset();
     invoke.mockImplementation(async (payload: { action: string }) => {
       const list = answers.get(payload.action) ?? [];
@@ -74,6 +76,49 @@ describe('AdminSystemPage', () => {
     expect(screen.getByText('not responding')).toBeInTheDocument();
     expect(screen.getByText('VITE_FEATURE_KANBAN')).toBeInTheDocument();
     expect(invoke).toHaveBeenCalledWith({ action: 'system.status' });
+  });
+
+  it('puts the notes for self-hosted servers first and lists what changed since the running version', async () => {
+    const release = (tag: string, changes: string[]) => ({
+      tag, url: `https://github.com/eleron96/motio/releases/tag/${tag}`, publishedAt: null, changes,
+    });
+    useUpdateInfoStore.setState({
+      info: {
+        updateCheck: 'ok',
+        selfHosted: true,
+        releases: [
+          release('v0.11.0', ['For your own servers: set NEW_KEY before updating.', ...Array.from({ length: 9 }, (_, index) => `Change ${index + 1}.`)]),
+          release('v0.10.30', ['A fix.']),
+          release('v0.10.27', ['Already installed.']),
+        ],
+      },
+    });
+    mockByAction.mockResolvedValueOnce({ data: { status: status() } });
+    render(<AdminSystemPage />);
+
+    expect(await screen.findByText('set NEW_KEY before updating.')).toBeInTheDocument();
+    expect(screen.getByText('Change 8.')).toBeInTheDocument();
+    expect(screen.queryByText('Change 9.')).not.toBeInTheDocument();
+    expect(screen.getByText('…and 2 more.')).toBeInTheDocument();
+    expect(screen.queryByText('Already installed.')).not.toBeInTheDocument();
+  });
+
+  it('keeps the notes for self-hosted servers off the public site', async () => {
+    useUpdateInfoStore.setState({
+      info: {
+        updateCheck: 'ok',
+        selfHosted: false,
+        releases: [{
+          tag: 'v0.11.0', url: 'https://github.com/eleron96/motio/releases/tag/v0.11.0', publishedAt: null,
+          changes: ['For your own servers: set NEW_KEY before updating.', 'A new board.'],
+        }],
+      },
+    });
+    mockByAction.mockResolvedValueOnce({ data: { status: status({ selfHosted: false }) } });
+    render(<AdminSystemPage />);
+
+    expect(await screen.findByText('A new board.')).toBeInTheDocument();
+    expect(screen.queryByText('set NEW_KEY before updating.')).not.toBeInTheDocument();
   });
 
   it('does not show the update command on the public site', async () => {

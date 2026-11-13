@@ -17,6 +17,10 @@ msgstr ""
 msgid "— pick member —"
 msgstr "— Mitglied wählen —"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "…and {hiddenChanges} more."
+msgstr "…und {hiddenChanges} weitere."
+
 #. placeholder {0}: groupDeleteTarget?.name ?? ''
 #: src/features/members/components/MemberGroupDialogs.tsx
 msgid "\"{0}\" disappears from the workspace. The people in it stay, just without a group."
@@ -3316,6 +3320,10 @@ msgstr "Für alle in diesem Arbeitsbereich am Computer; auf dem Telefon bleibt d
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "For grouping — e.g. a field or department: Design, Development, АР"
 msgstr "Zur Gruppierung – z. B. Fachbereich oder Abteilung: Design, Entwicklung, Architektur"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "For your own servers — read before updating"
+msgstr "Für eigene Server – vor dem Update lesen"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Force purge account"
@@ -8167,6 +8175,11 @@ msgstr "Anstehend"
 msgid "Update"
 msgstr "Aktualisieren"
 
+#: src/features/admin/components/AdminLayout.tsx
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Update available"
+msgstr "Update verfügbar"
+
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Update check is off (MOTIO_UPDATE_CHECK=false)."
 msgstr "Update-Prüfung ist aus (MOTIO_UPDATE_CHECK=false)."
@@ -8287,6 +8300,8 @@ msgid "Version {0}"
 msgstr "Version {0}"
 
 #. placeholder {0}: latest.tag
+#. placeholder {0}: update.latest.tag
+#: src/features/admin/pages/AdminOverviewPage.tsx
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Version {0} is available."
 msgstr "Neue Version verfügbar: {0}"
@@ -8414,6 +8429,10 @@ msgstr "Wöchentliche Teambesprechung"
 #: src/features/admin/pages/AdminAuditPage.tsx
 msgid "What"
 msgstr "Was"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "What changed since your version:"
+msgstr "Änderungen seit Ihrer Version:"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/StarterTemplateChooser.tsx

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useAdminStore } from '@/features/admin/store/adminStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { t } from '@lingui/macro';
@@ -7,6 +8,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { APP_VERSION } from '@/shared/lib/appVersion';
 import { formatDate, formatStorageMain } from '@/features/admin/lib/format';
 import { AdminMessagingSummary } from '@/features/admin/components/AdminMessagingSummary';
+import { summarizeUpdate } from '@/features/admin/lib/updateInfo';
+import { useUpdateInfoStore } from '@/features/admin/store/updateInfoStore';
 
 interface MetricCardProps {
   label: string;
@@ -53,6 +56,7 @@ const AdminOverviewPage: React.FC = () => {
     fetchBackups: state.fetchBackups,
   })));
   const locale = useLocaleStore((state) => state.locale);
+  const update = summarizeUpdate(APP_VERSION, useUpdateInfoStore((state) => state.info));
 
   useEffect(() => {
     fetchAdminUsers();
@@ -104,6 +108,11 @@ const AdminOverviewPage: React.FC = () => {
         <MetricCard
           label={t`App version`}
           value={APP_VERSION}
+          hint={update ? (
+            <Link to="/app/admin/system" className="text-primary underline underline-offset-4">
+              {t`Version ${update.latest.tag} is available.`}
+            </Link>
+          ) : undefined}
         />
       </div>
 

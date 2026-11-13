@@ -17,6 +17,10 @@ msgstr ""
 msgid "— pick member —"
 msgstr "— pick member —"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "…and {hiddenChanges} more."
+msgstr "…and {hiddenChanges} more."
+
 #. placeholder {0}: groupDeleteTarget?.name ?? ''
 #: src/features/members/components/MemberGroupDialogs.tsx
 msgid "\"{0}\" disappears from the workspace. The people in it stay, just without a group."
@@ -3316,6 +3320,10 @@ msgstr "For everyone in this workspace on a computer; phones keep the usual layo
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 msgid "For grouping — e.g. a field or department: Design, Development, АР"
 msgstr "For grouping — e.g. a field or department: Design, Development, АР"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "For your own servers — read before updating"
+msgstr "For your own servers — read before updating"
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Force purge account"
@@ -8167,6 +8175,11 @@ msgstr "Upcoming"
 msgid "Update"
 msgstr "Update"
 
+#: src/features/admin/components/AdminLayout.tsx
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Update available"
+msgstr "Update available"
+
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Update check is off (MOTIO_UPDATE_CHECK=false)."
 msgstr "Update check is off (MOTIO_UPDATE_CHECK=false)."
@@ -8287,6 +8300,8 @@ msgid "Version {0}"
 msgstr "Version {0}"
 
 #. placeholder {0}: latest.tag
+#. placeholder {0}: update.latest.tag
+#: src/features/admin/pages/AdminOverviewPage.tsx
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Version {0} is available."
 msgstr "Version {0} is available."
@@ -8414,6 +8429,10 @@ msgstr "Weekly team meeting"
 #: src/features/admin/pages/AdminAuditPage.tsx
 msgid "What"
 msgstr "What"
+
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "What changed since your version:"
+msgstr "What changed since your version:"
 
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/StarterTemplateChooser.tsx

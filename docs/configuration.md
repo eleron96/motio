@@ -264,9 +264,10 @@ compose files (labels, extra networks); it is not tracked in git.
 
 ## Admin → System
 
-- `MOTIO_UPDATE_CHECK` — the System section of the admin console asks GitHub for
-  the latest release at most every 6 hours (`true` by default). `false` turns it
-  off; nothing about the install is ever sent.
+- `MOTIO_UPDATE_CHECK` — the admin console asks GitHub for the published
+  releases at most every 6 hours (`true` by default) and marks its System section
+  when a newer one is out. `false` turns it off; nothing about the install is
+  ever sent.
 
 ## Error tracking
 

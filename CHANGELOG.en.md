@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- For your own servers: the admin console now tells you when a newer release is out — a dot next to System in its menu and a line on the overview. System lists what changed since your version and, first, what to read before updating.
+
 ## [0.10.76] - 2026-11-12
 ### Fixed
 - On a wide screen the workload heatmap no longer stretches: it is as wide as the calendar and sits in the middle.
