@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- On motio.nikog.net the workspace settings now have an API section: an admin creates tokens to connect another program or an AI assistant to the workspace.
+
 ## [0.10.77] - 2026-11-13
 ### Added
 - MCP server: an AI assistant can read a workspace — people, projects, tasks, milestones and absences — and answer questions like “who is free next week”. It connects with an address and a token that has the read scope, and cannot change anything.
