@@ -180,7 +180,7 @@ and rebuild `web`; no release is needed.
 | `VITE_FEATURE_KANBAN` | the board view (beta), an optional view next to the timeline: each person still turns it on in account settings → Appearance; `/demo` does not force it on, but follows the flag like the app |
 | `VITE_FEATURE_PUSH` | browser push notifications (needs the VAPID keys below) |
 | `VITE_FEATURE_ACCOUNT_DELETION` | account self-deletion in account settings |
-| `VITE_FEATURE_WORKSPACE_API` | the API section in workspace settings, where admins create tokens for importing absences ([API](api.md)); hidden in `/demo` |
+| `VITE_FEATURE_WORKSPACE_API` | the API section in workspace settings, where admins create tokens for other systems to read the workspace or import absences ([API](api.md)) and for AI assistants to read it ([MCP server](mcp.md)); hidden in `/demo` |
 | `VITE_FEATURE_TASK_LIVE_DRAFTS` | teammates' drafts in an open task card, live and semi-transparent: the subtask or comment someone is typing, and that someone edits the description (desktop only). Shared through a private Realtime channel that only members of the workspace can join; nothing is stored. Off in `/demo`. On a brand-new self-hosted install the channel's access rules land with the first `install.sh update` (Realtime sets up its tables only once someone connects) |
 
 The project card, contacts, people suggestions, the workload heatmap and time off
@@ -264,9 +264,10 @@ compose files (labels, extra networks); it is not tracked in git.
 
 ## Admin → System
 
-- `MOTIO_UPDATE_CHECK` — the System section of the admin console asks GitHub for
-  the latest release at most every 6 hours (`true` by default). `false` turns it
-  off; nothing about the install is ever sent.
+- `MOTIO_UPDATE_CHECK` — the admin console asks GitHub for the published
+  releases at most every 6 hours (`true` by default) and marks its System section
+  when a newer one is out. `false` turns it off; nothing about the install is
+  ever sent.
 
 ## Error tracking
 

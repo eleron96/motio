@@ -48,7 +48,36 @@ export interface SystemStatus {
   };
 }
 
-/** The release from GitHub's "latest release" reply, or null if it is not one. */
+/** One published release with its notes, as the admin console shows it. */
+export interface ReleaseInfo extends LatestRelease {
+  /** The bullet lines of the release notes, plain text. */
+  changes: string[];
+}
+
+/** Admin action system.version: what the "update available" mark is drawn from. */
+export interface UpdateInfo {
+  updateCheck: SystemStatus["updateCheck"];
+  selfHosted: boolean;
+  /** Published releases, newest first; empty when the check is off or failed. */
+  releases: ReleaseInfo[];
+}
+
+const MAX_RELEASES = 30;
+const MAX_CHANGES_PER_RELEASE = 40;
+const MAX_CHANGE_LENGTH = 600;
+
+const versionParts = (tag: string): number[] => tag.replace(/^v/, "").split(".").map(Number);
+
+const byVersionDesc = (a: LatestRelease, b: LatestRelease): number => {
+  const left = versionParts(a.tag);
+  const right = versionParts(b.tag);
+  for (let index = 0; index < 3; index += 1) {
+    if (left[index] !== right[index]) return right[index] - left[index];
+  }
+  return 0;
+};
+
+/** The release from one entry of GitHub's releases reply, or null if it is not one. */
 export const parseLatestRelease = (body: unknown): LatestRelease | null => {
   if (!body || typeof body !== "object") return null;
   const release = body as Record<string, unknown>;
@@ -60,6 +89,38 @@ export const parseLatestRelease = (body: unknown): LatestRelease | null => {
     url,
     publishedAt: typeof release.published_at === "string" ? release.published_at : null,
   };
+};
+
+/** The bullet lines of release notes ("- text"), as plain text; headings and prose are dropped. */
+export const parseReleaseChanges = (notes: unknown): string[] => {
+  if (typeof notes !== "string") return [];
+  const changes: string[] = [];
+  for (const line of notes.split(/\r?\n/)) {
+    const match = /^\s*[-*]\s+(.+)$/.exec(line);
+    if (!match) continue;
+    const text = match[1].replace(/\s+/g, " ").trim().slice(0, MAX_CHANGE_LENGTH);
+    if (text) changes.push(text);
+    if (changes.length >= MAX_CHANGES_PER_RELEASE) break;
+  }
+  return changes;
+};
+
+/**
+ * Published releases from GitHub's "list releases" reply, newest version
+ * first. Drafts, pre-releases and anything that is not a release of this
+ * repository are left out.
+ */
+export const parseReleaseList = (body: unknown): ReleaseInfo[] => {
+  if (!Array.isArray(body)) return [];
+  const releases: ReleaseInfo[] = [];
+  for (const entry of body) {
+    const release = parseLatestRelease(entry);
+    if (!release) continue;
+    const raw = entry as Record<string, unknown>;
+    if (raw.draft === true || raw.prerelease === true) continue;
+    releases.push({ ...release, changes: parseReleaseChanges(raw.body) });
+  }
+  return releases.sort(byVersionDesc).slice(0, MAX_RELEASES);
 };
 
 /** "false", "0", "no", "off" (any case) turn the update check off; anything else keeps it on. */

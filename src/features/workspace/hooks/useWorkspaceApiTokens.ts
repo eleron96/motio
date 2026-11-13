@@ -4,6 +4,7 @@ import {
   listWorkspaceApiTokens,
   revokeWorkspaceApiToken,
   type ApiTokenErrorCode,
+  type ApiTokenScope,
   type CreatedWorkspaceApiToken,
   type WorkspaceApiToken,
 } from '@/infrastructure/workspace/apiTokenRepository';
@@ -32,10 +33,10 @@ export const useWorkspaceApiTokens = (workspaceId: string | null, enabled: boole
     void reload();
   }, [reload]);
 
-  const create = useCallback(async (name: string) => {
+  const create = useCallback(async (name: string, scopes: ApiTokenScope[]) => {
     if (!workspaceId) return false;
     setBusy(true);
-    const result = await createWorkspaceApiToken(workspaceId, name);
+    const result = await createWorkspaceApiToken(workspaceId, name, scopes);
     setBusy(false);
     if (result.error || !result.token) {
       setError(result.error ?? 'unknown');

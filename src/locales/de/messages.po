@@ -17,6 +17,10 @@ msgstr ""
 msgid "— pick member —"
 msgstr "— Mitglied wählen —"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "…and {hiddenChanges} more."
+msgstr "…und {hiddenChanges} weitere."
+
 #. placeholder {0}: groupDeleteTarget?.name ?? ''
 #: src/features/members/components/MemberGroupDialogs.tsx
 msgid "\"{0}\" disappears from the workspace. The people in it stay, just without a group."
@@ -166,6 +170,14 @@ msgstr "{actor} hat die Gruppe von {target} von {fromGroup} zu {toGroup} geände
 msgid "{actor} changed {target} status from {0} to {1}."
 msgstr "{actor} hat den Status von {target} von {0} zu {1} geändert."
 
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "{actor} created the API token {name}: {rights}."
+msgstr "{actor} hat das API-Token „{name}“ erstellt: {rights}."
+
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "{actor} created the API token {name}."
+msgstr "{actor} hat das API-Token „{name}“ erstellt."
+
 #. placeholder {0}: wrapLabel(groupName, t`Unnamed group`)
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "{actor} created the group {0}."
@@ -193,6 +205,11 @@ msgstr "{actor} hat {target} aus dem Arbeitsbereich entfernt."
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "{actor} renamed group {0} to {1}."
 msgstr "{actor} hat die Gruppe {0} in {1} umbenannt."
+
+#. placeholder {0}: wrapLabel(tokenName, t`Unnamed token`)
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "{actor} revoked the API token {0}."
+msgstr "{actor} hat das API-Token „{0}“ widerrufen."
 
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "{actor} updated workspace access."
@@ -454,10 +471,6 @@ msgid "A task is assigned to me"
 msgstr "Mir wird eine Aufgabe zugewiesen"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
-msgid "A token lets another system, such as your time tracking, create, update and delete absences in this workspace. It can do nothing else."
-msgstr "Mit einem Token kann ein anderes System, etwa Ihre Zeiterfassung, Abwesenheiten in diesem Arbeitsbereich anlegen, ändern und löschen. Sonst kann es nichts."
-
-#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "A workspace can have at most 10 active tokens. Revoke one you no longer use."
 msgstr "Ein Arbeitsbereich kann höchstens 10 aktive Tokens haben. Widerrufen Sie eines, das Sie nicht mehr brauchen."
 
@@ -499,6 +512,10 @@ msgstr "Zugriff"
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Access denied"
 msgstr "Zugriff verweigert"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Access for other systems"
+msgstr "Zugriff für andere Systeme"
 
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -802,6 +819,10 @@ msgstr "Erweiterte Filter"
 msgid "After the grace period, all data (comments, tasks, profile) will be anonymized and cannot be recovered."
 msgstr "Nach Ablauf der Frist werden alle Daten (Kommentare, Aufgaben, Profil) anonymisiert und können nicht wiederhergestellt werden."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "AI assistants"
+msgstr "KI-Assistenten"
+
 #: src/features/members/components/MemberTasksFiltersScreen.tsx
 #: src/features/members/components/MemberTasksPanel.tsx
 #: src/features/planner/components/timeline/CalendarLegendPanel.tsx
@@ -888,6 +909,10 @@ msgstr "Zusätzlich gelten: {regionHolidayList}."
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Always"
 msgstr "Immer"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "An assistant that supports MCP can read this workspace and answer questions about it. Give it this address and a token that may read the workspace. It cannot change anything."
+msgstr "Ein Assistent mit MCP-Unterstützung kann diesen Arbeitsbereich lesen und Fragen dazu beantworten. Geben Sie ihm diese Adresse und ein Token mit Leserecht. Ändern kann er nichts."
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "An SMTP server is set, but MAILER_DRY_RUN=1 in .env keeps Motio's own emails (welcome, broadcasts) from being sent. Invitations and password resets go through Keycloak and are not affected. Set it to 0 and run install.sh up."
@@ -1487,6 +1512,10 @@ msgstr "Akzentfarbe für die gesamte Oberfläche wählen"
 msgid "Choose the group for {memberName}."
 msgstr "Wählen Sie die Gruppe für {memberName}."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Choose what the token may do."
+msgstr "Wählen Sie, was das Token darf."
+
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Choose where to apply this change."
 msgstr "Wählen Sie, worauf diese Änderung angewendet wird."
@@ -1686,6 +1715,10 @@ msgstr "Konzeptpräsentation"
 msgid "Configure widget type, display style, and filters."
 msgstr "Widget-Typ, Darstellung und Filter festlegen."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Connect another program to this workspace: for reports, or to bring in absences from your time tracking. Create a separate token for each program."
+msgstr "Verbinden Sie ein anderes Programm mit diesem Arbeitsbereich: für Berichte oder um Abwesenheiten aus Ihrer Zeiterfassung zu übernehmen. Erstellen Sie für jedes Programm ein eigenes Token."
+
 #: src/features/planner/lib/syncStatusToasts.ts
 msgid "Connection restored"
 msgstr "Verbindung wiederhergestellt"
@@ -1746,12 +1779,17 @@ msgstr "Koordination"
 #: src/features/projects/components/projectCard/ContactPopup.tsx
 #: src/features/projects/components/projectCard/MobileContactSheet.tsx
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Copied"
 msgstr "Kopiert"
 
 #: src/features/dashboard/hooks/useDashboardTransfer.ts
 msgid "Copied as {name}."
 msgstr "Als „{name}“ kopiert."
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Copy address"
+msgstr "Adresse kopieren"
 
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/projectCard/ContactPopup.tsx
@@ -1952,6 +1990,10 @@ msgstr "Arbeitsbereich erstellen"
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Create your account"
 msgstr "Konto erstellen"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Create, update and delete absences, as your time tracking or HR system records them."
+msgstr "Abwesenheiten anlegen, ändern und löschen – so, wie Ihre Zeiterfassung oder Ihr HR-System sie führt."
 
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
@@ -3317,6 +3359,10 @@ msgstr "Für alle in diesem Arbeitsbereich am Computer; auf dem Telefon bleibt d
 msgid "For grouping — e.g. a field or department: Design, Development, АР"
 msgstr "Zur Gruppierung – z. B. Fachbereich oder Abteilung: Design, Entwicklung, Architektur"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "For your own servers — read before updating"
+msgstr "Für eigene Server – vor dem Update lesen"
+
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Force purge account"
 msgstr "Konto sofort endgültig löschen"
@@ -3623,6 +3669,10 @@ msgstr "Feiertage"
 msgid "Hospital wing"
 msgstr "Klinikflügel"
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "How to connect"
+msgstr "So verbinden Sie ihn"
+
 #: src/features/workspace/components/WorkspaceMobileMenuSheet.tsx
 msgid "How to work in Motio"
 msgstr "So arbeiten Sie mit Motio"
@@ -3665,6 +3715,10 @@ msgstr "Bild {0}"
 #: src/features/planner/components/SubtaskImages.tsx
 msgid "Image actions"
 msgstr "Aktionen für Bild"
+
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "import absences"
+msgstr "Abwesenheiten importieren"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Import absences"
@@ -5589,6 +5643,10 @@ msgstr "Bereiche des Teams"
 msgid "People who got access only through this group lose it at their next visit."
 msgstr "Wer nur über diese Gruppe Zugriff hat, verliert ihn beim nächsten Besuch."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "People, projects, tasks, milestones and absences. Changes nothing."
+msgstr "Personen, Projekte, Aufgaben, Meilensteine und Abwesenheiten. Ändert nichts."
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "People's colours"
@@ -5919,6 +5977,14 @@ msgstr "Erreicht {reach} Personen"
 #: src/features/projects/components/projectCard/ActivityModal.tsx
 msgid "Read or edit a single project note."
 msgstr "Eine einzelne Projektnotiz lesen oder bearbeiten."
+
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "read the workspace"
+msgstr "Arbeitsbereich lesen"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Read the workspace"
+msgstr "Arbeitsbereich lesen"
 
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
@@ -8102,6 +8168,11 @@ msgstr "Unbekannter Arbeitsbereich"
 msgid "Unnamed group"
 msgstr "Unbenannte Gruppe"
 
+#: src/shared/lib/workspaceMemberActivity.ts
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "Unnamed token"
+msgstr "Token ohne Namen"
+
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityModal.tsx
@@ -8166,6 +8237,11 @@ msgstr "Anstehend"
 #: src/features/workspace/hooks/useNewVersionNotice.ts
 msgid "Update"
 msgstr "Aktualisieren"
+
+#: src/features/admin/components/AdminLayout.tsx
+#: src/features/admin/components/AdminLayout.tsx
+msgid "Update available"
+msgstr "Update verfügbar"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Update check is off (MOTIO_UPDATE_CHECK=false)."
@@ -8287,6 +8363,8 @@ msgid "Version {0}"
 msgstr "Version {0}"
 
 #. placeholder {0}: latest.tag
+#. placeholder {0}: update.latest.tag
+#: src/features/admin/pages/AdminOverviewPage.tsx
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Version {0} is available."
 msgstr "Neue Version verfügbar: {0}"
@@ -8415,6 +8493,10 @@ msgstr "Wöchentliche Teambesprechung"
 msgid "What"
 msgstr "Was"
 
+#: src/features/admin/pages/AdminSystemPage.tsx
+msgid "What changed since your version:"
+msgstr "Änderungen seit Ihrer Version:"
+
 #: src/features/workspace/components/CreateWorkspaceDialog.tsx
 #: src/features/workspace/components/StarterTemplateChooser.tsx
 msgid "What does your team do?"
@@ -8431,6 +8513,10 @@ msgstr "Was Super-Admins in diesem Bereich geändert haben und was die Keycloak-
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "What the planner shows"
 msgstr "Was der Planer zeigt"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "What the token may do"
+msgstr "Was das Token darf"
 
 #: src/features/admin/pages/AdminSettingsPage.tsx
 msgid "What this server allows beyond Motio out of the box. Everything is off by default; turning a switch off brings back how Motio works without it. People get a change the next time they open Motio."

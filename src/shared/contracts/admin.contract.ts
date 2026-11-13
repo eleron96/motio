@@ -249,6 +249,10 @@ const adminSystemTestEmailRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.SYSTEM_TEST_EMAIL),
 }).strict();
 
+const adminSystemVersionRequestSchema = z.object({
+  action: z.literal(ADMIN_ACTIONS.SYSTEM_VERSION),
+}).strict();
+
 // Settings section: server switches (instance_settings, 0176). value null = back to the default.
 const adminSettingsListRequestSchema = z.object({
   action: z.literal(ADMIN_ACTIONS.SETTINGS_LIST),
@@ -326,6 +330,7 @@ export const adminRequestSchema = z.discriminatedUnion('action', [
   adminAnnouncementsResetReadsRequestSchema,
   adminSystemStatusRequestSchema,
   adminSystemTestEmailRequestSchema,
+  adminSystemVersionRequestSchema,
   adminSettingsListRequestSchema,
   adminSettingsUpdateRequestSchema,
   adminAuditListRequestSchema,

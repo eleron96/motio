@@ -9,6 +9,8 @@ import { useSystemStatus } from '@/features/admin/hooks/useSystemStatus';
 import { AdminSignInChecks } from '@/features/admin/components/AdminSignInChecks';
 import { AdminSupportReport } from '@/features/admin/components/AdminSupportReport';
 import { isNewerVersion, type SystemServiceKey, type TestEmailResult } from '@/features/admin/lib/systemStatus';
+import { summarizeUpdate } from '@/features/admin/lib/updateInfo';
+import { useUpdateInfoStore } from '@/features/admin/store/updateInfoStore';
 
 const serviceLabel = (key: SystemServiceKey) => {
   switch (key) {
@@ -50,6 +52,9 @@ const YesNo: React.FC<{ value: boolean }> = ({ value }) => (
   )
 );
 
+// The newest changes fit the card; the rest is one click away ("What's new").
+const SHOWN_CHANGES = 8;
+
 /**
  * Admin → System: version and updates, service health, what is switched on,
  * a test email. Read-only — updating stays a command on the server
@@ -57,13 +62,27 @@ const YesNo: React.FC<{ value: boolean }> = ({ value }) => (
  */
 const AdminSystemPage: React.FC = () => {
   const { status, loading, error, refresh, testEmail, sending, sendTestEmail } = useSystemStatus();
-  const latest = status?.latestRelease ?? null;
+  // The console asks for the releases once, when it opens (AdminLayout); the
+  // status carries the latest one too, for when that answer is not there.
+  const updateInfo = useUpdateInfoStore((state) => state.info);
+  const loadUpdateInfo = useUpdateInfoStore((state) => state.load);
+  const update = summarizeUpdate(APP_VERSION, updateInfo);
+  const latest = update?.latest ?? status?.latestRelease ?? null;
   const updateAvailable = latest ? isNewerVersion(APP_VERSION, latest.tag) : false;
+  const selfHosted = status?.selfHosted ?? updateInfo?.selfHosted ?? false;
+  const attention = selfHosted ? update?.attention ?? [] : [];
+  const changes = update?.changes ?? [];
+  const hiddenChanges = Math.max(0, changes.length - SHOWN_CHANGES);
 
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button variant="outline" size="sm" onClick={() => void refresh()} disabled={loading}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => { void refresh(); void loadUpdateInfo(); }}
+          disabled={loading}
+        >
           <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} aria-hidden="true" />
           {t`Refresh`}
         </Button>
@@ -94,7 +113,26 @@ const AdminSystemPage: React.FC = () => {
                     {t`What's new`}
                   </a>
                 </p>
-                {status?.selfHosted && (
+                {attention.length > 0 && (
+                  <div className="space-y-1 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-amber-950">
+                    <p className="font-medium">{t`For your own servers — read before updating`}</p>
+                    <ul className="list-disc space-y-1 pl-4">
+                      {attention.map((note) => <li key={note}>{note}</li>)}
+                    </ul>
+                  </div>
+                )}
+                {changes.length > 0 && (
+                  <div className="space-y-1">
+                    <p className="text-muted-foreground">{t`What changed since your version:`}</p>
+                    <ul className="list-disc space-y-1 pl-4">
+                      {changes.slice(0, SHOWN_CHANGES).map((change) => <li key={change}>{change}</li>)}
+                    </ul>
+                    {hiddenChanges > 0 && (
+                      <p className="text-muted-foreground">{t`…and ${hiddenChanges} more.`}</p>
+                    )}
+                  </div>
+                )}
+                {selfHosted && (
                   <div className="space-y-1">
                     <p className="text-muted-foreground">{t`To update, run on the server:`}</p>
                     <code className="block break-all rounded-md border border-border bg-muted px-3 py-2 font-mono text-xs">

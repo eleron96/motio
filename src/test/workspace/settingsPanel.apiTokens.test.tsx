@@ -28,12 +28,13 @@ const { plannerState, authState, flags, repo } = vi.hoisted(() => ({
   flags: { workspaceApi: false },
   repo: {
     listWorkspaceApiTokens: vi.fn(async () => ({
-      tokens: [{ id: 't-1', name: 'HR sync', tokenPrefix: 'motio_1a2b3c4d', createdAt: '2026-10-01T10:00:00Z', lastUsedAt: null }],
+      tokens: [{ id: 't-1', name: 'HR sync', tokenPrefix: 'motio_1a2b3c4d', createdAt: '2026-10-01T10:00:00Z', lastUsedAt: null, scopes: ['time_off'] }],
     })),
-    createWorkspaceApiToken: vi.fn(async (_workspaceId: string, name: string) => ({
-      token: { id: 't-2', name, tokenPrefix: 'motio_9f8e7d6c', createdAt: '2026-10-28T10:00:00Z', lastUsedAt: null, token: `motio_9f8e7d6c${'0'.repeat(56)}` },
+    createWorkspaceApiToken: vi.fn(async (_workspaceId: string, name: string, scopes: string[]) => ({
+      token: { id: 't-2', name, tokenPrefix: 'motio_9f8e7d6c', createdAt: '2026-10-28T10:00:00Z', lastUsedAt: null, scopes, token: `motio_9f8e7d6c${'0'.repeat(56)}` },
     })),
     revokeWorkspaceApiToken: vi.fn(async () => ({})),
+    workspaceMcpUrl: () => 'https://planner.example/functions/v1/mcp',
   },
   plannerState: {
     statuses: [],
@@ -121,17 +122,26 @@ describe('SettingsPanel API section', () => {
     await user.click(screen.getByRole('button', { name: 'API' }));
     expect(await screen.findByText('HR sync')).toBeInTheDocument();
     expect(screen.getByText('motio_1a2b3c4d…')).toBeInTheDocument();
+    // The address an AI assistant connects to sits next to the tokens.
+    expect(screen.getByText('https://planner.example/functions/v1/mcp')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'How to connect' })).toHaveAttribute('href', expect.stringContaining('docs/mcp.md'));
 
     await user.click(screen.getAllByRole('button', { name: 'Create token' })[0]);
     await user.type(screen.getByLabelText('Name'), 'Time tracking');
+    // Nothing is granted by default: the admin has to choose.
+    expect(screen.getAllByRole('button', { name: 'Create token' }).at(-1)).toBeDisabled();
+    await user.click(screen.getByRole('checkbox', { name: /Read the workspace/ }));
     await user.click(screen.getAllByRole('button', { name: 'Create token' }).at(-1)!);
 
-    expect(repo.createWorkspaceApiToken).toHaveBeenCalledWith('workspace-1', 'Time tracking');
+    expect(repo.createWorkspaceApiToken).toHaveBeenCalledWith('workspace-1', 'Time tracking', ['read']);
     expect(await screen.findByText('Copy your token now')).toBeInTheDocument();
     expect(screen.getByText(`motio_9f8e7d6c${'0'.repeat(56)}`)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Done' }));
     expect(screen.queryByText(`motio_9f8e7d6c${'0'.repeat(56)}`)).not.toBeInTheDocument();
     expect(screen.getByText('Time tracking')).toBeInTheDocument();
+    // Each token says what it may do: the old one imports, the new one reads.
+    expect(screen.getByText(/motio_1a2b3c4d…/).parentElement).toHaveTextContent('Import absences');
+    expect(screen.getByText(/motio_9f8e7d6c…/).parentElement).toHaveTextContent('Read the workspace');
   });
 });

@@ -27,7 +27,7 @@ See also: [Operations](operations.md) · [Configuration](configuration.md)
 │   ├── supabase/
 │   │   ├── migrations/                  — SQL migrations
 │   │   ├── liquibase/changelog-master.xml
-│   │   ├── functions/                   — Edge Functions: main, account-purge, admin, api, data-export, holidays, invite, mailer, notifications, push, task-media
+│   │   ├── functions/                   — Edge Functions: main, account-purge, admin, api, data-export, holidays, invite, mailer, mcp, notifications, push, task-media
 │   │   └── nginx.conf                   — internal gateway: /auth/v1, /rest/v1, /functions/v1, /storage/v1, /realtime/v1, /backup
 │   ├── caddy/                           — public TLS edge (Caddyfile, Caddyfile.testing); runs outside docker-compose.prod.yml
 │   ├── keycloak/realm/
@@ -94,7 +94,7 @@ lets the testing stack stay self-contained when importing the production baselin
 ## Edge Functions
 
 Routed through `main` under `/functions/v1/`: `account-purge`, `admin`, `api`,
-`data-export`, `holidays`, `invite`, `mailer`, `notifications`, `push`,
+`data-export`, `holidays`, `invite`, `mailer`, `mcp`, `notifications`, `push`,
 `task-media`. The subsections below cover the ones with a non-trivial contract.
 
 The notification bell reads through the `inbox_list` database function (migration
@@ -103,12 +103,23 @@ delete).
 
 ### `api`
 
-The workspace API for importing absences, called by other systems with a
-workspace token (`Authorization: Bearer motio_…`), not by the app. The gateway
+The workspace API — other systems read a workspace and import absences —
+called with a workspace token (`Authorization: Bearer motio_…`), not by the app. The gateway
 gives `/functions/v1/api/` its own rate limit (`public_api_limit`, 5 r/s per IP)
-and no CORS. The function hashes the token, resolves the workspace and calls the
-`api_*` database functions (migration 0156, EXECUTE for `service_role` only).
+and no CORS. The function hashes the token, resolves the workspace and the token's
+scopes, and calls the `api_*` database functions (migrations 0156 and 0187, EXECUTE
+for `service_role` only).
 Contract and examples: [API](api.md).
+
+### `mcp`
+
+A Model Context Protocol server over the same read-only half of the workspace
+API: an AI assistant reads one workspace with a workspace token that has the
+`read` scope. Stateless Streamable HTTP, `POST` only, tools only; every tool
+calls the same `api_*` functions through the code the API uses
+(`_shared/workspaceApiRead.ts`), so the two cannot drift apart. Own rate limit in
+the gateway (`mcp_limit`), no CORS, browser origins refused.
+Reference: [MCP server](mcp.md).
 
 ### `admin`
 

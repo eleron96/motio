@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Activity, Database, Egg, Gauge, History, LayoutGrid, MailPlus, Send, SlidersHorizontal, UsersRound, Users } from 'lucide-react';
 import { t } from '@lingui/macro';
@@ -10,21 +10,26 @@ import { MobilePillSubnav } from '@/shared/ui/mobile-pill-subnav';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { cn } from '@/shared/lib/classNames';
 import { usePageSeo } from '@/shared/lib/seo/usePageSeo';
+import { APP_VERSION } from '@/shared/lib/appVersion';
+import { summarizeUpdate } from '@/features/admin/lib/updateInfo';
+import { useUpdateInfoStore } from '@/features/admin/store/updateInfoStore';
 
 interface AdminNavItem {
   path: string;
   label: string;
   icon: React.ReactNode;
   end?: boolean;
+  /** A newer release is out: the System section says which and how to update. */
+  updateAvailable?: boolean;
 }
 
 // The console is reachable by direct URL only (no in-app links, by design).
 // Section list lives here: adding a page = one file + one entry below.
 // "Group access" only where workspaces from groups is on (Settings, or the
 // older KEYCLOAK_WORKSPACES_FROM_GROUPS); reached by URL, the page says how.
-const useNavItems = (groupWorkspacesEnabled: boolean): AdminNavItem[] => [
+const useNavItems = (groupWorkspacesEnabled: boolean, updateAvailable: boolean): AdminNavItem[] => [
   { path: '/app/admin', label: t`Overview`, icon: <Gauge className="h-4 w-4" />, end: true },
-  { path: '/app/admin/system', label: t`System`, icon: <Activity className="h-4 w-4" /> },
+  { path: '/app/admin/system', label: t`System`, icon: <Activity className="h-4 w-4" />, updateAvailable },
   { path: '/app/admin/settings', label: t`Settings`, icon: <SlidersHorizontal className="h-4 w-4" /> },
   { path: '/app/admin/users', label: t`Users`, icon: <Users className="h-4 w-4" /> },
   { path: '/app/admin/workspaces', label: t`Workspaces`, icon: <LayoutGrid className="h-4 w-4" /> },
@@ -68,7 +73,15 @@ const AdminLayout: React.FC = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const location = useLocation();
-  const navItems = useNavItems(groupWorkspacesEnabled);
+  const updateInfo = useUpdateInfoStore((state) => state.info);
+  const loadUpdateInfo = useUpdateInfoStore((state) => state.load);
+  const updateAvailable = summarizeUpdate(APP_VERSION, updateInfo) !== null;
+  const navItems = useNavItems(groupWorkspacesEnabled, updateAvailable);
+
+  // Only a super admin gets an answer, so nobody else asks.
+  useEffect(() => {
+    if (isSuperAdmin) void loadUpdateInfo();
+  }, [isSuperAdmin, loadUpdateInfo]);
 
   if (!user) {
     return null;
@@ -158,7 +171,12 @@ const AdminLayout: React.FC = () => {
 
         {isMobile ? (
           <MobilePillSubnav
-            items={navItems.map((item) => ({ id: item.path, label: item.label }))}
+            items={navItems.map((item) => ({
+              id: item.path,
+              label: item.label,
+              dot: item.updateAvailable,
+              dotLabel: t`Update available`,
+            }))}
             activeId={activeItem.path}
             onChange={(id) => navigate(id)}
             ariaLabel={t`Admin sections`}
@@ -182,6 +200,12 @@ const AdminLayout: React.FC = () => {
                 >
                   {item.icon}
                   {item.label}
+                  {item.updateAvailable ? (
+                    <span className="ml-auto inline-flex items-center">
+                      <span aria-hidden="true" className="h-2 w-2 rounded-full bg-primary" />
+                      <span className="sr-only">{t`Update available`}</span>
+                    </span>
+                  ) : null}
                 </NavLink>
               ))}
             </nav>

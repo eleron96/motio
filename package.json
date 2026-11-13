@@ -10,7 +10,7 @@
     "dev:compose": "./infra/scripts/dev-compose.sh",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "lint": "eslint . --max-warnings 13",
+    "lint": "eslint . --max-warnings 12",
     "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p e2e/tsconfig.json --noEmit",
     "preview": "vite preview",
     "lingui:extract": "lingui extract",

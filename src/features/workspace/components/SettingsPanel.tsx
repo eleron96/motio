@@ -167,7 +167,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ open, onOpenChange
     { id: 'people', label: t`Members and access`, icon: Users },
     { id: 'workflow', label: t`Workflow`, icon: Workflow },
     { id: 'template', label: t`Template`, icon: LayoutTemplate },
-    // Absence import tokens: admins only, behind VITE_FEATURE_WORKSPACE_API.
+    // Workspace API tokens: admins only, behind VITE_FEATURE_WORKSPACE_API.
     ...(isAdmin && isWorkspaceApiEnabled()
       ? [{ id: 'api' as const, label: t`API`, icon: KeyRound }]
       : []),

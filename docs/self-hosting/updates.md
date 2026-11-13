@@ -21,8 +21,12 @@ Only published releases have a tag. The list is on
 `git fetch --tags && git tag`. Version numbers in between, such as 0.10.63 and
 0.10.64, were never published and have no tag to update to.
 
-**Admin → System** and `install.sh status` say when a newer release is out. To be
-told by GitHub, open the repository and choose **Watch → Custom → Releases**.
+The admin console says when a newer release is out: a dot appears next to
+**System** in its menu, and the overview shows the new version. **Admin → System**
+then lists what changed since the version you run — the notes marked "For your
+own servers" first — and the command to update. `install.sh status` says it on
+the command line. To be told by GitHub, open the repository and choose
+**Watch → Custom → Releases**.
 
 ## What happens during an update
 

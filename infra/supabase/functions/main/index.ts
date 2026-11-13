@@ -6,6 +6,7 @@ import { handler as dataExportHandler } from "../data-export/index.ts";
 import { handler as holidaysHandler } from "../holidays/index.ts";
 import { handler as inviteHandler } from "../invite/index.ts";
 import { handler as mailerHandler } from "../mailer/index.ts";
+import { handler as mcpHandler } from "../mcp/index.ts";
 import { handler as notificationsHandler } from "../notifications/index.ts";
 import { handler as pushHandler } from "../push/index.ts";
 import { handler as taskMediaHandler } from "../task-media/index.ts";
@@ -24,6 +25,7 @@ const handlers: Record<string, (req: Request) => Promise<Response>> = {
   holidays: holidaysHandler,
   invite: inviteHandler,
   mailer: mailerHandler,
+  mcp: mcpHandler,
   notifications: notificationsHandler,
   push: pushHandler,
   "task-media": taskMediaHandler,
@@ -33,7 +35,8 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/+/, "");
   const [name] = path.split("/");
-  const handler = name ? handlers[name] : undefined;
+  // Own keys only: "constructor" or "toString" in the path must not find Object.prototype.
+  const handler = name && Object.prototype.hasOwnProperty.call(handlers, name) ? handlers[name] : undefined;
   if (!handler) return jsonNotFound();
   try {
     return await handler(req);

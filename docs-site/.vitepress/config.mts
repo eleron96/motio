@@ -13,11 +13,13 @@ const editLinkPattern = ({ filePath }: { filePath: string }) => {
     ? `docs/guides/ru/${filePath.slice('ru/guide/'.length)}`
     : filePath.startsWith('guide/')
       ? `docs/guides/${filePath.slice('guide/'.length)}`
-      : `docs/${filePath.replace(/^ru\//, '')}`;
+      : filePath.startsWith('ru/self-hosting/')
+        ? `docs/self-hosting/ru/${filePath.slice('ru/self-hosting/'.length)}`
+        : `docs/${filePath}`;
   return `https://github.com/eleron96/motio/edit/main/${source}`;
 };
 
-// The self-hosting pages are English in both languages; only the sidebar is translated.
+// The self-hosting guide has the same pages in both languages; only the titles differ.
 const selfHostingSidebar = (prefix: string, text: Record<string, string>): DefaultTheme.SidebarItem[] => {
   const page = (slug: string) => ({ text: text[slug], link: `${prefix}/self-hosting/${slug === 'overview' ? '' : slug}` });
   return [
@@ -42,6 +44,25 @@ const russianSelfHosting = selfHostingSidebar('/ru', {
   admins: 'Администраторы', people: 'Люди и пространства', 'sign-in': 'Свой вход', email: 'Почта',
   settings: 'Настройки', updates: 'Обновления и откат', backups: 'Бэкапы и восстановление', running: 'Повседневное',
   security: 'Безопасность', troubleshooting: 'Решение проблем', faq: 'Вопросы и ограничения',
+});
+
+// The workspace API and the MCP server: the same two pages in both languages.
+const integrationsSidebar = (prefix: string, text: Record<string, string>): DefaultTheme.SidebarItem[] => [
+  {
+    text: text.group,
+    items: [
+      { text: text.api, link: `${prefix}/api` },
+      { text: text.mcp, link: `${prefix}/mcp` },
+    ],
+  },
+];
+
+const englishIntegrations = integrationsSidebar('', {
+  group: 'Connect other programs', api: 'Workspace API', mcp: 'MCP server for AI assistants',
+});
+
+const russianIntegrations = integrationsSidebar('/ru', {
+  group: 'Подключение других программ', api: 'API пространства', mcp: 'MCP-сервер для ИИ-ассистентов',
 });
 
 // The user guide has the same pages in both languages; only the titles differ.
@@ -135,10 +156,16 @@ export default defineConfig({
         nav: [
           { text: 'Using Motio', link: '/guide/', activeMatch: '^/guide/' },
           { text: 'Self-hosting', link: '/self-hosting/', activeMatch: '^/self-hosting/' },
+          { text: 'API and MCP', link: '/api', activeMatch: '^/(api|mcp)$' },
           { text: 'Live demo', link: demo },
           { text: 'Releases', link: `${repo}/releases` },
         ],
-        sidebar: { '/guide/': englishGuide, '/self-hosting/': englishSelfHosting },
+        sidebar: {
+          '/guide/': englishGuide,
+          '/self-hosting/': englishSelfHosting,
+          '/api': englishIntegrations,
+          '/mcp': englishIntegrations,
+        },
         editLink: {
           pattern: editLinkPattern,
           text: 'Suggest a change to this page',
@@ -158,10 +185,16 @@ export default defineConfig({
         nav: [
           { text: 'Работа в Motio', link: '/ru/guide/', activeMatch: '^/ru/guide/' },
           { text: 'Свой сервер', link: '/ru/self-hosting/', activeMatch: '^/ru/self-hosting/' },
+          { text: 'API и MCP', link: '/ru/api', activeMatch: '^/ru/(api|mcp)$' },
           { text: 'Демо', link: demo },
           { text: 'Релизы', link: `${repo}/releases` },
         ],
-        sidebar: { '/ru/guide/': russianGuide, '/ru/self-hosting/': russianSelfHosting },
+        sidebar: {
+          '/ru/guide/': russianGuide,
+          '/ru/self-hosting/': russianSelfHosting,
+          '/ru/api': russianIntegrations,
+          '/ru/mcp': russianIntegrations,
+        },
         editLink: {
           pattern: editLinkPattern,
           text: 'Предложить правку этой страницы',

@@ -60,7 +60,10 @@ vi.mock('@lingui/macro', () => ({
     strings.reduce((acc, str, i) => acc + str + (values[i] ?? ''), ''),
 }));
 
+vi.mock('@/shared/lib/appVersion', () => ({ APP_VERSION: '0.10.27' }));
+
 import AdminLayout from '@/features/admin/components/AdminLayout';
+import { useUpdateInfoStore } from '@/features/admin/store/updateInfoStore';
 import AdminOverviewPage from '@/features/admin/pages/AdminOverviewPage';
 
 const renderAdmin = (path = '/app/admin') => render(
@@ -79,6 +82,37 @@ describe('AdminLayout', () => {
     authState.isSuperAdmin = true;
     authState.superAdminSessionExpired = false;
     authState.signOut.mockClear();
+    useUpdateInfoStore.setState({ info: null, loading: false, loaded: false });
+  });
+
+  it('marks the System section and the overview when a newer release is out', async () => {
+    useUpdateInfoStore.setState({
+      info: {
+        updateCheck: 'ok',
+        selfHosted: true,
+        releases: [{ tag: 'v0.11.0', url: 'https://github.com/eleron96/motio/releases/tag/v0.11.0', publishedAt: null, changes: [] }],
+      },
+    });
+    renderAdmin();
+
+    expect(screen.getByRole('link', { name: 'System Update available' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Version v0.11.0 is available.' })).toHaveAttribute('href', '/app/admin/system');
+    expect(await screen.findByText('Backups stored')).toBeInTheDocument();
+  });
+
+  it('shows no mark when the running version is the latest release', async () => {
+    useUpdateInfoStore.setState({
+      info: {
+        updateCheck: 'ok',
+        selfHosted: true,
+        releases: [{ tag: 'v0.10.27', url: 'https://github.com/eleron96/motio/releases/tag/v0.10.27', publishedAt: null, changes: [] }],
+      },
+    });
+    renderAdmin();
+
+    expect(screen.getByRole('link', { name: 'System' })).toBeInTheDocument();
+    expect(screen.queryByText('Update available')).not.toBeInTheDocument();
+    expect(await screen.findByText('Backups stored')).toBeInTheDocument();
   });
 
   it('asks for a new sign-in when the session is no longer accepted', () => {

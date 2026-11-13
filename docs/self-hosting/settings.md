@@ -67,7 +67,7 @@ settings with their defaults and lists them; the defaults keep things as they we
 | `VITE_FEATURE_PUSH` | `true` | push notifications in the browser and on phones |
 | `VITE_FEATURE_KANBAN` | `false` | the board view next to the timeline (beta) |
 | `VITE_FEATURE_ACCOUNT_DELETION` | `false` | people can delete their own account |
-| `VITE_FEATURE_WORKSPACE_API` | `false` | the workspace API for importing time off ([API](https://github.com/eleron96/motio/blob/main/docs/api.md)) |
+| `VITE_FEATURE_WORKSPACE_API` | `false` | the workspace API: other systems read the workspace and import time off ([API](https://github.com/eleron96/motio/blob/main/docs/api.md)) |
 | `VITE_FEATURE_TASK_LIVE_DRAFTS` | `false` | teammates see what someone is typing in a task |
 
 #### People and access
@@ -86,7 +86,7 @@ settings with their defaults and lists them; the defaults keep things as they we
 | `BACKUP_CRON` | `0 3 * * *` | when the nightly backup runs |
 | `BACKUP_RETENTION_COUNT` | `30` | how many nightly database dumps to keep |
 | `S3_*`, `BACKUP_AGE_RECIPIENT` | empty | encrypted copies of the backups in an S3 bucket ([Backups](./backups.md#off-site-copies)) |
-| `MOTIO_UPDATE_CHECK` | `true` | Admin → System asks GitHub for a newer release, at most every 6 hours; `false` turns it off |
+| `MOTIO_UPDATE_CHECK` | `true` | the admin console asks GitHub for newer releases, at most every 6 hours, and marks its System section when one is out; `false` turns it off |
 
 #### Network
 
