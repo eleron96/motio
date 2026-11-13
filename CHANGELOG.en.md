@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.79] - 2026-11-13
 ### Added
 - Connecting an AI assistant got simpler: the window with a new token and the API section show ready text for Claude Code, Codex, Gemini CLI and Kimi Code — with your address and token in it, just copy and paste.
 
