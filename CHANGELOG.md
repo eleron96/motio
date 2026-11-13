@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.78] - 2026-11-13
 ### Changed
 - На motio.nikog.net в настройках пространства открыт раздел «API»: администратор создаёт токены, чтобы подключить к пространству другую программу или ИИ-ассистента.
 
