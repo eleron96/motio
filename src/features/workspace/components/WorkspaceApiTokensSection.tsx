@@ -20,6 +20,7 @@ import { localeIntlTags } from '@/shared/lib/locale';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { Block } from '@/features/workspace/components/settingsBlocks';
 import { useWorkspaceApiTokens } from '@/features/workspace/hooks/useWorkspaceApiTokens';
+import { McpConnectRecipes } from '@/features/workspace/components/McpConnectRecipes';
 import {
   workspaceMcpUrl,
   type ApiTokenErrorCode,
@@ -176,7 +177,7 @@ export const WorkspaceApiTokensSection: React.FC<{ workspaceId: string | null }>
 
       <Block
         title={t`AI assistants`}
-        description={t`An assistant that supports MCP can read this workspace and answer questions about it. Give it this address and a token that may read the workspace. It cannot change anything.`}
+        description={t`An assistant that supports MCP can read this workspace and answer questions about it; it cannot change anything. Create a token that may read the workspace: the ready text for your assistant appears right after. Or use the address and the text below.`}
       >
         <div className="flex items-center gap-2">
           <code className="min-w-0 flex-1 break-all rounded-md border border-border bg-muted px-3 py-2 font-mono text-xs">
@@ -197,6 +198,7 @@ export const WorkspaceApiTokensSection: React.FC<{ workspaceId: string | null }>
           </a>
           {addressCopied && <span>{t`Copied`}</span>}
         </div>
+        <McpConnectRecipes url={mcpUrl} />
       </Block>
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -259,6 +261,12 @@ export const WorkspaceApiTokensSection: React.FC<{ workspaceId: string | null }>
             </Button>
           </div>
           {copied && <p className="text-xs text-muted-foreground">{t`Copied`}</p>}
+          {created?.scopes.includes('read') && (
+            <div className="space-y-2 border-t border-border pt-3">
+              <p className="text-sm font-medium text-foreground">{t`Connect an AI assistant`}</p>
+              <McpConnectRecipes url={mcpUrl} token={created.token} />
+            </div>
+          )}
           <DialogFooter>
             <Button onClick={closeCreated}>{t`Done`}</Button>
           </DialogFooter>

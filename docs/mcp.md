@@ -29,31 +29,79 @@ The same address is shown in Motio: **Workspace settings → API → AI assistan
 The server does not offer OAuth sign-in: it takes the workspace token and nothing
 else. A client that can only connect through OAuth cannot use it.
 
-In Claude Code:
+### The quick way
+
+In Motio, open **Workspace settings → API** and create a token with **Read the
+workspace**. The window that shows the new token also shows ready text for your
+assistant, with your address and the token already in it: pick the assistant,
+copy, paste. The recipes below are the same text with an example address.
+
+In each of them replace `planner.example.com` with your Motio address and
+`motio_YOUR_TOKEN` with your token.
+
+### Claude Code
+
+Paste into a terminal:
 
 ```bash
-claude mcp add --transport http motio https://planner.example.com/functions/v1/mcp --header "Authorization: Bearer $MOTIO_TOKEN"
+claude mcp add --transport http motio https://planner.example.com/functions/v1/mcp --header "Authorization: Bearer motio_YOUR_TOKEN"
 ```
 
-Or in a project's `.mcp.json`, with the token kept in an environment variable
-rather than in the file:
+### Codex
+
+Add to the file `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.motio]
+url = "https://planner.example.com/functions/v1/mcp"
+http_headers = { "Authorization" = "Bearer motio_YOUR_TOKEN" }
+```
+
+### Gemini CLI
+
+Paste into a terminal:
+
+```bash
+gemini mcp add --scope user --transport http --header "Authorization: Bearer motio_YOUR_TOKEN" motio https://planner.example.com/functions/v1/mcp
+```
+
+### Kimi Code
+
+Add to the file `~/.kimi-code/mcp.json` (if it already lists other servers, put
+`motio` next to them):
 
 ```json
 {
   "mcpServers": {
     "motio": {
-      "type": "http",
       "url": "https://planner.example.com/functions/v1/mcp",
       "headers": {
-        "Authorization": "Bearer ${MOTIO_TOKEN}"
+        "Authorization": "Bearer motio_YOUR_TOKEN"
       }
     }
   }
 }
 ```
 
-Other MCP clients take the same two things — the address and the header — in
-their own settings.
+### Check that it works
+
+Start the assistant and ask: "Which Motio workspace are you connected to?" It
+should answer with the name of your workspace.
+
+### Other assistants, and keeping the token out of files
+
+Any MCP client takes the same two things — the address and the header — in its
+own settings. The recipes above put the token straight into a command or a
+settings file, which is the simplest; a command also stays in the terminal's
+history. To keep the token in an environment variable instead, each client has
+its own way: Claude Code expands `${MOTIO_TOKEN}` in a project's `.mcp.json`,
+Codex takes `bearer_token_env_var = "MOTIO_TOKEN"`, Kimi Code takes
+`"bearerTokenEnvVar": "MOTIO_TOKEN"`.
+
+The recipes follow each client's own documentation as of November 2026. The
+connection itself was tested with Claude Code and the official MCP client
+library; if a recipe for another client no longer works, check that client's
+documentation for the current spelling.
 
 ## What an assistant can ask
 

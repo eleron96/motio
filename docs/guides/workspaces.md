@@ -107,8 +107,10 @@ access to the workspace:
   right away. The bin next to a token revokes it, and that program loses access at once.
   Both are recorded in **Members and access → History**.
 - **AI assistants** — an assistant that supports MCP can read the workspace and answer
-  questions such as "who is free next week?". Give it the address shown here and a token
-  that may read the workspace. It cannot change anything.
+  questions such as "who is free next week?". Create a token that
+  may read the workspace: the window with the new token shows ready text for Claude Code,
+  Codex, Gemini CLI and Kimi Code, with the address and the token already in it — pick
+  yours, copy, paste. The assistant cannot change anything.
 
 Anyone who holds a token reads the whole workspace, whatever their own role: make one
 token per program and revoke it when it is no longer needed. Details for the person who
