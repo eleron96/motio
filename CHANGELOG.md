@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.79] - 2026-11-13
 ### Added
 - Подключить ИИ-ассистента стало проще: в окне с новым токеном и в разделе «API» есть готовый текст для Claude Code, Codex, Gemini CLI и Kimi Code — с вашим адресом и токеном, остаётся скопировать и вставить.
 
