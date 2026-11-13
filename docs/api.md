@@ -437,4 +437,15 @@ Request-level errors share one shape:
   last used.
 - Only workspace admins can create, see and revoke tokens. Tokens are stored as
   SHA-256 hashes; a database dump does not reveal them.
-- Requests and results are logged without tokens and without emails.
+- Always use `https://`. A request sent to `http://` carries the token in the
+  clear before the server can redirect it.
+- The token goes in the `Authorization` header and nowhere else. A token put
+  into the address (`?token=…`) is not accepted, and it ends up in the access
+  logs of every proxy on the way: if that happened, revoke it.
+- Creating and revoking a token is recorded in the workspace's history
+  (**Members and access → History**): who did it, the token's name and what it
+  may do.
+- Requests are logged on the server with the workspace, the action, the result
+  and the short prefix of the token (`motio_1a2b3c4d`, the one shown in the
+  settings), so an admin of the server can tell which program made a request.
+  The token itself, emails and the data returned are never logged.

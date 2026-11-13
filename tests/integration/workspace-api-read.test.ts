@@ -190,14 +190,19 @@ describe("workspace API: scopes and reading (0187)", () => {
 
       const access = async (token: string) => {
         const { rows } = await asServiceRole(client, () =>
-          client.query<{ workspace_id: string; scopes: string[] }>(
+          client.query<{ workspace_id: string; scopes: string[]; token_prefix: string }>(
             "select * from public.api_token_access(encode(sha256(convert_to($1, 'UTF8')), 'hex'))",
             [token],
           ));
         return rows;
       };
-      expect(await access(legacy.token)).toEqual([{ workspace_id: W1, scopes: ["time_off"] }]);
-      expect(await access(both.token)).toEqual([{ workspace_id: W1, scopes: ["read", "time_off"] }]);
+      // The prefix is what the settings show and the logs carry: never the token.
+      expect(await access(legacy.token)).toEqual([
+        { workspace_id: W1, scopes: ["time_off"], token_prefix: legacy.token.slice(0, 14) },
+      ]);
+      expect(await access(both.token)).toEqual([
+        { workspace_id: W1, scopes: ["read", "time_off"], token_prefix: both.token.slice(0, 14) },
+      ]);
 
       const listed = await asAuthenticated(client, TEST_USER_IDS.alice, () =>
         client.query<{ name: string; scopes: string[] }>(
@@ -209,7 +214,21 @@ describe("workspace API: scopes and reading (0187)", () => {
 
       await asAuthenticated(client, TEST_USER_IDS.alice, () =>
         client.query("select public.revoke_workspace_api_token($1)", [both.id]));
+      // Revoking again is harmless and is not recorded twice.
+      await asAuthenticated(client, TEST_USER_IDS.alice, () =>
+        client.query("select public.revoke_workspace_api_token($1)", [both.id]));
       expect(await access(both.token)).toEqual([]);
+
+      // The workspace's history says who created and revoked which token.
+      const { rows: trail } = await client.query<{ action: string; actor_user_id: string; actor_label: string; details: unknown }>(
+        `select action, actor_user_id, actor_label, details from public.workspace_member_activity
+          where workspace_id = $1 and action like 'api_token_%' order by created_at, action`, [W1]);
+      expect(trail).toEqual([
+        { action: "api_token_created", actor_user_id: TEST_USER_IDS.alice, actor_label: "Alice Fixture", details: { tokenName: "HR sync", tokenScopes: ["time_off"] } },
+        { action: "api_token_created", actor_user_id: TEST_USER_IDS.alice, actor_label: "Alice Fixture", details: { tokenName: "Reports", tokenScopes: ["read", "time_off"] } },
+        { action: "api_token_revoked", actor_user_id: TEST_USER_IDS.alice, actor_label: "Alice Fixture", details: { tokenName: "Reports", tokenScopes: ["read", "time_off"] } },
+      ]);
+      expect(JSON.stringify(trail)).not.toContain("motio_");
       expect(await access(`motio_${"0".repeat(64)}`)).toEqual([]);
     });
   });

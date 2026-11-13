@@ -76,7 +76,8 @@ your own chat or mail, and **Revoke**.
 - **Active** — change someone's role or group; **Disable member** switches their access
   off but keeps their tasks and history; **Remove** takes them out of the workspace.
 - **Disabled** — people whose access is off; **Enable member** brings them back.
-- **History** — who changed roles, groups and access, and when.
+- **History** — who changed roles, groups and access, and when; also who created or
+  revoked an [API token](#api).
 - **Colours** — everyone's colour. You can change yours; admins can change anyone's.
 
 ### Workflow
@@ -104,6 +105,7 @@ access to the workspace:
   (people, projects, tasks, milestones and absences — for reports) and/or **Import
   absences** (from your time tracking or HR system). The token is shown once: copy it
   right away. The bin next to a token revokes it, and that program loses access at once.
+  Both are recorded in **Members and access → History**.
 - **AI assistants** — an assistant that supports MCP can read the workspace and answer
   questions such as "who is free next week?". Give it the address shown here and a token
   that may read the workspace. It cannot change anything.

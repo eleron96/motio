@@ -130,5 +130,11 @@ with `isError: true` and a message the assistant can act on.
   workspace, and an assistant reads them as part of its conversation. A
   well-behaved assistant treats them as data; since this server cannot change
   anything, the worst a misleading note can do here is a wrong answer.
-- Requests are logged with the tool name and the workspace, without tokens,
-  emails or the questions asked.
+- Always connect over `https://`, and keep the token in the `Authorization`
+  header: a token put into the address ends up in access logs.
+- Creating and revoking a token is recorded in the workspace's history
+  (**Members and access → History**).
+- Requests are logged on the server with the tool name, the workspace and the
+  short prefix of the token (the one shown in the settings), so it is clear
+  which assistant asked. The token itself, emails, tool arguments and the
+  questions asked are never logged.

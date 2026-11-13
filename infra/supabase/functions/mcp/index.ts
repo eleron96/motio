@@ -41,7 +41,15 @@ const refuse = (status: number, message: string, extraHeaders: Record<string, st
 // Structured log line (AGENTS.md §6): no tokens, no emails, no tool arguments.
 const log = (
   level: "info" | "error",
-  fields: { action: string; workspaceId?: string; result: "success" | "error"; errorCode?: string; count?: number },
+  fields: {
+    action: string;
+    workspaceId?: string;
+    // The display prefix of the token ("motio_1a2b3c4d"), as the settings show it: never the token.
+    token?: string;
+    result: "success" | "error";
+    errorCode?: string;
+    count?: number;
+  },
 ) => {
   const line = JSON.stringify({ module: "api.mcp", ...fields });
   if (level === "error") console.error(line);
@@ -73,15 +81,16 @@ export const handler = async (req: Request): Promise<Response> => {
     log("error", { action: "authenticate", result: "error", errorCode: tokenError.code });
     return refuse(500, "Internal error");
   }
-  const access = ((accessRows ?? []) as unknown as Array<{ workspace_id: string; scopes: string[] }>)[0];
+  const access = ((accessRows ?? []) as unknown as Array<{ workspace_id: string; scopes: string[]; token_prefix?: string }>)[0];
   if (!access) {
     return refuse(401, "Unknown or revoked workspace token", {
       "WWW-Authenticate": 'Bearer realm="motio", error="invalid_token"',
     });
   }
   const workspaceId = access.workspace_id;
+  const tokenPrefix = access.token_prefix;
   if (!access.scopes.includes("read")) {
-    log("info", { action: "authenticate", workspaceId, result: "error", errorCode: "forbidden" });
+    log("info", { action: "authenticate", workspaceId, token: tokenPrefix, result: "error", errorCode: "forbidden" });
     return refuse(403, "This token lacks the scope: read");
   }
 
@@ -111,7 +120,7 @@ export const handler = async (req: Request): Promise<Response> => {
   }
   const action = String(plan.name);
   if ("invalid" in call) {
-    log("info", { action, workspaceId, result: "error", errorCode: "invalid_arguments" });
+    log("info", { action, workspaceId, token: tokenPrefix, result: "error", errorCode: "invalid_arguments" });
     return send(toolReply(plan.era, plan.id, { error: call.invalid }));
   }
 
@@ -122,12 +131,13 @@ export const handler = async (req: Request): Promise<Response> => {
     log(outcome.status === 500 ? "error" : "info", {
       action,
       workspaceId,
+      token: tokenPrefix,
       result: "error",
       errorCode: outcome.errorCode ?? outcome.code,
     });
     return send(toolReply(plan.era, plan.id, { error: outcome.message }));
   }
-  log("info", { action, workspaceId, result: "success", count: outcome.count });
+  log("info", { action, workspaceId, token: tokenPrefix, result: "success", count: outcome.count });
   return send(toolReply(plan.era, plan.id, { data: outcome.body }));
 };
 

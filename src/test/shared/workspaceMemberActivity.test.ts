@@ -60,4 +60,24 @@ describe('workspaceMemberActivity formatter', () => {
 
     expect(message).toBe('Niko changed Ivan status from active to disabled.');
   });
+
+  it('says who created an API token and what it may do, and who revoked it', () => {
+    expect(formatWorkspaceMemberActivity(makeEntry({
+      action: 'api_token_created',
+      targetUserId: null,
+      targetLabel: null,
+      targetEmail: null,
+      details: { tokenName: 'Reports', tokenScopes: ['read', 'time_off'] },
+    }))).toBe('Niko created the API token Reports: read the workspace, import absences.');
+    expect(formatWorkspaceMemberActivity(makeEntry({
+      action: 'api_token_created',
+      details: { tokenName: 'HR sync', tokenScopes: ['time_off'] },
+    }))).toBe('Niko created the API token HR sync: import absences.');
+    expect(formatWorkspaceMemberActivity(makeEntry({
+      action: 'api_token_revoked',
+      details: { tokenName: 'Reports', tokenScopes: ['read'] },
+    }))).toBe('Niko revoked the API token Reports.');
+    expect(formatWorkspaceMemberActivity(makeEntry({ action: 'api_token_revoked', details: {} })))
+      .toBe('Niko revoked the API token Unnamed token.');
+  });
 });

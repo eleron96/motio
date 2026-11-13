@@ -170,6 +170,14 @@ msgstr "{actor}: группа {target} изменена с {fromGroup} на {toG
 msgid "{actor} changed {target} status from {0} to {1}."
 msgstr "{actor}: статус {target} изменён с {0} на {1}."
 
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "{actor} created the API token {name}: {rights}."
+msgstr "{actor}: создан токен API «{name}» — {rights}."
+
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "{actor} created the API token {name}."
+msgstr "{actor}: создан токен API «{name}»."
+
 #. placeholder {0}: wrapLabel(groupName, t`Unnamed group`)
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "{actor} created the group {0}."
@@ -197,6 +205,11 @@ msgstr "{actor}: пользователь {target} удалён из рабоч�
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "{actor} renamed group {0} to {1}."
 msgstr "{actor}: группа {0} переименована в {1}."
+
+#. placeholder {0}: wrapLabel(tokenName, t`Unnamed token`)
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "{actor} revoked the API token {0}."
+msgstr "{actor}: токен API «{0}» отозван."
 
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "{actor} updated workspace access."
@@ -3703,6 +3716,10 @@ msgstr "Изображение {0}"
 msgid "Image actions"
 msgstr "Действия с картинкой"
 
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "import absences"
+msgstr "импорт отсутствий"
+
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Import absences"
 msgstr "Импорт отсутствий"
@@ -5961,6 +5978,10 @@ msgstr "Охват: {reach} чел."
 msgid "Read or edit a single project note."
 msgstr "Прочитать или изменить отдельную заметку проекта."
 
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "read the workspace"
+msgstr "чтение пространства"
+
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Read the workspace"
 msgstr "Чтение пространства"
@@ -8146,6 +8167,11 @@ msgstr "Неизвестное пространство"
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "Unnamed group"
 msgstr "Группа без названия"
+
+#: src/shared/lib/workspaceMemberActivity.ts
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "Unnamed token"
+msgstr "Токен без названия"
 
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx

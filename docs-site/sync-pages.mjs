@@ -8,6 +8,10 @@
 //                             → pages/ru/self-hosting/ (the same English text, marked as such,
 //                               so the Russian site has the section and its language switch
 //                               always leads to a real page)
+//   docs/api.md, docs/mcp.md  → pages/api.md, pages/mcp.md (English) and pages/ru/ (the
+//                               same English text, marked): the workspace API and the MCP
+//                               server. Their links to docs that are not on the site are
+//                               pointed at GitHub.
 import { cpSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,10 +31,25 @@ cpSync(here('./home.md'), `${pages}/index.md`);
 cpSync(here('./home.ru.md'), `${pages}/ru/index.md`);
 cpSync(here('./public'), `${pages}/public`, { recursive: true });
 
-const englishOnly = '\n::: info Только на английском\nИнструкция для своих серверов пока есть только на английском.\n:::\n';
+// Under the title of an English page shown on the Russian site.
+const markEnglishOnly = (text, note) => {
+  const [title, ...rest] = text.split('\n');
+  return [title, `\n::: info Только на английском\n${note}\n:::\n`, ...rest].join('\n');
+};
+
 for (const name of readdirSync(`${pages}/ru/self-hosting`)) {
   if (!name.endsWith('.md')) continue;
   const file = join(pages, 'ru/self-hosting', name);
-  const [title, ...rest] = readFileSync(file, 'utf8').split('\n');
-  writeFileSync(file, [title, englishOnly, ...rest].join('\n'));
+  writeFileSync(file, markEnglishOnly(readFileSync(file, 'utf8'), 'Инструкция для своих серверов пока есть только на английском.'));
+}
+
+// The workspace API and the MCP server: docs/api.md and docs/mcp.md link to each other
+// (both are on the site) and to docs/configuration.md (which is not).
+const onGitHub = 'https://github.com/eleron96/motio/blob/main/docs/';
+for (const name of ['api.md', 'mcp.md']) {
+  const text = readFileSync(here(`../docs/${name}`), 'utf8')
+    .replace(/\]\((?!https?:|#|\.\/|api\.md|mcp\.md)([a-z-]+\.md)/g, `](${onGitHub}$1`)
+    .replace(/\]\((api|mcp)\.md/g, '](./$1.md');
+  writeFileSync(`${pages}/${name}`, text);
+  writeFileSync(`${pages}/ru/${name}`, markEnglishOnly(text, 'Описание API и MCP-сервера пока есть только на английском.'));
 }

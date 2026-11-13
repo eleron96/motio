@@ -21,6 +21,15 @@ const formatStatus = (value: 'active' | 'disabled' | null | undefined) => (
   value === 'disabled' ? t`disabled` : t`active`
 );
 
+// What a workspace API token may do, in the words of the settings.
+const formatTokenScopes = (scopes: string[] | null | undefined) => {
+  const parts = [
+    ...(scopes?.includes('read') ? [t`read the workspace`] : []),
+    ...(scopes?.includes('time_off') ? [t`import absences`] : []),
+  ];
+  return parts.join(', ');
+};
+
 export const formatWorkspaceMemberActivity = (
   entry: WorkspaceMemberActivityEntry,
 ) => {
@@ -36,6 +45,8 @@ export const formatWorkspaceMemberActivity = (
     previousStatus,
     nextStatus,
     groupName,
+    tokenName,
+    tokenScopes,
   } = entry.details;
 
   switch (entry.action) {
@@ -63,6 +74,15 @@ export const formatWorkspaceMemberActivity = (
       return t`${actor} renamed group ${wrapLabel(previousGroupName, t`Unnamed group`)} to ${wrapLabel(nextGroupName, t`Unnamed group`)}.`;
     case 'group_deleted':
       return t`${actor} deleted the group ${wrapLabel(groupName, t`Unnamed group`)}.`;
+    case 'api_token_created': {
+      const name = wrapLabel(tokenName, t`Unnamed token`);
+      const rights = formatTokenScopes(tokenScopes);
+      return rights
+        ? t`${actor} created the API token ${name}: ${rights}.`
+        : t`${actor} created the API token ${name}.`;
+    }
+    case 'api_token_revoked':
+      return t`${actor} revoked the API token ${wrapLabel(tokenName, t`Unnamed token`)}.`;
     default:
       return t`${actor} updated workspace access.`;
   }

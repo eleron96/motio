@@ -170,6 +170,14 @@ msgstr "{actor} hat die Gruppe von {target} von {fromGroup} zu {toGroup} geände
 msgid "{actor} changed {target} status from {0} to {1}."
 msgstr "{actor} hat den Status von {target} von {0} zu {1} geändert."
 
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "{actor} created the API token {name}: {rights}."
+msgstr "{actor} hat das API-Token „{name}“ erstellt: {rights}."
+
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "{actor} created the API token {name}."
+msgstr "{actor} hat das API-Token „{name}“ erstellt."
+
 #. placeholder {0}: wrapLabel(groupName, t`Unnamed group`)
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "{actor} created the group {0}."
@@ -197,6 +205,11 @@ msgstr "{actor} hat {target} aus dem Arbeitsbereich entfernt."
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "{actor} renamed group {0} to {1}."
 msgstr "{actor} hat die Gruppe {0} in {1} umbenannt."
+
+#. placeholder {0}: wrapLabel(tokenName, t`Unnamed token`)
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "{actor} revoked the API token {0}."
+msgstr "{actor} hat das API-Token „{0}“ widerrufen."
 
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "{actor} updated workspace access."
@@ -3703,6 +3716,10 @@ msgstr "Bild {0}"
 msgid "Image actions"
 msgstr "Aktionen für Bild"
 
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "import absences"
+msgstr "Abwesenheiten importieren"
+
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Import absences"
 msgstr "Abwesenheiten importieren"
@@ -5961,6 +5978,10 @@ msgstr "Erreicht {reach} Personen"
 msgid "Read or edit a single project note."
 msgstr "Eine einzelne Projektnotiz lesen oder bearbeiten."
 
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "read the workspace"
+msgstr "Arbeitsbereich lesen"
+
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "Read the workspace"
 msgstr "Arbeitsbereich lesen"
@@ -8146,6 +8167,11 @@ msgstr "Unbekannter Arbeitsbereich"
 #: src/shared/lib/workspaceMemberActivity.ts
 msgid "Unnamed group"
 msgstr "Unbenannte Gruppe"
+
+#: src/shared/lib/workspaceMemberActivity.ts
+#: src/shared/lib/workspaceMemberActivity.ts
+msgid "Unnamed token"
+msgstr "Token ohne Namen"
 
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 #: src/features/projects/components/projectCard/ActivityBlock.tsx

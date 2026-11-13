@@ -7,6 +7,9 @@ export const WORKSPACE_MEMBER_ACTIVITY_ACTIONS = [
   'group_created',
   'group_renamed',
   'group_deleted',
+  // Written by the database when an admin creates or revokes a workspace API token (0189).
+  'api_token_created',
+  'api_token_revoked',
 ] as const;
 
 export type WorkspaceMemberActivityAction = (typeof WORKSPACE_MEMBER_ACTIVITY_ACTIONS)[number];
@@ -21,6 +24,8 @@ export type WorkspaceMemberActivityDetails = {
   previousStatus?: 'active' | 'disabled' | null;
   nextStatus?: 'active' | 'disabled' | null;
   groupName?: string | null;
+  tokenName?: string | null;
+  tokenScopes?: string[] | null;
 };
 
 export type WorkspaceMemberActivityEntry = {

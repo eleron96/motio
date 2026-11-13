@@ -50,7 +50,15 @@ const errorResponse = (status: number, code: string, message: string) => {
 // Structured log line (AGENTS.md §6): no tokens, no emails.
 const log = (
   level: "info" | "error",
-  fields: { action: string; workspaceId?: string; result: "success" | "error"; errorCode?: string; count?: number },
+  fields: {
+    action: string;
+    workspaceId?: string;
+    // The display prefix of the token ("motio_1a2b3c4d"), as the settings show it: never the token.
+    token?: string;
+    result: "success" | "error";
+    errorCode?: string;
+    count?: number;
+  },
   module: "api.time-off" | "api.read" = "api.time-off",
 ) => {
   const line = JSON.stringify({ module, ...fields });
@@ -96,16 +104,17 @@ export const handler = async (req: Request): Promise<Response> => {
     log("error", { action: "authenticate", result: "error", errorCode: tokenError.code });
     return errorResponse(500, "internal_error", "internal error");
   }
-  const access = ((accessRows ?? []) as unknown as Array<{ workspace_id: string; scopes: string[] }>)[0];
+  const access = ((accessRows ?? []) as unknown as Array<{ workspace_id: string; scopes: string[]; token_prefix?: string }>)[0];
   if (!access) {
     return errorResponse(401, "unauthorized", "unknown or revoked workspace token");
   }
   const workspaceId = access.workspace_id;
+  const tokenPrefix = access.token_prefix;
   const isTimeOffRoute = route.kind === "list" || route.kind === "upsert" || route.kind === "delete";
   if (!isRouteAllowed(route, access.scopes)) {
     log(
       "info",
-      { action: route.kind, workspaceId, result: "error", errorCode: "forbidden" },
+      { action: route.kind, workspaceId, token: tokenPrefix, result: "error", errorCode: "forbidden" },
       isTimeOffRoute ? "api.time-off" : "api.read",
     );
     return errorResponse(403, "forbidden", `this token lacks the scope: ${scopesForRoute(route).join(" or ")}`);
@@ -117,12 +126,13 @@ export const handler = async (req: Request): Promise<Response> => {
       log(outcome.status === 500 ? "error" : "info", {
         action: route.kind,
         workspaceId,
+        token: tokenPrefix,
         result: "error",
         errorCode: outcome.errorCode ?? outcome.code,
       }, "api.read");
       return errorResponse(outcome.status, outcome.code, outcome.message);
     }
-    log("info", { action: route.kind, workspaceId, result: "success", count: outcome.count }, "api.read");
+    log("info", { action: route.kind, workspaceId, token: tokenPrefix, result: "success", count: outcome.count }, "api.read");
     return jsonResponse(outcome.body);
   }
 
@@ -132,12 +142,13 @@ export const handler = async (req: Request): Promise<Response> => {
       log(outcome.status === 500 ? "error" : "info", {
         action: "list",
         workspaceId,
+        token: tokenPrefix,
         result: "error",
         errorCode: outcome.errorCode ?? outcome.code,
       });
       return errorResponse(outcome.status, outcome.code, outcome.message);
     }
-    log("info", { action: "list", workspaceId, result: "success", count: outcome.count });
+    log("info", { action: "list", workspaceId, token: tokenPrefix, result: "success", count: outcome.count });
     return jsonResponse(outcome.body);
   }
 
@@ -151,13 +162,13 @@ export const handler = async (req: Request): Promise<Response> => {
       p_items: body.items,
     });
     if (error) {
-      log("error", { action: "upsert", workspaceId, result: "error", errorCode: error.code });
+      log("error", { action: "upsert", workspaceId, token: tokenPrefix, result: "error", errorCode: error.code });
       return errorResponse(500, "internal_error", "internal error");
     }
     const results = (data ?? []) as Array<{ status: string }>;
     const summary = { created: 0, updated: 0, unchanged: 0, error: 0 } as Record<string, number>;
     for (const result of results) summary[result.status] = (summary[result.status] ?? 0) + 1;
-    log("info", { action: "upsert", workspaceId, result: "success", count: results.length });
+    log("info", { action: "upsert", workspaceId, token: tokenPrefix, result: "success", count: results.length });
     return jsonResponse({ summary, results });
   }
 
@@ -166,13 +177,13 @@ export const handler = async (req: Request): Promise<Response> => {
     p_external_id: route.externalId,
   });
   if (error) {
-    log("error", { action: "delete", workspaceId, result: "error", errorCode: error.code });
+    log("error", { action: "delete", workspaceId, token: tokenPrefix, result: "error", errorCode: error.code });
     return errorResponse(500, "internal_error", "internal error");
   }
   if (!deleted) {
     return errorResponse(404, "not_found", "no imported time off with this external_id");
   }
-  log("info", { action: "delete", workspaceId, result: "success" });
+  log("info", { action: "delete", workspaceId, token: tokenPrefix, result: "success" });
   return new Response(null, { status: 204 });
 };
 
