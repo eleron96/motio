@@ -12,6 +12,7 @@ on:
       - 'docs/self-hosting/**'
       - 'docs/api.md'
       - 'docs/mcp.md'
+      - 'docs/ru/**'
       - 'docs-site/**'
       - '.github/workflows/docs-site.yml'
   workflow_dispatch:

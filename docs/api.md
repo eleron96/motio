@@ -403,8 +403,9 @@ parameter instead:
 ```
 DELETE /time-off?external_id=hr%2F1042
 ```
- Removing absences that disappeared from your
-system is up to the caller: list with `GET`, compare, delete.
+
+Removing absences that disappeared from your system is up to the caller: list
+with `GET`, compare, delete.
 
 ## Errors
 

@@ -13,11 +13,13 @@ const editLinkPattern = ({ filePath }: { filePath: string }) => {
     ? `docs/guides/ru/${filePath.slice('ru/guide/'.length)}`
     : filePath.startsWith('guide/')
       ? `docs/guides/${filePath.slice('guide/'.length)}`
-      : `docs/${filePath.replace(/^ru\//, '')}`;
+      : filePath.startsWith('ru/self-hosting/')
+        ? `docs/self-hosting/ru/${filePath.slice('ru/self-hosting/'.length)}`
+        : `docs/${filePath}`;
   return `https://github.com/eleron96/motio/edit/main/${source}`;
 };
 
-// The self-hosting pages are English in both languages; only the sidebar is translated.
+// The self-hosting guide has the same pages in both languages; only the titles differ.
 const selfHostingSidebar = (prefix: string, text: Record<string, string>): DefaultTheme.SidebarItem[] => {
   const page = (slug: string) => ({ text: text[slug], link: `${prefix}/self-hosting/${slug === 'overview' ? '' : slug}` });
   return [
@@ -44,7 +46,7 @@ const russianSelfHosting = selfHostingSidebar('/ru', {
   security: 'Безопасность', troubleshooting: 'Решение проблем', faq: 'Вопросы и ограничения',
 });
 
-// The workspace API and the MCP server: two English pages, shown in both languages.
+// The workspace API and the MCP server: the same two pages in both languages.
 const integrationsSidebar = (prefix: string, text: Record<string, string>): DefaultTheme.SidebarItem[] => [
   {
     text: text.group,

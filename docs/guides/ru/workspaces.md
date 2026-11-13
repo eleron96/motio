@@ -114,8 +114,8 @@
 
 Тот, у кого есть токен, читает всё пространство, какой бы ни была его собственная роль:
 делайте по токену на программу и отзывайте, когда он больше не нужен. Подробности для
-того, кто настраивает: [API](https://github.com/eleron96/motio/blob/main/docs/api.md) и
-[MCP-сервер](https://github.com/eleron96/motio/blob/main/docs/mcp.md).
+того, кто настраивает: [API](https://github.com/eleron96/motio/blob/main/docs/ru/api.md) и
+[MCP-сервер](https://github.com/eleron96/motio/blob/main/docs/ru/mcp.md).
 
 ### Опасная зона
 

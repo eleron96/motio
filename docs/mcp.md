@@ -24,6 +24,8 @@ data, the same rules.
 | Transport | Streamable HTTP |
 | Auth | the header `Authorization: Bearer motio_…` |
 
+The same address is shown in Motio: **Workspace settings → API → AI assistants**.
+
 The server does not offer OAuth sign-in: it takes the workspace token and nothing
 else. A client that can only connect through OAuth cannot use it.
 
