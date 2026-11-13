@@ -458,8 +458,8 @@ msgid "A task is assigned to me"
 msgstr "Мне назначили задачу"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
-msgid "A token lets another system, such as your time tracking, create, update and delete absences in this workspace. It can do nothing else."
-msgstr "Токен позволяет другой системе, например учёту времени, создавать, менять и удалять отсутствия в этом пространстве. Больше он ничего не может."
+msgid "A token lets another system read this workspace or import absences into it. You choose what each token may do when you create it; it can do nothing else."
+msgstr "Токен позволяет другой системе читать это пространство или импортировать в него отсутствия. Что может токен, вы выбираете при создании; больше он ничего не может."
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "A workspace can have at most 10 active tokens. Revoke one you no longer use."
@@ -503,6 +503,10 @@ msgstr "Доступ"
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Access denied"
 msgstr "Нет доступа"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Access for other systems"
+msgstr "Доступ для других систем"
 
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -1491,6 +1495,10 @@ msgstr "Выберите акцентный цвет интерфейса"
 msgid "Choose the group for {memberName}."
 msgstr "Выберите группу для {memberName}."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Choose what the token may do."
+msgstr "Выберите, что может токен."
+
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Choose where to apply this change."
 msgstr "Выберите, к каким задачам применить это изменение."
@@ -1956,6 +1964,10 @@ msgstr "Создать пространство"
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Create your account"
 msgstr "Создание аккаунта"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Create, update and delete absences, as your time tracking or HR system records them."
+msgstr "Создавать, менять и удалять отсутствия — так, как они записаны в вашем учёте времени или HR-системе."
 
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
@@ -5597,6 +5609,10 @@ msgstr "Разделы команды"
 msgid "People who got access only through this group lose it at their next visit."
 msgstr "Те, кто получил доступ только через эту группу, потеряют его при следующем входе."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "People, projects, tasks, milestones and absences. Changes nothing."
+msgstr "Люди, проекты, задачи, вехи и отсутствия. Ничего не меняет."
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "People's colours"
@@ -5927,6 +5943,10 @@ msgstr "Охват: {reach} чел."
 #: src/features/projects/components/projectCard/ActivityModal.tsx
 msgid "Read or edit a single project note."
 msgstr "Прочитать или изменить отдельную заметку проекта."
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Read the workspace"
+msgstr "Чтение пространства"
 
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
@@ -8450,6 +8470,10 @@ msgstr "Что суперадмины меняли в этой консоли и
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "What the planner shows"
 msgstr "Что показывает планировщик"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "What the token may do"
+msgstr "Что может токен"
 
 #: src/features/admin/pages/AdminSettingsPage.tsx
 msgid "What this server allows beyond Motio out of the box. Everything is off by default; turning a switch off brings back how Motio works without it. People get a change the next time they open Motio."

@@ -1,8 +1,9 @@
 import { createSupabaseClients } from "../_shared/supabaseAuth.ts";
 import { captureException } from "../_shared/sentryCapture.ts";
+import { handleRead } from "./read.ts";
+import { isRouteAllowed, parseWorkspaceApiRoute, scopesForRoute } from "../_shared/workspaceApi.ts";
 import {
   MAX_BODY_BYTES,
-  parseApiRoute,
   parseBearerToken,
   parseListQuery,
   parseUpsertBody,
@@ -10,15 +11,22 @@ import {
 } from "../_shared/timeOffApi.ts";
 
 /**
- * Workspace API: import absences from an external system.
+ * Workspace API: read a workspace and import absences from an external system.
  *
- *   GET    /functions/v1/api/v1/time-off?from=&to=   list time off of the workspace
- *   PUT    /functions/v1/api/v1/time-off             create/update by external_id
- *   DELETE /functions/v1/api/v1/time-off/{id}        delete an imported record
+ *   GET    /functions/v1/api/v1/workspace              the workspace of the token
+ *   GET    /functions/v1/api/v1/members                people on its timeline
+ *   GET    /functions/v1/api/v1/projects?archived=     projects
+ *   GET    /functions/v1/api/v1/tasks?from=&to=&…      tasks, paged
+ *   GET    /functions/v1/api/v1/tasks/{id}             one task with its description
+ *   GET    /functions/v1/api/v1/milestones?from=&to=   milestones, paged
+ *   GET    /functions/v1/api/v1/time-off?from=&to=     time off of the workspace
+ *   PUT    /functions/v1/api/v1/time-off               create/update by external_id
+ *   DELETE /functions/v1/api/v1/time-off/{id}          delete an imported record
  *
  * Auth: "Authorization: Bearer motio_…" — a workspace token created by a
- * workspace admin in the settings. Server-to-server only: no CORS headers, no
- * browser session. Rate limited per IP in the gateway (zone public_api_limit).
+ * workspace admin in the settings, with the scopes chosen there ("read",
+ * "time_off"). Server-to-server only: no CORS headers, no browser session.
+ * Rate limited per IP in the gateway (zone public_api_limit).
  * Reference: docs/api.md.
  */
 
@@ -40,8 +48,9 @@ const errorResponse = (status: number, code: string, message: string) =>
 const log = (
   level: "info" | "error",
   fields: { action: string; workspaceId?: string; result: "success" | "error"; errorCode?: string; count?: number },
+  module: "api.time-off" | "api.read" = "api.time-off",
 ) => {
-  const line = JSON.stringify({ module: "api.time-off", ...fields });
+  const line = JSON.stringify({ module, ...fields });
   if (level === "error") console.error(line);
   else console.info(line);
 };
@@ -64,7 +73,7 @@ const readJsonBody = async (req: Request): Promise<{ body: unknown } | { error: 
 
 export const handler = async (req: Request): Promise<Response> => {
   const url = new URL(req.url);
-  const route = parseApiRoute(req.method, url.pathname);
+  const route = parseWorkspaceApiRoute(req.method, url.pathname);
   if ("error" in route) {
     return route.error === "not_found"
       ? errorResponse(404, "not_found", "unknown endpoint")
@@ -76,7 +85,7 @@ export const handler = async (req: Request): Promise<Response> => {
     return errorResponse(401, "unauthorized", "missing or malformed workspace token");
   }
 
-  const { data: workspaceId, error: tokenError } = await supabaseAdmin.rpc("api_token_workspace", {
+  const { data: accessRows, error: tokenError } = await supabaseAdmin.rpc("api_token_access", {
     p_token_hash: await sha256Hex(token),
   });
   if (tokenError) {
@@ -84,8 +93,34 @@ export const handler = async (req: Request): Promise<Response> => {
     log("error", { action: "authenticate", result: "error", errorCode: tokenError.code });
     return errorResponse(500, "internal_error", "internal error");
   }
-  if (!workspaceId) {
+  const access = ((accessRows ?? []) as unknown as Array<{ workspace_id: string; scopes: string[] }>)[0];
+  if (!access) {
     return errorResponse(401, "unauthorized", "unknown or revoked workspace token");
+  }
+  const workspaceId = access.workspace_id;
+  const isTimeOffRoute = route.kind === "list" || route.kind === "upsert" || route.kind === "delete";
+  if (!isRouteAllowed(route, access.scopes)) {
+    log(
+      "info",
+      { action: route.kind, workspaceId, result: "error", errorCode: "forbidden" },
+      isTimeOffRoute ? "api.time-off" : "api.read",
+    );
+    return errorResponse(403, "forbidden", `this token lacks the scope: ${scopesForRoute(route).join(" or ")}`);
+  }
+
+  if (route.kind !== "list" && route.kind !== "upsert" && route.kind !== "delete") {
+    const outcome = await handleRead(supabaseAdmin, workspaceId, route, url.searchParams);
+    if ("status" in outcome) {
+      log(outcome.status === 500 ? "error" : "info", {
+        action: route.kind,
+        workspaceId,
+        result: "error",
+        errorCode: outcome.errorCode ?? outcome.code,
+      }, "api.read");
+      return errorResponse(outcome.status, outcome.code, outcome.message);
+    }
+    log("info", { action: route.kind, workspaceId, result: "success", count: outcome.count }, "api.read");
+    return jsonResponse(outcome.body);
   }
 
   if (route.kind === "list") {

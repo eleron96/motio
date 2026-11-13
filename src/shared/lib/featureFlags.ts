@@ -42,7 +42,7 @@ export const isBoardViewEnabled = (): boolean => (
 
 /**
  * When on, workspace admins see the "API" section in workspace settings, where
- * they create and revoke tokens for importing absences from another system
+ * they create and revoke tokens for other systems to read the workspace or import absences
  * (Edge Function `api`, docs/api.md). The endpoint itself works without the
  * flag but is useless without a token. Never in /demo: the sandbox has no
  * backend to keep tokens.

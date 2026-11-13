@@ -103,11 +103,12 @@ delete).
 
 ### `api`
 
-The workspace API for importing absences, called by other systems with a
-workspace token (`Authorization: Bearer motio_…`), not by the app. The gateway
+The workspace API — other systems read a workspace and import absences —
+called with a workspace token (`Authorization: Bearer motio_…`), not by the app. The gateway
 gives `/functions/v1/api/` its own rate limit (`public_api_limit`, 5 r/s per IP)
-and no CORS. The function hashes the token, resolves the workspace and calls the
-`api_*` database functions (migration 0156, EXECUTE for `service_role` only).
+and no CORS. The function hashes the token, resolves the workspace and the token's
+scopes, and calls the `api_*` database functions (migrations 0156 and 0187, EXECUTE
+for `service_role` only).
 Contract and examples: [API](api.md).
 
 ### `admin`

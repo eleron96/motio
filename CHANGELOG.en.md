@@ -8,6 +8,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [Unreleased]
 
 ### Added
+- The workspace API can now read: people, projects, tasks, milestones and absences — for reports and exports to other systems. What a token may do is chosen when it is created: read only, import absences only, or both; tokens that already exist keep importing absences and nothing more.
 - For your own servers: the admin console now tells you when a newer release is out — a dot next to System in its menu and a line on the overview. System lists what changed since your version and, first, what to read before updating.
 
 ## [0.10.76] - 2026-11-12

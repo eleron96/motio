@@ -67,7 +67,7 @@ settings with their defaults and lists them; the defaults keep things as they we
 | `VITE_FEATURE_PUSH` | `true` | push notifications in the browser and on phones |
 | `VITE_FEATURE_KANBAN` | `false` | the board view next to the timeline (beta) |
 | `VITE_FEATURE_ACCOUNT_DELETION` | `false` | people can delete their own account |
-| `VITE_FEATURE_WORKSPACE_API` | `false` | the workspace API for importing time off ([API](https://github.com/eleron96/motio/blob/main/docs/api.md)) |
+| `VITE_FEATURE_WORKSPACE_API` | `false` | the workspace API: other systems read the workspace and import time off ([API](https://github.com/eleron96/motio/blob/main/docs/api.md)) |
 | `VITE_FEATURE_TASK_LIVE_DRAFTS` | `false` | teammates see what someone is typing in a task |
 
 #### People and access

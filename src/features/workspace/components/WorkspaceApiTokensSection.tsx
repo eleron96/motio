@@ -4,6 +4,7 @@ import { Copy, KeyRound, Trash2 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
+import { Checkbox } from '@/shared/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import {
   AlertDialog,
@@ -19,7 +20,7 @@ import { localeIntlTags } from '@/shared/lib/locale';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { Block } from '@/features/workspace/components/settingsBlocks';
 import { useWorkspaceApiTokens } from '@/features/workspace/hooks/useWorkspaceApiTokens';
-import type { ApiTokenErrorCode, WorkspaceApiToken } from '@/infrastructure/workspace/apiTokenRepository';
+import type { ApiTokenErrorCode, ApiTokenScope, WorkspaceApiToken } from '@/infrastructure/workspace/apiTokenRepository';
 
 const API_DOCS_URL = 'https://github.com/eleron96/motio/blob/main/docs/api.md';
 
@@ -29,6 +30,8 @@ const errorText = (code: ApiTokenErrorCode) => {
       return t`A workspace can have at most 10 active tokens. Revoke one you no longer use.`;
     case 'invalid_name':
       return t`Give the token a name of 1 to 80 characters.`;
+    case 'invalid_scopes':
+      return t`Choose what the token may do.`;
     case 'not_allowed':
       return t`Only workspace admins can manage API tokens.`;
     default:
@@ -36,9 +39,23 @@ const errorText = (code: ApiTokenErrorCode) => {
   }
 };
 
+// The order the scopes are offered and listed in.
+const SCOPES: ApiTokenScope[] = ['read', 'time_off'];
+
+const scopeLabel = (scope: ApiTokenScope) => (
+  scope === 'read' ? t`Read the workspace` : t`Import absences`
+);
+
+const scopeHint = (scope: ApiTokenScope) => (
+  scope === 'read'
+    ? t`People, projects, tasks, milestones and absences. Changes nothing.`
+    : t`Create, update and delete absences, as your time tracking or HR system records them.`
+);
+
 /**
- * Workspace settings → API: tokens that let another system (time tracking, HR)
- * import absences into this workspace. Admin only; behind VITE_FEATURE_WORKSPACE_API.
+ * Workspace settings → API: tokens that let another system read this workspace
+ * and/or import absences into it, as chosen per token. Admin only; behind
+ * VITE_FEATURE_WORKSPACE_API.
  */
 export const WorkspaceApiTokensSection: React.FC<{ workspaceId: string | null }> = ({ workspaceId }) => {
   const locale = useLocaleStore((state) => state.locale);
@@ -46,14 +63,16 @@ export const WorkspaceApiTokensSection: React.FC<{ workspaceId: string | null }>
     useWorkspaceApiTokens(workspaceId, true);
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState('');
+  const [scopes, setScopes] = useState<ApiTokenScope[]>([]);
   const [revokeTarget, setRevokeTarget] = useState<WorkspaceApiToken | null>(null);
   const [copied, setCopied] = useState(false);
 
   const formatDate = (value: string) => new Date(value).toLocaleDateString(localeIntlTags[locale]);
 
   const handleCreate = async () => {
-    if (await create(name.trim())) {
+    if (await create(name.trim(), SCOPES.filter((scope) => scopes.includes(scope)))) {
       setName('');
+      setScopes([]);
       setCreateOpen(false);
     }
   };
@@ -68,6 +87,11 @@ export const WorkspaceApiTokensSection: React.FC<{ workspaceId: string | null }>
     }
   };
 
+  const toggleScope = (scope: ApiTokenScope, on: boolean) => {
+    setScopes((current) => (on ? [...current.filter((item) => item !== scope), scope] : current.filter((item) => item !== scope)));
+  };
+  const canCreate = Boolean(name.trim()) && scopes.length > 0 && !busy;
+
   const closeCreated = () => {
     setCopied(false);
     dismissCreated();
@@ -76,8 +100,8 @@ export const WorkspaceApiTokensSection: React.FC<{ workspaceId: string | null }>
   return (
     <div className="space-y-5">
       <Block
-        title={t`Import absences`}
-        description={t`A token lets another system, such as your time tracking, create, update and delete absences in this workspace. It can do nothing else.`}
+        title={t`Access for other systems`}
+        description={t`A token lets another system read this workspace or import absences into it. You choose what each token may do when you create it; it can do nothing else.`}
       >
         <div className="flex flex-wrap items-center gap-3">
           <Button size="sm" onClick={() => setCreateOpen(true)} disabled={!workspaceId || busy}>
@@ -109,6 +133,8 @@ export const WorkspaceApiTokensSection: React.FC<{ workspaceId: string | null }>
                   <div className="truncate text-sm font-medium text-foreground">{token.name}</div>
                   <div className="text-xs text-muted-foreground">
                     <span className="font-mono">{token.tokenPrefix}…</span>
+                    {' · '}
+                    {SCOPES.filter((scope) => token.scopes.includes(scope)).map(scopeLabel).join(', ')}
                     {' · '}
                     {t`created ${formatDate(token.createdAt)}`}
                     {' · '}
@@ -146,13 +172,30 @@ export const WorkspaceApiTokensSection: React.FC<{ workspaceId: string | null }>
               placeholder={t`e.g. Time tracking sync`}
               onChange={(event) => setName(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === 'Enter' && name.trim()) void handleCreate();
+                if (event.key === 'Enter' && canCreate) void handleCreate();
               }}
             />
           </div>
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-medium text-foreground">{t`What the token may do`}</legend>
+            {SCOPES.map((scope) => (
+              <div key={scope} className="flex items-start gap-2">
+                <Checkbox
+                  id={`api-token-scope-${scope}`}
+                  className="mt-0.5"
+                  checked={scopes.includes(scope)}
+                  onCheckedChange={(value) => toggleScope(scope, value === true)}
+                />
+                <Label htmlFor={`api-token-scope-${scope}`} className="cursor-pointer space-y-0.5 font-normal">
+                  <span className="block text-sm text-foreground">{scopeLabel(scope)}</span>
+                  <span className="block text-xs text-muted-foreground">{scopeHint(scope)}</span>
+                </Label>
+              </div>
+            ))}
+          </fieldset>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>{t`Cancel`}</Button>
-            <Button onClick={() => void handleCreate()} disabled={!name.trim() || busy}>{t`Create token`}</Button>
+            <Button onClick={() => void handleCreate()} disabled={!canCreate}>{t`Create token`}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

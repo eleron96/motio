@@ -1,5 +1,11 @@
 import { supabase } from '@/shared/lib/supabaseClient';
 
+/**
+ * What a token may do, chosen when it is created: import absences ('time_off')
+ * and/or read the workspace ('read'). Reference: docs/api.md.
+ */
+export type ApiTokenScope = 'time_off' | 'read';
+
 /** A workspace API token as admins see it: never the token itself. */
 export type WorkspaceApiToken = {
   id: string;
@@ -7,6 +13,7 @@ export type WorkspaceApiToken = {
   tokenPrefix: string;
   createdAt: string;
   lastUsedAt: string | null;
+  scopes: ApiTokenScope[];
 };
 
 /** Returned once, right after creation: the only time the full token is known. */
@@ -18,18 +25,22 @@ type TokenRow = {
   token_prefix: string;
   created_at: string;
   last_used_at?: string | null;
+  scopes?: string[] | null;
   token?: string;
 };
 
-export type ApiTokenErrorCode = 'limit' | 'invalid_name' | 'not_allowed' | 'unknown';
+export type ApiTokenErrorCode = 'limit' | 'invalid_name' | 'invalid_scopes' | 'not_allowed' | 'unknown';
 
 const toErrorCode = (message: string | undefined): ApiTokenErrorCode => {
   if (!message) return 'unknown';
   if (message.includes('API_TOKEN_LIMIT')) return 'limit';
   if (message.includes('API_TOKEN_NAME_INVALID')) return 'invalid_name';
+  if (message.includes('API_TOKEN_SCOPES_INVALID')) return 'invalid_scopes';
   if (message.includes('not allowed')) return 'not_allowed';
   return 'unknown';
 };
+
+const isScope = (value: string): value is ApiTokenScope => value === 'time_off' || value === 'read';
 
 const mapToken = (row: TokenRow): WorkspaceApiToken => ({
   id: row.id,
@@ -37,6 +48,7 @@ const mapToken = (row: TokenRow): WorkspaceApiToken => ({
   tokenPrefix: row.token_prefix,
   createdAt: row.created_at,
   lastUsedAt: row.last_used_at ?? null,
+  scopes: (row.scopes ?? []).filter(isScope),
 });
 
 export const listWorkspaceApiTokens = async (
@@ -50,10 +62,12 @@ export const listWorkspaceApiTokens = async (
 export const createWorkspaceApiToken = async (
   workspaceId: string,
   name: string,
+  scopes: ApiTokenScope[],
 ): Promise<{ token?: CreatedWorkspaceApiToken; error?: ApiTokenErrorCode }> => {
   const { data, error } = await supabase.rpc('create_workspace_api_token', {
     p_workspace_id: workspaceId,
     p_name: name,
+    p_scopes: scopes,
   });
   if (error) return { error: toErrorCode(error.message) };
   const row = ((data ?? []) as unknown as TokenRow[])[0];

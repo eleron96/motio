@@ -103,8 +103,8 @@ describe("workspace API tokens and absence import (0156)", () => {
         has_function_privilege('authenticated', 'public.api_upsert_time_off(uuid,jsonb)', 'EXECUTE') as auth_upsert,
         has_function_privilege('anon', 'public.api_token_workspace(text)', 'EXECUTE') as anon_resolve,
         has_function_privilege('service_role', 'public.api_upsert_time_off(uuid,jsonb)', 'EXECUTE') as service_upsert,
-        has_function_privilege('anon', 'public.create_workspace_api_token(uuid,text)', 'EXECUTE') as anon_create,
-        has_function_privilege('authenticated', 'public.create_workspace_api_token(uuid,text)', 'EXECUTE') as auth_create`);
+        has_function_privilege('anon', 'public.create_workspace_api_token(uuid,text,text[])', 'EXECUTE') as anon_create,
+        has_function_privilege('authenticated', 'public.create_workspace_api_token(uuid,text,text[])', 'EXECUTE') as auth_create`);
       expect(rows[0]).toEqual({
         auth_select: false,
         anon_select: false,

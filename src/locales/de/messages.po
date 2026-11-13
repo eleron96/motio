@@ -458,8 +458,8 @@ msgid "A task is assigned to me"
 msgstr "Mir wird eine Aufgabe zugewiesen"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
-msgid "A token lets another system, such as your time tracking, create, update and delete absences in this workspace. It can do nothing else."
-msgstr "Mit einem Token kann ein anderes System, etwa Ihre Zeiterfassung, Abwesenheiten in diesem Arbeitsbereich anlegen, ändern und löschen. Sonst kann es nichts."
+msgid "A token lets another system read this workspace or import absences into it. You choose what each token may do when you create it; it can do nothing else."
+msgstr "Mit einem Token kann ein anderes System diesen Arbeitsbereich lesen oder Abwesenheiten importieren. Was ein Token darf, legen Sie beim Erstellen fest; mehr kann es nicht."
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "A workspace can have at most 10 active tokens. Revoke one you no longer use."
@@ -503,6 +503,10 @@ msgstr "Zugriff"
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Access denied"
 msgstr "Zugriff verweigert"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Access for other systems"
+msgstr "Zugriff für andere Systeme"
 
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
 #: src/features/workspace/components/WorkspaceAccessMobile.tsx
@@ -1491,6 +1495,10 @@ msgstr "Akzentfarbe für die gesamte Oberfläche wählen"
 msgid "Choose the group for {memberName}."
 msgstr "Wählen Sie die Gruppe für {memberName}."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Choose what the token may do."
+msgstr "Wählen Sie, was das Token darf."
+
 #: src/features/planner/components/RepeatTaskScopeDialog.tsx
 msgid "Choose where to apply this change."
 msgstr "Wählen Sie, worauf diese Änderung angewendet wird."
@@ -1956,6 +1964,10 @@ msgstr "Arbeitsbereich erstellen"
 #: src/features/auth/pages/AuthPage.tsx
 msgid "Create your account"
 msgstr "Konto erstellen"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Create, update and delete absences, as your time tracking or HR system records them."
+msgstr "Abwesenheiten anlegen, ändern und löschen – so, wie Ihre Zeiterfassung oder Ihr HR-System sie führt."
 
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
@@ -5597,6 +5609,10 @@ msgstr "Bereiche des Teams"
 msgid "People who got access only through this group lose it at their next visit."
 msgstr "Wer nur über diese Gruppe Zugriff hat, verliert ihn beim nächsten Besuch."
 
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "People, projects, tasks, milestones and absences. Changes nothing."
+msgstr "Personen, Projekte, Aufgaben, Meilensteine und Abwesenheiten. Ändert nichts."
+
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "People's colours"
@@ -5927,6 +5943,10 @@ msgstr "Erreicht {reach} Personen"
 #: src/features/projects/components/projectCard/ActivityModal.tsx
 msgid "Read or edit a single project note."
 msgstr "Eine einzelne Projektnotiz lesen oder bearbeiten."
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Read the workspace"
+msgstr "Arbeitsbereich lesen"
 
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
@@ -8450,6 +8470,10 @@ msgstr "Was Super-Admins in diesem Bereich geändert haben und was die Keycloak-
 #: src/features/planner/components/timeline/PlannerViewSwitcher.tsx
 msgid "What the planner shows"
 msgstr "Was der Planer zeigt"
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "What the token may do"
+msgstr "Was das Token darf"
 
 #: src/features/admin/pages/AdminSettingsPage.tsx
 msgid "What this server allows beyond Motio out of the box. Everything is off by default; turning a switch off brings back how Motio works without it. People get a change the next time they open Motio."
