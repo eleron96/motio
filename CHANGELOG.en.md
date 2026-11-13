@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.77] - 2026-11-13
 ### Added
 - MCP server: an AI assistant can read a workspace — people, projects, tasks, milestones and absences — and answer questions like “who is free next week”. It connects with an address and a token that has the read scope, and cannot change anything.
 - The workspace API can now read: people, projects, tasks, milestones and absences — for reports and exports to other systems. What a token may do is chosen when it is created: read only, import absences only, or both; tokens that already exist keep importing absences and nothing more.
