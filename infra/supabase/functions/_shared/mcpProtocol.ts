@@ -17,7 +17,16 @@ import { MCP_TOOLS } from "./mcpTools.ts";
 
 export const MODERN_VERSION = "2026-07-28";
 export const LEGACY_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26"];
-export const SUPPORTED_VERSIONS = [MODERN_VERSION, ...LEGACY_VERSIONS];
+// What server/discover and the "unsupported version" error offer: the versions
+// a request in the modern shape may name. The handshake-based ones are served
+// to clients that open with `initialize` and are not offered here — a modern
+// client told to "pick a supported version and retry" would pick one of them,
+// send it in the modern shape and be refused again.
+export const SUPPORTED_VERSIONS = [MODERN_VERSION];
+
+// The tool list and what the server speaks are the same for every caller and
+// change only with a release: clients may keep them for an hour.
+const CACHE_HINTS = { ttlMs: 60 * 60 * 1000, cacheScope: "public" };
 
 const SERVER_INFO = { name: "motio", title: "Motio", version: "1.0.0" };
 
@@ -124,6 +133,15 @@ const planModern = (id: McpId, method: string, params: unknown, headers: McpHead
   const version = meta[PROTOCOL_VERSION_KEY];
 
   if (typeof version !== "string") {
+    // No version in the body. A header naming a version we do not speak at all
+    // (an old client, a typo) deserves the list of what we do speak; only a
+    // request that claims the modern version is told what it left out.
+    if (headers.protocolVersion !== null && headers.protocolVersion !== MODERN_VERSION) {
+      return reply(errorReply(400, id, UNSUPPORTED_PROTOCOL_VERSION, "Unsupported protocol version", {
+        supported: SUPPORTED_VERSIONS,
+        requested: headers.protocolVersion,
+      }));
+    }
     return reply(errorReply(400, id, INVALID_PARAMS, `params._meta["${PROTOCOL_VERSION_KEY}"] is required`));
   }
   if (headers.protocolVersion !== version) {
@@ -150,11 +168,12 @@ const planModern = (id: McpId, method: string, params: unknown, headers: McpHead
         supportedVersions: SUPPORTED_VERSIONS,
         capabilities,
         instructions: INSTRUCTIONS,
+        ...CACHE_HINTS,
       }));
     case "ping":
       return reply(resultReply("modern", id, {}));
     case "tools/list":
-      return reply(resultReply("modern", id, { tools: MCP_TOOLS }));
+      return reply(resultReply("modern", id, { tools: MCP_TOOLS, ...CACHE_HINTS }));
     case "tools/call": {
       const name = isObject(params) ? params.name : undefined;
       if (typeof name !== "string" || !name) {

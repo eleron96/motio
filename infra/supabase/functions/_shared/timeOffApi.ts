@@ -17,14 +17,25 @@ export type ApiRoute =
 
 export type ApiRouteResult = ApiRoute | { error: "not_found" | "method_not_allowed" };
 
+const MAX_EXTERNAL_ID_LENGTH = 200;
+
 const TIME_OFF_PATH = /^\/?api\/v1\/time-off\/?$/;
 const TIME_OFF_ITEM_PATH = /^\/?api\/v1\/time-off\/([^/]+)\/?$/;
 
-/** pathname as the function receives it: /api/v1/time-off[/<external_id>]. */
-export const parseApiRoute = (method: string, pathname: string): ApiRouteResult => {
+/**
+ * pathname as the function receives it: /api/v1/time-off[/<external_id>].
+ * A record is deleted by its id in the path or in ?external_id= — the second
+ * form is for ids with a slash, which proxies decode or refuse inside a path.
+ */
+export const parseApiRoute = (method: string, pathname: string, params?: URLSearchParams): ApiRouteResult => {
   if (TIME_OFF_PATH.test(pathname)) {
     if (method === "GET") return { kind: "list" };
     if (method === "PUT" || method === "POST") return { kind: "upsert" };
+    if (method === "DELETE" && params?.has("external_id")) {
+      const externalId = params.get("external_id") ?? "";
+      if (!externalId || externalId.length > MAX_EXTERNAL_ID_LENGTH) return { error: "not_found" };
+      return { kind: "delete", externalId };
+    }
     return { error: "method_not_allowed" };
   }
   const item = pathname.match(TIME_OFF_ITEM_PATH);
@@ -36,7 +47,7 @@ export const parseApiRoute = (method: string, pathname: string): ApiRouteResult 
     } catch {
       return { error: "not_found" };
     }
-    if (!externalId || externalId.length > 200) return { error: "not_found" };
+    if (!externalId || externalId.length > MAX_EXTERNAL_ID_LENGTH) return { error: "not_found" };
     return { kind: "delete", externalId };
   }
   return { error: "not_found" };
@@ -53,8 +64,12 @@ export const parseBearerToken = (header: string | null): string | null => {
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-const isIsoDate = (value: string) => {
-  if (!ISO_DATE.test(value)) return false;
+/**
+ * A real calendar day the database can hold: YYYY-MM-DD, years 0001 to 9999.
+ * Year 0000 passes JavaScript and fails in PostgreSQL, so it is refused here.
+ */
+export const isIsoDate = (value: string) => {
+  if (!ISO_DATE.test(value) || value.startsWith("0000")) return false;
   const parsed = new Date(`${value}T00:00:00Z`);
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 };

@@ -35,7 +35,8 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const path = url.pathname.replace(/^\/+/, "");
   const [name] = path.split("/");
-  const handler = name ? handlers[name] : undefined;
+  // Own keys only: "constructor" or "toString" in the path must not find Object.prototype.
+  const handler = name && Object.prototype.hasOwnProperty.call(handlers, name) ? handlers[name] : undefined;
   if (!handler) return jsonNotFound();
   try {
     return await handler(req);

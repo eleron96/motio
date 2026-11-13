@@ -52,6 +52,12 @@ describe('planToolCall', () => {
     expect(plan('find_tasks', { limit: 2.5 })).toEqual({ invalid: 'limit must be an integer' });
     expect(plan('find_tasks', { workspace_id: TASK_ID })).toEqual({ invalid: 'unknown argument: workspace_id' });
     expect(plan('find_tasks', ['2026-11-01'])).toEqual({ invalid: 'arguments must be an object' });
+    // Names every object inherits are unknown arguments like any other.
+    for (const key of ['constructor', 'toString', 'hasOwnProperty', 'valueOf']) {
+      expect(plan('get_workspace', { [key]: 'x' }), key).toEqual({ invalid: `unknown argument: ${key}` });
+      expect(plan('find_tasks', { [key]: null }), key).toEqual({ invalid: `unknown argument: ${key}` });
+    }
+    expect(plan('find_tasks', JSON.parse('{"__proto__": {"limit": 1}}'))).toEqual({ invalid: 'unknown argument: __proto__' });
     expect(plan('get_task', {})).toEqual({ invalid: 'id is required' });
     expect(plan('get_task', { id: '42' })).toEqual({ invalid: 'id must be a task id (UUID)' });
   });

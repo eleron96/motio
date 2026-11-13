@@ -161,8 +161,9 @@ export const planToolCall = (name: unknown, args: unknown): ToolCallPlan => {
   const given = (args ?? {}) as Record<string, unknown>;
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(given)) {
+    // Own keys only: "constructor" or "__proto__" must not find Object.prototype.
+    if (!Object.prototype.hasOwnProperty.call(tool.arguments, key)) return { invalid: `unknown argument: ${key}` };
     const argument = tool.arguments[key];
-    if (!argument) return { invalid: `unknown argument: ${key}` };
     if (value === null || value === undefined) continue;
     if (!matchesType(value, argument.type)) return { invalid: `${key} must be ${argument.type === "integer" ? "an integer" : `a ${argument.type}`}` };
     params.set(key, String(value));

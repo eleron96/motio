@@ -21,6 +21,7 @@ import {
  *   GET    /functions/v1/api/v1/time-off?from=&to=     time off of the workspace
  *   PUT    /functions/v1/api/v1/time-off               create/update by external_id
  *   DELETE /functions/v1/api/v1/time-off/{id}          delete an imported record
+ *   DELETE /functions/v1/api/v1/time-off?external_id=  the same, for ids with a slash
  *
  * Auth: "Authorization: Bearer motio_…" — a workspace token created by a
  * workspace admin in the settings, with the scopes chosen there ("read",
@@ -40,8 +41,11 @@ const jsonResponse = (body: unknown, status = 200) =>
     headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
   });
 
-const errorResponse = (status: number, code: string, message: string) =>
-  jsonResponse({ error: { code, message } }, status);
+const errorResponse = (status: number, code: string, message: string) => {
+  const response = jsonResponse({ error: { code, message } }, status);
+  if (status === 401) response.headers.set("WWW-Authenticate", 'Bearer realm="motio"');
+  return response;
+};
 
 // Structured log line (AGENTS.md §6): no tokens, no emails.
 const log = (
@@ -72,7 +76,7 @@ const readJsonBody = async (req: Request): Promise<{ body: unknown } | { error: 
 
 export const handler = async (req: Request): Promise<Response> => {
   const url = new URL(req.url);
-  const route = parseWorkspaceApiRoute(req.method, url.pathname);
+  const route = parseWorkspaceApiRoute(req.method, url.pathname, url.searchParams);
   if ("error" in route) {
     return route.error === "not_found"
       ? errorResponse(404, "not_found", "unknown endpoint")

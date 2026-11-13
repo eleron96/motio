@@ -91,15 +91,19 @@ opens no streams and keeps no sessions.
 
 | | |
 |---|---|
-| Protocol versions | `2026-07-28`, and the handshake-based `2025-11-25`, `2025-06-18`, `2025-03-26` |
+| Protocol versions | `2026-07-28`; for clients that open with `initialize`: `2025-11-25`, `2025-06-18`, `2025-03-26` |
 | Methods | `server/discover`, `tools/list`, `tools/call`, `ping`; `initialize` for the older versions |
 | Capabilities | `tools` |
 
 A `2026-07-28` request carries its version and client capabilities in
 `params._meta` and mirrors them into the `MCP-Protocol-Version`, `Mcp-Method`
 and (for `tools/call`) `Mcp-Name` headers; a mismatch is answered with `400` and
-the JSON-RPC error `-32020`. An older client starts with `initialize` and is
-served by the version it asks for; no session id is issued.
+the JSON-RPC error `-32020`. `server/discover` and `tools/list` carry caching
+hints (`ttlMs` of an hour, `cacheScope: "public"`): the tools are the same for
+every caller. An older client starts with `initialize` and is served by the
+version it asks for; no session id is issued. Those older versions are not
+listed by `server/discover` or by the "unsupported version" error, which name
+only what a request in the modern shape may use.
 
 Outside the protocol the server answers with plain HTTP statuses:
 

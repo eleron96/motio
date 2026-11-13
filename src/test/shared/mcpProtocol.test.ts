@@ -50,7 +50,9 @@ describe('modern clients (2026-07-28): no handshake, metadata on every request',
   it('answers server/discover with the versions and capabilities it speaks', () => {
     const result = resultOf(modern('server/discover'));
     expect(result.resultType).toBe('complete');
-    expect(result.supportedVersions).toEqual(SUPPORTED_VERSIONS);
+    expect(result.supportedVersions).toEqual([MODERN_VERSION]);
+    // Caching hints are mandatory on server/discover and tools/list.
+    expect(result).toMatchObject({ ttlMs: 3600000, cacheScope: 'public' });
     expect(result.capabilities).toEqual({ tools: {} });
     expect(result._meta).toEqual({ 'io.modelcontextprotocol/serverInfo': { name: 'motio', title: 'Motio', version: '1.0.0' } });
     expect(String(result.instructions)).toMatch(/Read-only/);
@@ -60,6 +62,7 @@ describe('modern clients (2026-07-28): no handshake, metadata on every request',
     const result = resultOf(modern('tools/list'));
     expect(result.resultType).toBe('complete');
     expect((result.tools as Array<{ name: string }>).map((tool) => tool.name)).toContain('find_tasks');
+    expect(result).toMatchObject({ ttlMs: 3600000, cacheScope: 'public' });
   });
 
   it('hands a tool call over once the headers match the body', () => {
@@ -85,6 +88,23 @@ describe('modern clients (2026-07-28): no handshake, metadata on every request',
       { protocolVersion: '2099-01-01', method: 'tools/list', name: null },
     );
     expect(errorOf(plan)).toEqual({ status: 400, code: -32022, data: { supported: SUPPORTED_VERSIONS, requested: '2099-01-01' } });
+  });
+
+  it('never offers a version it would refuse in this shape', () => {
+    // A handshake-era version sent the modern way is refused — and is not in the list to retry with.
+    const plan = planMcpMessage(
+      { jsonrpc: '2.0', id: 1, method: 'tools/list', params: { _meta: { ...META, 'io.modelcontextprotocol/protocolVersion': '2025-11-25' } } },
+      { protocolVersion: '2025-11-25', method: 'tools/list', name: null },
+    );
+    expect(errorOf(plan)).toEqual({ status: 400, code: -32022, data: { supported: [MODERN_VERSION], requested: '2025-11-25' } });
+    expect(SUPPORTED_VERSIONS).not.toContain('2025-11-25');
+  });
+
+  it('tells a client with an unknown version header which versions exist, not which field is missing', () => {
+    for (const version of ['2024-11-05', 'garbage', '1900-01-01']) {
+      const plan = planMcpMessage({ jsonrpc: '2.0', id: 1, method: 'tools/list' }, { protocolVersion: version, method: null, name: null });
+      expect(errorOf(plan), version).toEqual({ status: 400, code: -32022, data: { supported: [MODERN_VERSION], requested: version } });
+    }
   });
 
   it('requires the metadata a modern request must carry', () => {

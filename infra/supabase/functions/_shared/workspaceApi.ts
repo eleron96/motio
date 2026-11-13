@@ -6,7 +6,7 @@
  * parsed by timeOffApi.ts; the rules themselves live in the database
  * functions api_* (migrations 0156, 0187). Reference: docs/api.md.
  */
-import { parseApiRoute, parseListQuery, type ApiRoute } from "./timeOffApi.ts";
+import { isIsoDate, parseApiRoute, parseListQuery, type ApiRoute } from "./timeOffApi.ts";
 
 /** What a token may do; chosen when it is created (workspace_api_tokens.scopes). */
 export type ApiScope = "time_off" | "read";
@@ -28,7 +28,11 @@ const COLLECTION_PATH = /^\/?api\/v1\/(workspace|members|projects|tasks|mileston
 const TASK_PATH = /^\/?api\/v1\/tasks\/([^/]+)\/?$/;
 
 /** pathname as the function receives it: /api/v1/<resource>[/<id>]. */
-export const parseWorkspaceApiRoute = (method: string, pathname: string): WorkspaceApiRouteResult => {
+export const parseWorkspaceApiRoute = (
+  method: string,
+  pathname: string,
+  params?: URLSearchParams,
+): WorkspaceApiRouteResult => {
   const collection = pathname.match(COLLECTION_PATH);
   if (collection) {
     if (method !== "GET") return { error: "method_not_allowed" };
@@ -40,7 +44,7 @@ export const parseWorkspaceApiRoute = (method: string, pathname: string): Worksp
     if (method !== "GET") return { error: "method_not_allowed" };
     return { kind: "task", taskId: task[1].toLowerCase() };
   }
-  return parseApiRoute(method, pathname);
+  return parseApiRoute(method, pathname, params);
 };
 
 /**
@@ -71,13 +75,11 @@ export const MAX_PAGE_SIZE = 500;
 /** Where the previous page ended: the sort date and the id of its last row. */
 export type PageCursor = { date: string; id: string };
 
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
-
 export const encodeCursor = (cursor: PageCursor): string => `${cursor.date}_${cursor.id}`;
 
 export const decodeCursor = (value: string): PageCursor | null => {
   const [date, id, ...rest] = value.split("_");
-  if (rest.length > 0 || !date || !id || !ISO_DATE.test(date) || !UUID.test(id)) return null;
+  if (rest.length > 0 || !date || !id || !isIsoDate(date) || !UUID.test(id)) return null;
   return { date, id: id.toLowerCase() };
 };
 
@@ -157,7 +159,23 @@ export type TasksQuery = MilestonesQuery & {
 
 // A full timestamp with a zone ("2026-11-01T09:00:00Z", "…+01:00"): without a
 // zone the same text would mean different moments to the caller and to us.
-const ISO_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d{1,6})?)?(Z|[+-]\d{2}:\d{2})$/;
+const ISO_TIMESTAMP = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,6})?)?(?:Z|[+-](\d{2}):(\d{2}))$/;
+
+/**
+ * A moment the database can hold, checked part by part: a real day, a real
+ * time of day, a zone offset of at most 14 hours. The text itself goes to the
+ * database, so microseconds survive — "changed since the last updated_at I
+ * saw" must not round down. Years 0001 and 9999 are left out: an offset could
+ * carry them past what PostgreSQL accepts.
+ */
+export const isIsoTimestamp = (value: string): boolean => {
+  const match = ISO_TIMESTAMP.exec(value);
+  if (!match) return false;
+  const [, date, hours, minutes, seconds, offsetHours, offsetMinutes] = match;
+  if (!isIsoDate(date) || date.startsWith("0001") || date.startsWith("9999")) return false;
+  if (Number(hours) > 23 || Number(minutes) > 59 || Number(seconds ?? "0") > 59) return false;
+  return Number(offsetHours ?? "0") <= 14 && Number(offsetMinutes ?? "0") <= 59;
+};
 
 export const parseTasksQuery = (params: URLSearchParams): TasksQuery | { error: string } => {
   const base = parseMilestonesQuery(params);
@@ -165,12 +183,12 @@ export const parseTasksQuery = (params: URLSearchParams): TasksQuery | { error: 
   const assignee = optionalUuid(params, "assignee_id");
   if ("error" in assignee) return assignee;
   const rawSince = params.get("updated_since")?.trim() || null;
-  if (rawSince && (!ISO_TIMESTAMP.test(rawSince) || Number.isNaN(new Date(rawSince).getTime()))) {
+  if (rawSince && !isIsoTimestamp(rawSince)) {
     return { error: "updated_since must be a timestamp with a time zone (2026-11-01T09:00:00Z)" };
   }
   return {
     ...base,
     assigneeId: assignee.value,
-    updatedSince: rawSince ? new Date(rawSince).toISOString() : null,
+    updatedSince: rawSince,
   };
 };

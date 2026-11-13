@@ -112,7 +112,7 @@ async function withSeed<T>(fn: (client: PoolClient, seeded: Seeded) => Promise<T
 const LIST_TASKS = `select id, title, start_date::text, status, is_done, type, tags, assignee_ids
   from public.api_list_tasks($1, $2, $3, $4, $5, $6, $7, $8, $9)`;
 
-type TaskRow = { id: string; title: string; start_date: string; status: string; is_done: boolean; type: string; tags: string[]; assignee_ids: string[] };
+type TaskRow = { id: string; title: string; start_date: string; status: string | null; is_done: boolean; type: string | null; tags: string[]; assignee_ids: string[] };
 
 const listTasks = async (client: PoolClient, workspace: string, args: Partial<{
   from: string; to: string; project: string; assignee: string; since: string; afterDate: string; afterId: string; limit: number;
@@ -247,6 +247,70 @@ describe("workspace API: scopes and reading (0187)", () => {
     });
   });
 
+  it("gives out an account's email only while the account is a member", async () => {
+    await withSeed(async (client) => {
+      // Charlie leaves W1: his row stays on the timeline, his address must not.
+      await client.query("delete from public.workspace_members where workspace_id = $1 and user_id = $2", [W1, TEST_USER_IDS.charlie]);
+      const charlie = await one(client, "select id from public.assignees where workspace_id = $1 and user_id = $2", [W1, TEST_USER_IDS.charlie]);
+      await client.query(
+        "insert into public.time_off (workspace_id, assignee_id, start_date, end_date) values ($1, $2, '2031-06-01', '2031-06-02')",
+        [W1, charlie],
+      );
+
+      const { rows: members } = await asServiceRole(client, () =>
+        client.query<{ id: string; email: string | null; role: string | null; has_account: boolean }>(
+          "select id, email, role, has_account from public.api_list_members($1)", [W1]));
+      expect(members.find((row) => row.id === charlie)).toEqual({ id: charlie, email: null, role: null, has_account: true });
+      expect(members.filter((row) => row.email).map((row) => row.email)).toEqual(["alice@fixture.local"]);
+
+      const { rows: absences } = await asServiceRole(client, () =>
+        client.query<{ email: string | null; person: string }>(
+          "select email, person from public.api_list_time_off($1, '2031-06-01', '2031-06-30')", [W1]));
+      expect(absences).toHaveLength(1);
+      expect(absences[0].email).toBeNull();
+    });
+  });
+
+  it("calls a cancelled task cancelled, not done", async () => {
+    await withSeed(async (client, seeded) => {
+      const cancelled = await one(
+        client,
+        "insert into public.statuses (workspace_id, name, color, is_final, is_cancelled) values ($1, 'Cancelled', '#94a3b8', true, true) returning id",
+        [W1],
+      );
+      await client.query("update public.tasks set status_id = $1 where id = $2", [cancelled, seeded.tasks[1]]);
+
+      const flags = (await listTasks(client, W1)).map((row) => [row.title, row.is_done]);
+      expect(flags).toEqual(expect.arrayContaining([["First", true], ["Second", false]]));
+      const { rows } = await asServiceRole(client, () =>
+        client.query<{ task: { is_done: boolean; is_cancelled: boolean } }>(
+          "select public.api_get_task($1, $2) as task", [W1, seeded.tasks[1]]));
+      expect(rows[0].task).toMatchObject({ status: "Cancelled", is_done: false, is_cancelled: true });
+    });
+  });
+
+  it("does not name another workspace's status, type or customer even if a row points at one", async () => {
+    await withSeed(async (client, seeded) => {
+      // The foreign keys are on the id alone, so nothing in the schema forbids
+      // these references.
+      const foreignStatus = await one(client, "insert into public.statuses (workspace_id, name, color) values ($1, 'W2 secret status', '#000000') returning id", [W2]);
+      const foreignType = await one(client, "insert into public.task_types (workspace_id, name) values ($1, 'W2 secret type') returning id", [W2]);
+      const foreignCustomer = await one(client, "insert into public.customers (workspace_id, name) values ($1, 'W2 secret customer') returning id", [W2]);
+      await client.query("update public.tasks set status_id = $1, type_id = $2 where id = $3", [foreignStatus, foreignType, seeded.tasks[2]]);
+      await client.query("update public.projects set customer_id = $1 where id = $2", [foreignCustomer, seeded.project]);
+
+      const third = (await listTasks(client, W1)).find((row) => row.id === seeded.tasks[2]);
+      expect(third).toMatchObject({ title: "Third", status: null, type: null, is_done: false });
+      const { rows: one_ } = await asServiceRole(client, () =>
+        client.query<{ task: Record<string, unknown> }>("select public.api_get_task($1, $2) as task", [W1, seeded.tasks[2]]));
+      expect(one_[0].task).toMatchObject({ title: "Third", status: null, type: null });
+      const { rows: projects } = await asServiceRole(client, () =>
+        client.query<{ name: string; customer: string | null; customer_id: string | null }>(
+          "select name, customer, customer_id from public.api_list_projects($1, null)", [W1]));
+      expect(projects.find((row) => row.name === "Bridge")).toEqual({ name: "Bridge", customer: null, customer_id: null });
+    });
+  });
+
   it("filters tasks and pages through them in a stable order", async () => {
     await withSeed(async (client, seeded) => {
       const all = await listTasks(client, W1);
@@ -265,6 +329,13 @@ describe("workspace API: scopes and reading (0187)", () => {
       expect((await listTasks(client, W1, { project: seeded.otherProject })).map((row) => row.title)).toEqual(["Third"]);
       expect((await listTasks(client, W1, { assignee: seeded.external })).map((row) => row.title)).toEqual(["Second"]);
       expect(await listTasks(client, W1, { since: "2999-01-01T00:00:00Z" })).toEqual([]);
+      // Microseconds count: "since the updated_at I last saw, plus a little" must not return that row again.
+      const { rows: stamp } = await client.query<{ at: string; later: string }>(
+        `select to_char(updated_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as at,
+                to_char((updated_at + interval '1 microsecond') at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as later
+           from public.tasks where id = $1`, [seeded.tasks[0]]);
+      expect((await listTasks(client, W1, { since: stamp[0].at })).map((row) => row.id)).toContain(seeded.tasks[0]);
+      expect(await listTasks(client, W1, { since: stamp[0].later })).toEqual([]);
       expect(await listTasks(client, W1, { limit: 100000 })).toHaveLength(3);
     });
   });

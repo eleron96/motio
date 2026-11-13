@@ -51,13 +51,19 @@ only: they keep doing exactly what they did.
 | Format | JSON in, JSON out, UTF-8 |
 | Rate limit | 5 requests per second per IP, bursts up to 20; above that `429` |
 | Request size | up to 256 KB and 500 items per request |
-| Ids | UUIDs; dates are `YYYY-MM-DD`, timestamps are UTC in ISO 8601 |
+| Ids | UUIDs |
+| Dates | `YYYY-MM-DD` |
+| Timestamps | ISO 8601 in UTC with the offset written out and up to six decimal places: `2026-10-28T09:12:44.512+00:00`, `2026-09-19T15:08:16.800568+00:00` |
 
 The API is meant for servers and scripts. It sends no CORS headers, so a browser
 page cannot call it — which also keeps the token out of browsers.
 
 A token belongs to one workspace, and every endpoint answers for that workspace
 only: there is no way to name another one.
+
+Query parameters an endpoint does not know are ignored, and of a repeated
+parameter the first value counts: check the spelling of a filter that seems to
+have no effect.
 
 ### Paging
 
@@ -135,9 +141,12 @@ Everyone on the timeline: members with an account and people added without one.
 ```
 
 `id` is what tasks carry in `assignee_ids`. `email` and `role` (`admin`, `editor`,
-`viewer`) are those of the person's account and `null` for people without one;
-`group` is `null` when the person is in no group. `is_active` is `false` for
-someone taken off the timeline, with the moment in `deactivated_at`.
+`viewer`) are those of the person's account while it is a member of the
+workspace. They are `null` for people without an account, and for someone who
+has left the workspace but still has a row on the timeline (`has_account` stays
+`true`). `group` is `null` when the person is in no group. `is_active` is `false`
+for someone taken off the timeline; `deactivated_at` holds the moment when Motio
+recorded it, and can be `null`.
 
 ### Projects
 
@@ -159,7 +168,7 @@ Without `archived` both active and archived projects are listed.
       "archived": false,
       "customer_id": "0e6b2a4d-…",
       "customer": "North",
-      "created_at": "2026-09-02T08:15:00.000Z"
+      "created_at": "2026-09-02T08:15:00.000000+00:00"
     }
   ]
 }
@@ -181,7 +190,7 @@ Every filter is optional:
 | `from`, `to` | tasks that overlap the range (either bound alone works) |
 | `project_id` | tasks of one project |
 | `assignee_id` | tasks assigned to one person (an `id` from `/members`) |
-| `updated_since` | tasks changed at or after a moment, e.g. `2026-11-01T09:00:00Z`; the time zone is required |
+| `updated_since` | tasks changed at or after a moment, e.g. `2026-11-01T09:00:00Z`; the time zone is required. An `updated_at` from a response can be sent back as it is, microseconds included — URL-encode its `+` as `%2B` |
 
 Tasks come ordered by start date, [a page at a time](#paging):
 
@@ -203,8 +212,8 @@ Tasks come ordered by start date, [a page at a time](#paging):
       "priority": "high",
       "tags": ["urgent"],
       "repeat_id": null,
-      "created_at": "2026-10-28T09:12:44.512Z",
-      "updated_at": "2026-11-03T14:02:10.090Z"
+      "created_at": "2026-10-28T09:12:44.512000+00:00",
+      "updated_at": "2026-11-03T14:02:10.090000+00:00"
     }
   ],
   "next_cursor": null
@@ -213,7 +222,8 @@ Tasks come ordered by start date, [a page at a time](#paging):
 
 `end_date` is the last day of the task, inclusive. `status` and `type` are the
 names from the workspace settings; `is_done` and `is_cancelled` say what the
-status means, whatever it is called. `priority` is `low`, `medium`, `high` or
+status means, whatever it is called: a finished task is `is_done`, a cancelled
+one is `is_cancelled` and not `is_done`, anything else is neither. `priority` is `low`, `medium`, `high` or
 `null`. Tasks of one repeating series share a `repeat_id`. `project_id` is `null`
 for a task without a project, `assignee_ids` is empty for an unassigned one.
 
@@ -263,7 +273,7 @@ Ordered by date, [a page at a time](#paging):
       "note": null,
       "status": null,
       "include_in_workload": false,
-      "updated_at": "2026-10-30T11:40:00.000Z"
+      "updated_at": "2026-10-30T11:40:00.000000+00:00"
     }
   ],
   "next_cursor": null
@@ -285,7 +295,8 @@ GET /time-off?from=YYYY-MM-DD&to=YYYY-MM-DD
 ```
 
 Both filters are optional and select absences that overlap the range. Returns all
-absences of the workspace, imported or not (up to 5000):
+absences of the workspace, imported or not (up to 5000), in one answer: this list
+is not paged.
 
 ```bash
 curl -s "https://planner.example.com/functions/v1/api/v1/time-off?from=2026-11-01&to=2026-11-30" \
@@ -303,14 +314,14 @@ curl -s "https://planner.example.com/functions/v1/api/v1/time-off?from=2026-11-0
       "start_date": "2026-11-09",
       "end_date": "2026-11-13",
       "note": "Vacation",
-      "updated_at": "2026-10-28T09:12:44.512Z"
+      "updated_at": "2026-10-28T09:12:44.512000+00:00"
     }
   ]
 }
 ```
 
 `external_id` is `null` for absences entered by hand; `email` is `null` for
-people without an account.
+people without an account and for those who have left the workspace.
 
 ### Create or update absences
 
@@ -318,7 +329,7 @@ people without an account.
 PUT /time-off
 ```
 
-Body: `{"items": [...]}` (a bare array works too). Each item:
+`POST` does the same. Body: `{"items": [...]}` (a bare array works too). Each item:
 
 | Field | Required | |
 |---|---|---|
@@ -385,7 +396,14 @@ curl -s -X DELETE "https://planner.example.com/functions/v1/api/v1/time-off/hr-1
 ```
 
 `204` when deleted, `404` when there is no imported absence with this id.
-URL-encode ids with `/` or spaces. Removing absences that disappeared from your
+URL-encode ids with spaces or other special characters. An id that contains a
+`/` cannot travel in a path — proxies decode or refuse it there — so pass it as a
+parameter instead:
+
+```
+DELETE /time-off?external_id=hr%2F1042
+```
+ Removing absences that disappeared from your
 system is up to the caller: list with `GET`, compare, delete.
 
 ## Errors
@@ -404,7 +422,7 @@ Request-level errors share one shape:
 | 404 | `not_found` | unknown endpoint, no such task, or nothing to delete |
 | 405 | `method_not_allowed` | wrong method for the endpoint |
 | 413 | `payload_too_large` | body over 256 KB |
-| 422 | `invalid_query` / `invalid_body` | a bad filter, `limit` or `cursor`; empty or oversized `items` |
+| 422 | `invalid_query` / `invalid_body` | a bad filter, `limit` or `cursor` (a date that does not exist counts); empty or oversized `items` |
 | 429 | — | rate limit; retry after a second |
 | 500 | `internal_error` | our side; retry later |
 
