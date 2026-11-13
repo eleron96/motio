@@ -11,6 +11,9 @@ Motio has a small HTTP API for other systems. It does two things:
 
 The API cannot create or change tasks, projects, milestones or people.
 
+An AI assistant can read the same data through the built-in
+[MCP server](mcp.md), with the same token.
+
 ## Turning it on
 
 1. The `web` image is built with `VITE_FEATURE_WORKSPACE_API=true` (see

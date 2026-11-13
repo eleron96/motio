@@ -101,7 +101,7 @@ export const WorkspaceApiTokensSection: React.FC<{ workspaceId: string | null }>
     <div className="space-y-5">
       <Block
         title={t`Access for other systems`}
-        description={t`A token lets another system read this workspace or import absences into it. You choose what each token may do when you create it; it can do nothing else.`}
+        description={t`Connect another program to this workspace: for reports, or to bring in absences from your time tracking. Create a separate token for each program.`}
       >
         <div className="flex flex-wrap items-center gap-3">
           <Button size="sm" onClick={() => setCreateOpen(true)} disabled={!workspaceId || busy}>

@@ -6,6 +6,7 @@ import { handler as dataExportHandler } from "../data-export/index.ts";
 import { handler as holidaysHandler } from "../holidays/index.ts";
 import { handler as inviteHandler } from "../invite/index.ts";
 import { handler as mailerHandler } from "../mailer/index.ts";
+import { handler as mcpHandler } from "../mcp/index.ts";
 import { handler as notificationsHandler } from "../notifications/index.ts";
 import { handler as pushHandler } from "../push/index.ts";
 import { handler as taskMediaHandler } from "../task-media/index.ts";
@@ -24,6 +25,7 @@ const handlers: Record<string, (req: Request) => Promise<Response>> = {
   holidays: holidaysHandler,
   invite: inviteHandler,
   mailer: mailerHandler,
+  mcp: mcpHandler,
   notifications: notificationsHandler,
   push: pushHandler,
   "task-media": taskMediaHandler,

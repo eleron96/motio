@@ -458,10 +458,6 @@ msgid "A task is assigned to me"
 msgstr "Mir wird eine Aufgabe zugewiesen"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
-msgid "A token lets another system read this workspace or import absences into it. You choose what each token may do when you create it; it can do nothing else."
-msgstr "Mit einem Token kann ein anderes System diesen Arbeitsbereich lesen oder Abwesenheiten importieren. Was ein Token darf, legen Sie beim Erstellen fest; mehr kann es nicht."
-
-#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "A workspace can have at most 10 active tokens. Revoke one you no longer use."
 msgstr "Ein Arbeitsbereich kann höchstens 10 aktive Tokens haben. Widerrufen Sie eines, das Sie nicht mehr brauchen."
 
@@ -1697,6 +1693,10 @@ msgstr "Konzeptpräsentation"
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
 msgid "Configure widget type, display style, and filters."
 msgstr "Widget-Typ, Darstellung und Filter festlegen."
+
+#: src/features/workspace/components/WorkspaceApiTokensSection.tsx
+msgid "Connect another program to this workspace: for reports, or to bring in absences from your time tracking. Create a separate token for each program."
+msgstr "Verbinden Sie ein anderes Programm mit diesem Arbeitsbereich: für Berichte oder um Abwesenheiten aus Ihrer Zeiterfassung zu übernehmen. Erstellen Sie für jedes Programm ein eigenes Token."
 
 #: src/features/planner/lib/syncStatusToasts.ts
 msgid "Connection restored"

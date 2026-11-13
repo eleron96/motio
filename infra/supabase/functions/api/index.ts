@@ -1,11 +1,10 @@
 import { createSupabaseClients } from "../_shared/supabaseAuth.ts";
 import { captureException } from "../_shared/sentryCapture.ts";
-import { handleRead } from "./read.ts";
+import { handleRead, readTimeOff } from "../_shared/workspaceApiRead.ts";
 import { isRouteAllowed, parseWorkspaceApiRoute, scopesForRoute } from "../_shared/workspaceApi.ts";
 import {
   MAX_BODY_BYTES,
   parseBearerToken,
-  parseListQuery,
   parseUpsertBody,
   sha256Hex,
 } from "../_shared/timeOffApi.ts";
@@ -124,19 +123,18 @@ export const handler = async (req: Request): Promise<Response> => {
   }
 
   if (route.kind === "list") {
-    const query = parseListQuery(url.searchParams);
-    if ("error" in query) return errorResponse(422, "invalid_query", query.error);
-    const { data, error } = await supabaseAdmin.rpc("api_list_time_off", {
-      p_workspace_id: workspaceId,
-      p_from: query.from,
-      p_to: query.to,
-    });
-    if (error) {
-      log("error", { action: "list", workspaceId, result: "error", errorCode: error.code });
-      return errorResponse(500, "internal_error", "internal error");
+    const outcome = await readTimeOff(supabaseAdmin, workspaceId, url.searchParams);
+    if ("status" in outcome) {
+      log(outcome.status === 500 ? "error" : "info", {
+        action: "list",
+        workspaceId,
+        result: "error",
+        errorCode: outcome.errorCode ?? outcome.code,
+      });
+      return errorResponse(outcome.status, outcome.code, outcome.message);
     }
-    log("info", { action: "list", workspaceId, result: "success", count: data?.length ?? 0 });
-    return jsonResponse({ items: data ?? [] });
+    log("info", { action: "list", workspaceId, result: "success", count: outcome.count });
+    return jsonResponse(outcome.body);
   }
 
   if (route.kind === "upsert") {

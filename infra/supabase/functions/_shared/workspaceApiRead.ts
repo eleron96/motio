@@ -1,14 +1,17 @@
-// Workspace API, the read-only half: workspace, people, projects, tasks and
-// milestones of the workspace the token belongs to. Each handler is one call of
-// a database function api_* (migration 0187) bound to that workspace.
+// Workspace API, the read-only half: workspace, people, projects, tasks,
+// milestones and absences of the workspace the token belongs to. Each handler
+// is one call of a database function api_* (migrations 0156, 0187) bound to
+// that workspace. Two callers: the HTTP API (functions/api) and the MCP server
+// (functions/mcp) — the same rules behind both.
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.45.4";
+import { parseListQuery } from "./timeOffApi.ts";
 import {
   parseMilestonesQuery,
   parseProjectsQuery,
   parseTasksQuery,
   toPage,
   type ReadRoute,
-} from "../_shared/workspaceApi.ts";
+} from "./workspaceApi.ts";
 
 /** What a handler answers with; the caller turns it into a response and a log line. */
 export type ReadOutcome =
@@ -21,6 +24,24 @@ const failed = (errorCode: string | undefined): ReadOutcome =>
 const invalidQuery = (message: string): ReadOutcome => ({ status: 422, code: "invalid_query", message });
 
 type DatedRow = { id: string; start_date?: string; date?: string };
+
+/** Absences of the workspace that overlap ?from=&to= (both optional). */
+export const readTimeOff = async (
+  supabaseAdmin: SupabaseClient,
+  workspaceId: string,
+  params: URLSearchParams,
+): Promise<ReadOutcome> => {
+  const query = parseListQuery(params);
+  if ("error" in query) return invalidQuery(query.error);
+  const { data, error } = await supabaseAdmin.rpc("api_list_time_off", {
+    p_workspace_id: workspaceId,
+    p_from: query.from,
+    p_to: query.to,
+  });
+  if (error) return failed(error.code);
+  const items = (data ?? []) as unknown[];
+  return { body: { items }, count: items.length };
+};
 
 export const handleRead = async (
   supabaseAdmin: SupabaseClient,
