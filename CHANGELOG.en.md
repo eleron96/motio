@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.81] - 2026-11-18
 ### Changed
 - Bars on the timeline pack tighter: long tasks lie on top and short ones fill the room under them, so far fewer empty places are left above a bar. Of two tasks of the same length the one with the higher priority is higher.
 
