@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.80] - 2026-11-18
 ### Added
 - Task reminders: pick "On the start day", "1 day before", "2 days before" or "1 week before" in the task card — at 9:00 that morning the assignees get a notification in the bell and, if they switched it on, a push.
 
