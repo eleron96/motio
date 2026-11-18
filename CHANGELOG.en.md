@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- On the timeline open tasks lie above closed ones: of two tasks of the same length the one still to do is higher, then the done one, and a cancelled one is the lowest. A task you close stays where it is and moves down the next time you open the timeline.
+
 ## [0.10.81] - 2026-11-18
 ### Changed
 - Bars on the timeline pack tighter: long tasks lie on top and short ones fill the room under them, so far fewer empty places are left above a bar. Of two tasks of the same length the one with the higher priority is higher.

@@ -80,35 +80,18 @@ const spanOf = (task: Task): number => {
 const PRIORITY_RANK: Record<TaskPriority, number> = { low: 1, medium: 2, high: 3 };
 const priorityRank = (task: Task) => (task.priority ? PRIORITY_RANK[task.priority] : 0);
 
+/**
+ * How closed a task is, by its status: 0 — open, 1 — done (a final status),
+ * 2 — cancelled. Keyed by status id; a status that is not listed counts as open.
+ */
+export type TaskStateRank = 0 | 1 | 2;
+export type TaskStateRanks = ReadonlyMap<string, TaskStateRank>;
+
+type TaskOrder = (left: Task, right: Task) => number;
+
 /** The order bars are returned and drawn in: by start, then by end. */
-const byStart = (left: Task, right: Task) => (
+const byStart: TaskOrder = (left, right) => (
   compareDates(left.startDate, right.startDate) || compareDates(left.endDate, right.endDate)
-);
-
-/**
- * The order bars take their lanes in, like pieces in Tetris: the longest first,
- * so long bars lie on top and short ones fill the room under them. Packed by
- * start with the shorter task first, a long task that began on a busy day
- * landed under the whole stack and hung there for days after the stack was
- * gone, with empty lanes above it. Of two tasks of one length the one with the
- * higher priority goes first, then the earlier one.
- */
-const longestFirst = (left: Task, right: Task) => (
-  spanOf(right) - spanOf(left)
-  || priorityRank(right) - priorityRank(left)
-  || compareDates(left.startDate, right.startDate)
-);
-
-/**
- * By start, and within one start still the longest and the more important
- * first. Packing by start never needs more lanes than the busiest day has
- * tasks, and in a row of a few long bars following one another it leaves fewer
- * empty places than the longest-first order.
- */
-const byStartLongestFirst = (left: Task, right: Task) => (
-  compareDates(left.startDate, right.startDate)
-  || spanOf(right) - spanOf(left)
-  || priorityRank(right) - priorityRank(left)
 );
 
 /**
@@ -116,8 +99,74 @@ const byStartLongestFirst = (left: Task, right: Task) => (
  * and then has the fewest holes is kept, the earlier order winning a tie. The
  * last is the order used before the longest-first one (by start, the shorter
  * first): with it among them no row is laid out worse than it used to be.
+ *
+ * In every one of them, of two tasks on the same days the open one goes before
+ * the done one and the done before the cancelled — whichever order wins, bars
+ * that share all their days lie open, done, cancelled from the top.
  */
-const PACKING_ORDERS = [longestFirst, byStartLongestFirst, byStart];
+const createPackingOrders = (stateRanks?: TaskStateRanks): TaskOrder[] => {
+  const stateRank = (task: Task) => stateRanks?.get(task.statusId) ?? 0;
+
+  /**
+   * The order bars take their lanes in, like pieces in Tetris: the longest
+   * first, so long bars lie on top and short ones fill the room under them.
+   * Packed by start with the shorter task first, a long task that began on a
+   * busy day landed under the whole stack and hung there for days after the
+   * stack was gone, with empty lanes above it. Of two tasks of one length the
+   * open one goes first, then the done, then the cancelled: what is still to
+   * do lies above what is over. Then the one with the higher priority, then
+   * the earlier one.
+   *
+   * The state does not come before the length: closed long bars would then
+   * hang under the open short ones of a day or two, with empty lanes above
+   * them on all their other days — the very holes this order is for.
+   */
+  const longestFirst: TaskOrder = (left, right) => (
+    spanOf(right) - spanOf(left)
+    || stateRank(left) - stateRank(right)
+    || priorityRank(right) - priorityRank(left)
+    || compareDates(left.startDate, right.startDate)
+  );
+
+  /**
+   * By start, and within one start still the longest, the open and the more
+   * important first. Packing by start never needs more lanes than the busiest
+   * day has tasks, and in a row of a few long bars following one another it
+   * leaves fewer empty places than the longest-first order.
+   */
+  const byStartLongestFirst: TaskOrder = (left, right) => (
+    compareDates(left.startDate, right.startDate)
+    || spanOf(right) - spanOf(left)
+    || stateRank(left) - stateRank(right)
+    || priorityRank(right) - priorityRank(left)
+  );
+
+  /**
+   * The order used before: by start, the shorter first. Tasks on the same days
+   * are interchangeable to the packing, so ordering them by state and priority
+   * leaves the row exactly as high and with as many holes as it was.
+   */
+  const byStartShortestFirst: TaskOrder = (left, right) => (
+    byStart(left, right)
+    || stateRank(left) - stateRank(right)
+    || priorityRank(right) - priorityRank(left)
+  );
+
+  return [longestFirst, byStartLongestFirst, byStartShortestFirst];
+};
+
+const DEFAULT_PACKING_ORDERS = createPackingOrders();
+const packingOrdersCache = new WeakMap<TaskStateRanks, TaskOrder[]>();
+/** Cached by the ranks map: every row of a layout is packed with the same one. */
+const packingOrdersFor = (stateRanks?: TaskStateRanks): TaskOrder[] => {
+  if (!stateRanks || stateRanks.size === 0) return DEFAULT_PACKING_ORDERS;
+  let orders = packingOrdersCache.get(stateRanks);
+  if (!orders) {
+    orders = createPackingOrders(stateRanks);
+    packingOrdersCache.set(stateRanks, orders);
+  }
+  return orders;
+};
 
 type LaneSpan = { startDate: string; endDate: string };
 
@@ -215,12 +264,17 @@ const countHoles = (tasks: Task[], board: LaneBoard): number => {
   return holes;
 };
 
-/** The best of the packings from scratch (see PACKING_ORDERS). */
-const packFromScratch = (tasks: Task[], placeOrder: Task[], reservedLaneZero: ReservedPeriod[]): LaneBoard => {
+/** The best of the packings from scratch (see createPackingOrders); `placeOrder` is the first of them. */
+const packFromScratch = (
+  tasks: Task[],
+  placeOrder: Task[],
+  otherOrders: TaskOrder[],
+  reservedLaneZero: ReservedPeriod[],
+): LaneBoard => {
   let best = packInOrder(placeOrder, reservedLaneZero);
   if (best.height() <= 1) return best;
   let bestHoles = countHoles(tasks, best);
-  for (const order of PACKING_ORDERS.slice(1)) {
+  for (const order of otherOrders) {
     if (bestHoles === 0) break;
     const board = packInOrder([...tasks].sort(order), reservedLaneZero);
     if (board.height() > best.height()) continue;
@@ -237,12 +291,13 @@ const packFromScratch = (tasks: Task[], placeOrder: Task[], reservedLaneZero: Re
  * Calculate lanes for tasks to avoid visual overlapping.
  * Tasks that overlap in time are placed in different lanes.
  *
- * Bars take their lanes longest first (see `longestFirst`), each in the top
- * lane free over all of its days — so no bar can be lifted any higher. Empty
- * places above a bar remain only where one of its days is taken in every lane
- * above: a bar keeps one lane over all its days. No row is laid out worse for
- * it: when packing by start makes the row lower or leaves fewer holes, the row
- * is packed by start (see `PACKING_ORDERS`).
+ * Bars take their lanes longest first, and of one length the open before the
+ * done before the cancelled (see `createPackingOrders`; `stateRanks` tells
+ * which status is which), each in the top lane free over all of its days — so
+ * no bar can be lifted any higher. Empty places above a bar remain only where
+ * one of its days is taken in every lane above: a bar keeps one lane over all
+ * its days. No row is laid out worse for it: when packing by start makes the
+ * row lower or leaves fewer holes, the row is packed by start.
  *
  * `reservedLaneZero` lists periods that own lane 0 (the time-off bar, which is
  * rendered outside this packer). A task is kept out of lane 0 only while it
@@ -257,7 +312,9 @@ const packFromScratch = (tasks: Task[], placeOrder: Task[], reservedLaneZero: Re
  * its days; new tasks, tasks whose lane became taken, and tasks whose days
  * changed (dragged, resized, moved by a teammate) are placed in the first free
  * lane, the longest first — a moved bar kept its old lane and hung low under
- * free lanes of its new days. A change of priority alone moves no bar.
+ * free lanes of its new days. A change of status or priority alone moves no
+ * bar: a task closed on screen stays where it is and sinks under the open
+ * ones when the row is next laid out from scratch.
  *
  * The place a task leaves by a change on screen — dragged or resized off its
  * days, deleted, moved to another row — is filled: the bars under it on those
@@ -273,9 +330,11 @@ export const calculateTaskLanes = (
   reservedLaneZero: ReservedPeriod[] = [],
   previousLanes?: ReadonlyMap<string, RememberedLane>,
   layoutRange?: LayoutRange,
+  stateRanks?: TaskStateRanks,
 ): TaskWithLane[] => {
   if (tasks.length === 0) return [];
 
+  const [longestFirst, ...otherOrders] = packingOrdersFor(stateRanks);
   const drawOrder = [...tasks].sort(byStart);
   const placeOrder = [...tasks].sort(longestFirst);
 
@@ -283,7 +342,7 @@ export const calculateTaskLanes = (
     return packKeepingLanes(drawOrder, placeOrder, reservedLaneZero, previousLanes, layoutRange);
   }
 
-  const board = packFromScratch(tasks, placeOrder, reservedLaneZero);
+  const board = packFromScratch(tasks, placeOrder, otherOrders, reservedLaneZero);
 
   return drawOrder.map((task) => wrapWithLane(task, board.laneOf(task)));
 };

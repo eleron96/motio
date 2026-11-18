@@ -48,7 +48,8 @@ const priorityStyles: Record<TaskPriority, { className: string; color: string; s
   high: { className: 'text-red-600', color: TASK_PRIORITY_COLORS.high, symbol: '‼' },
 };
 
-const isCancelledStatus = (status: TaskBarStatusLike) => {
+/** Cancelled by its flag or, for statuses older than the flag, by its name. */
+export const isCancelledStatus = (status: TaskBarStatusLike) => {
   if (!status) return false;
   if (status.isCancelled) return true;
   return ['отменена', 'cancelled', 'canceled'].includes(stripStatusEmoji(status.name).trim().toLowerCase());

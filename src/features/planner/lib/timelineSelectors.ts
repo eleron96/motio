@@ -1,5 +1,8 @@
-import { Assignee, Filters, GroupMode, MemberGroupAssignment, Project, Task } from '@/features/planner/types/planner';
-import { LayoutRange, RememberedLane, ReservedPeriod, TaskWithLane, calculateTaskLanes, getMaxLanes } from '@/features/planner/lib/taskLanes';
+import { Assignee, Filters, GroupMode, MemberGroupAssignment, Project, Status, Task } from '@/features/planner/types/planner';
+import {
+  LayoutRange, RememberedLane, ReservedPeriod, TaskStateRank, TaskStateRanks, TaskWithLane, calculateTaskLanes, getMaxLanes,
+} from '@/features/planner/lib/taskLanes';
+import { isCancelledStatus } from '@/features/planner/lib/taskBarColors';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { DEFAULT_NEUTRAL_COLOR } from '@/shared/lib/colors';
 import { ROW_BOTTOM_SPACE, ROW_TOP_PADDING } from '@/features/planner/lib/dateUtils';
@@ -176,6 +179,35 @@ export const selectTimelineGroupItems = ({
   }));
 };
 
+const taskStateRankOf = (status: Pick<Status, 'name' | 'isFinal' | 'isCancelled'>): TaskStateRank => {
+  // The same test the bar is drawn by: what looks cancelled is laid out as cancelled.
+  if (isCancelledStatus(status)) return 2;
+  return status.isFinal ? 1 : 0;
+};
+
+/**
+ * Status id → how closed its tasks are (open, done, cancelled): the order bars
+ * of one length take their lanes in (calculateTaskLanes). The same ranks keep
+ * the same map, so a reload of the statuses or a renamed one does not redo the
+ * layout — pass the last map as `previous`.
+ */
+export const selectTaskStateRanks = (
+  statuses: Array<Pick<Status, 'id' | 'name' | 'isFinal' | 'isCancelled'>>,
+  previous?: TaskStateRanks,
+): TaskStateRanks => {
+  const ranks = new Map<string, TaskStateRank>();
+  statuses.forEach((status) => {
+    const rank = taskStateRankOf(status);
+    if (rank > 0) ranks.set(status.id, rank);
+  });
+  if (previous && previous.size === ranks.size) {
+    let same = true;
+    ranks.forEach((rank, id) => { if (previous.get(id) !== rank) same = false; });
+    if (same) return previous;
+  }
+  return ranks;
+};
+
 export const groupTasksByTimelineRow = ({
   filteredTasks,
   groupItems,
@@ -183,6 +215,7 @@ export const groupTasksByTimelineRow = ({
   reservedLaneZeroByRow,
   previousLanesByRow,
   layoutRange,
+  stateRanks,
 }: {
   filteredTasks: Task[];
   groupItems: TimelineGroupItem[];
@@ -196,6 +229,8 @@ export const groupTasksByTimelineRow = ({
   previousLanesByRow?: ReadonlyMap<string, ReadonlyMap<string, RememberedLane>>;
   /** The rendered days: tells a task deleted on screen from one scrolled away. */
   layoutRange?: LayoutRange;
+  /** Which statuses are done or cancelled (selectTaskStateRanks): open bars go above closed ones. */
+  stateRanks?: TaskStateRanks;
 }): Record<string, TaskWithLane[]> => {
   const grouped: Record<string, TaskWithLane[]> = {};
   groupItems.forEach((item) => {
@@ -239,6 +274,7 @@ export const groupTasksByTimelineRow = ({
       reservedLaneZeroByRow?.[groupId],
       previousLanesByRow?.get(groupId),
       layoutRange,
+      stateRanks,
     );
   });
 

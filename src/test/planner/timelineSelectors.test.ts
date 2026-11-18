@@ -5,6 +5,7 @@ import {
   calculateTimelineRowHeights,
   groupTasksByTimelineRow,
   selectFilteredTasks,
+  selectTaskStateRanks,
   selectTimelineGroupItems,
   selectVisibleAssignees,
 } from '@/features/planner/lib/timelineSelectors';
@@ -283,5 +284,69 @@ describe('timelineSelectors', () => {
     expect(rowTasks.a1.find((task) => task.id === 'before')?.lane).toBe(0);
     expect(rowTasks.a1.find((task) => task.id === 'during')?.lane).toBe(1);
     expect(rowTasks.a2.find((task) => task.id === 'other')?.lane).toBe(0);
+  });
+
+  it('lays open tasks out above done ones and done above cancelled, per row', () => {
+    const statuses = [
+      { id: 'open', name: 'In progress', isFinal: false, isCancelled: false },
+      { id: 'done', name: 'Done', isFinal: true, isCancelled: false },
+      { id: 'cancelled', name: 'Cancelled', isFinal: true, isCancelled: true },
+    ];
+    const rowTasks = groupTasksByTimelineRow({
+      filteredTasks: [
+        makeTask({ id: 'cancelled', assigneeIds: ['a1'], statusId: 'cancelled' }),
+        makeTask({ id: 'done', assigneeIds: ['a1'], statusId: 'done' }),
+        makeTask({ id: 'open', assigneeIds: ['a1'], statusId: 'open' }),
+      ],
+      groupItems: [{ id: 'a1', name: 'A1', color: undefined }],
+      groupMode: 'assignee',
+      stateRanks: selectTaskStateRanks(statuses),
+    });
+
+    expect(['open', 'done', 'cancelled'].map((id) => rowTasks.a1.find((task) => task.id === id)?.lane)).toEqual([0, 1, 2]);
+  });
+});
+
+describe('selectTaskStateRanks', () => {
+  const status = (id: string, name: string, isFinal = false, isCancelled = false) => ({ id, name, isFinal, isCancelled });
+
+  it('ranks done statuses 1 and cancelled ones 2, and leaves open ones out', () => {
+    const ranks = selectTaskStateRanks([
+      status('todo', 'To do'),
+      status('doing', 'In progress'),
+      status('done', 'Done', true),
+      status('cancelled', 'Cancelled', true, true),
+    ]);
+
+    expect([...ranks]).toEqual([['done', 1], ['cancelled', 2]]);
+  });
+
+  it('counts a status as cancelled the way its bars are drawn: by the flag or by the name', () => {
+    const ranks = selectTaskStateRanks([
+      status('flag-only', 'Dropped', false, true),
+      status('old-ru', '🚫 Отменена', true),
+      status('old-en', 'Cancelled'),
+    ]);
+
+    expect([...ranks.values()]).toEqual([2, 2, 2]);
+  });
+
+  it('keeps the same map while the ranks are the same, so the layout is not redone', () => {
+    const first = selectTaskStateRanks([status('todo', 'To do'), status('done', 'Done', true)]);
+
+    // Reloaded, renamed, a new open status added: nothing the layout depends on.
+    const reloaded = selectTaskStateRanks(
+      [status('todo', 'Backlog'), status('review', 'Review'), status('done', 'Shipped', true)],
+      first,
+    );
+    expect(reloaded).toBe(first);
+
+    const reopened = selectTaskStateRanks([status('todo', 'To do'), status('done', 'Done')], first);
+    expect(reopened).not.toBe(first);
+    expect(reopened.size).toBe(0);
+
+    const swapped = selectTaskStateRanks([status('todo', 'To do'), status('done', 'Done', true, true)], first);
+    expect(swapped).not.toBe(first);
+    expect(swapped.get('done')).toBe(2);
   });
 });

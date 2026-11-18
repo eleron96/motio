@@ -13,8 +13,10 @@ stripes is today.
 - **A grey Day off bar** — the person is away.
 
 Tasks that overlap in time stack up inside the row, so a row three bars deep means three
-things at once. Longer tasks lie on top and shorter ones fill the room under them; of two
-tasks of the same length the one with the higher priority is higher. Hover a bar for its project, assignees and repeat; click it to
+things at once. Longer tasks lie on top and shorter ones fill the room under them. Of two
+tasks of the same length an open one is higher than a done one and a done one higher than a
+cancelled one; then the one with the higher priority. A task you close stays where it is and
+moves down the next time you open the timeline. Hover a bar for its project, assignees and repeat; click it to
 [open the task](./tasks.md).
 
 ## Views
