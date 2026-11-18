@@ -199,18 +199,5 @@ export const calculateResizedDates = (
   }
 };
 
-export const checkOverlap = (
-  task1Start: string,
-  task1End: string,
-  task2Start: string,
-  task2End: string
-): boolean => {
-  const s1 = parseISO(task1Start);
-  const e1 = parseISO(task1End);
-  const s2 = parseISO(task2Start);
-  const e2 = parseISO(task2End);
-  
-  return s1 <= e2 && e1 >= s2;
-};
 
 export { isWeekend, format, parseISO, addDays, subDays, addWeeks, subWeeks, differenceInDays };
