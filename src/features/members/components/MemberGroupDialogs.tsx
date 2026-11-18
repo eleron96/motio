@@ -11,6 +11,8 @@ import {
   AlertDialogTitle,
 } from '@/shared/ui/alert-dialog';
 import { AssignGroupDialog } from '@/features/members/components/AssignGroupDialog';
+import { GroupColorScreen } from '@/features/members/components/GroupColorScreen';
+import { hasOwnGroupColor } from '@/shared/domain/groupColor';
 import type { MemberGroupFlow } from '@/features/members/hooks/useMemberGroupFlow';
 
 interface MemberGroupDialogsProps {
@@ -18,10 +20,20 @@ interface MemberGroupDialogsProps {
   groups: React.ComponentProps<typeof AssignGroupDialog>['groups'];
   loading: boolean;
   isMobile: boolean;
+  /** Colour in effect per group — picked or automatic. */
+  groupColorById: Map<string, string>;
+  onSetGroupColor: (groupId: string, color: string | null) => void;
 }
 
-/** Pick a group, confirm leaving a group, confirm deleting a group. */
-export const MemberGroupDialogs: React.FC<MemberGroupDialogsProps> = ({ flow, groups, loading, isMobile }) => {
+/** Pick a group, confirm leaving a group, confirm deleting a group, recolour one on a phone. */
+export const MemberGroupDialogs: React.FC<MemberGroupDialogsProps> = ({
+  flow,
+  groups,
+  loading,
+  isMobile,
+  groupColorById,
+  onSetGroupColor,
+}) => {
   const {
     groupAssignTarget,
     setGroupAssignTarget,
@@ -32,7 +44,13 @@ export const MemberGroupDialogs: React.FC<MemberGroupDialogsProps> = ({ flow, gr
     groupDeleteTarget,
     setGroupDeleteTarget,
     confirmGroupDeletion,
+    groupColorTargetId,
+    setGroupColorTargetId,
   } = flow;
+
+  const colorTarget = groupColorTargetId
+    ? groups.find((group) => group.id === groupColorTargetId) ?? null
+    : null;
 
   return (
     <>
@@ -106,6 +124,24 @@ export const MemberGroupDialogs: React.FC<MemberGroupDialogsProps> = ({ flow, gr
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    {/* The desktop recolours a group from a popover in its header; a phone gets
+        a screen of its own. */}
+    {isMobile && (
+      <GroupColorScreen
+        open={colorTarget !== null}
+        onOpenChange={(next) => {
+          if (!next) setGroupColorTargetId(null);
+        }}
+        groupName={colorTarget?.name ?? ''}
+        color={colorTarget ? groupColorById.get(colorTarget.id) ?? null : null}
+        hasOwnColor={hasOwnGroupColor(colorTarget)}
+        onSelect={(color) => {
+          if (colorTarget) onSetGroupColor(colorTarget.id, color);
+        }}
+        loading={loading}
+      />
+    )}
     </>
   );
 };

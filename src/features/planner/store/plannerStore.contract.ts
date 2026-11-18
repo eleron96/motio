@@ -45,6 +45,10 @@ import type { SubtaskPositionUpdate } from '@/shared/domain/taskSubtaskOrder';
 export type PlannerGroup = {
   id: string;
   name: string;
+  /** Picked colour, or null for an automatic one. See shared/domain/groupColor. */
+  color?: string | null;
+  /** When the group was created: the order automatic colours are handed out in. */
+  createdAt?: string | null;
 };
 
 export type PlannerGroupMember = {
@@ -92,6 +96,8 @@ export interface PlannerStore extends PlannerState {
   fetchGroupMembers: (workspaceId: string, groupId: string) => Promise<{ members: PlannerGroupMember[]; error?: string }>;
   createMemberGroup: (workspaceId: string, name: string) => Promise<{ groupId?: string; error?: string }>;
   updateMemberGroup: (workspaceId: string, groupId: string, name: string) => Promise<MutationResult>;
+  /** Gives the team a palette colour; null hands it back to the automatic one. */
+  setMemberGroupColor: (workspaceId: string, groupId: string, color: string | null) => Promise<MutationResult>;
   deleteMemberGroup: (workspaceId: string, groupId: string) => Promise<MutationResult>;
   reset: () => void;
   markTimelineInteraction: (durationMs?: number) => void;

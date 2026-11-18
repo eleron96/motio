@@ -17,6 +17,22 @@ interface ColorPickerProps {
    * has to stay within the pastel presets.
    */
   allowCustom?: boolean;
+  /**
+   * The tone a swatch is DRAWN in, when it differs from the stored value: a
+   * team's colour is stored as a pastel but shown as a deeper dot, and the
+   * picker should offer what will actually appear. `value` and `onChange` keep
+   * speaking in stored colours.
+   */
+  swatchColor?: (color: string) => string;
+  /**
+   * Which edge of the swatch the popover lines up with. `end` (the default)
+   * suits a swatch at the right end of a row; a swatch at the left edge of a
+   * panel wants `start`, or the popover hangs over whatever is left of it.
+   */
+  align?: 'start' | 'center' | 'end';
+  /** "Back to automatic": a text button under the swatches, when given. */
+  onReset?: () => void;
+  resetLabel?: string;
   'aria-label'?: string;
 }
 
@@ -26,8 +42,13 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   disabled = false,
   presets = PROJECT_PRESET_COLORS,
   allowCustom = true,
+  swatchColor,
+  align = 'end',
+  onReset,
+  resetLabel,
   'aria-label': ariaLabel,
 }) => {
+  const draw = (color: string) => (swatchColor ? swatchColor(color) : color);
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -35,14 +56,15 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
           type="button"
           disabled={disabled}
           aria-label={ariaLabel}
+          title={ariaLabel}
           className={cn(
             'w-6 h-6 rounded-full border-2 border-border transition-transform flex-shrink-0',
             disabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110',
           )}
-          style={{ backgroundColor: value }}
+          style={{ backgroundColor: draw(value) }}
         />
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-3" align="end">
+      <PopoverContent className="w-auto p-3" align={align}>
         <div className="flex flex-wrap gap-2 max-w-[180px]">
           {presets.map(color => (
             <button
@@ -54,7 +76,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
                 'w-6 h-6 rounded-full border-2 transition-transform hover:scale-110',
                 value === color ? 'border-foreground scale-110' : 'border-transparent'
               )}
-              style={{ backgroundColor: color }}
+              style={{ backgroundColor: draw(color) }}
             />
           ))}
           {allowCustom && (
@@ -67,6 +89,16 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
             />
           )}
         </div>
+        {onReset && resetLabel && (
+          <button
+            type="button"
+            onClick={onReset}
+            disabled={disabled}
+            className="mt-2 w-full rounded-md px-2 py-1 text-left text-xs text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
+          >
+            {resetLabel}
+          </button>
+        )}
       </PopoverContent>
     </Popover>
   );

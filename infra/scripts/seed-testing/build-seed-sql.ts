@@ -20,10 +20,12 @@ import {
   DEMO_SEED_CUSTOMERS,
   DEMO_SEED_CUSTOMER_CONTACTS,
   DEMO_SEED_DASHBOARDS,
+  DEMO_SEED_GROUPS,
   DEMO_SEED_MILESTONES,
   DEMO_SEED_PROJECTS,
   DEMO_SEED_PROJECT_CUSTOMER,
   DEMO_SEED_PROJECT_MEMBERS,
+  DEMO_SEED_PROJECT_OWNER_GROUP,
   DEMO_SEED_STATUSES,
   DEMO_SEED_TAGS,
   DEMO_SEED_TASKS,
@@ -159,9 +161,17 @@ end $$;`);
         lit(c.id), W, lit(c.customer_id), lit(c.name), lit(c.role), lit(c.email), lit(c.phone), lit(c.company), lit(c.tag), lit(c.position), orderedAt(index),
       ])),
   );
+  // Teams before projects: a project points at its owner team.
   parts.push(
-    insert('projects', ['id', 'workspace_id', 'name', 'color', 'customer_id', 'created_at'],
-      DEMO_SEED_PROJECTS.map((p) => [lit(p.id), W, lit(p.name), lit(p.color), lit(DEMO_SEED_PROJECT_CUSTOMER[p.id] ?? null), orderedAt(p.sort_order)])),
+    insert('member_groups', ['id', 'workspace_id', 'name', 'color', 'created_at'],
+      DEMO_SEED_GROUPS.map((g, index) => [lit(g.id), W, lit(g.name), lit(g.color), orderedAt(index)])),
+  );
+  parts.push(
+    insert('projects', ['id', 'workspace_id', 'name', 'color', 'customer_id', 'owner_group_id', 'created_at'],
+      DEMO_SEED_PROJECTS.map((p) => [
+        lit(p.id), W, lit(p.name), lit(p.color), lit(DEMO_SEED_PROJECT_CUSTOMER[p.id] ?? null),
+        lit(DEMO_SEED_PROJECT_OWNER_GROUP[p.id] ?? null), orderedAt(p.sort_order),
+      ])),
   );
 
   // People first, members second: adding a member upserts the assignee linked

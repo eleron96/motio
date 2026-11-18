@@ -113,7 +113,8 @@ export type MemberGroupRow = {
   id: string;
   workspace_id: string;
   name: string;
-  created_at: string;
+  color?: string | null;
+  created_at?: string | null;
 };
 
 export type MemberGroupAssignmentRow = {

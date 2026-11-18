@@ -143,6 +143,8 @@ export const ProjectsMobileView: React.FC<ProjectsMobileViewProps> = ({
             <ProjectsMobileList
               projects={tab === 'archived' ? lists.filteredArchivedProjects : lists.filteredActiveProjects}
               customerById={lists.customerById}
+              memberGroupById={lists.memberGroupById}
+              groupMarkColorById={lists.groupMarkColorById}
               milestones={milestones}
               trackedProjectIdSet={lists.trackedProjectIdSet}
               canEdit={canEdit}
@@ -229,6 +231,7 @@ export const ProjectsMobileView: React.FC<ProjectsMobileViewProps> = ({
         customerFilterIds={lists.customerFilterIds}
         onToggleCustomer={lists.handleToggleCustomer}
         memberGroups={memberGroups}
+        groupMarkColorById={lists.groupMarkColorById}
         ownerGroupFilterIds={lists.ownerGroupFilterIds}
         onToggleOwnerGroup={lists.handleToggleOwnerGroupFilter}
         groupByCustomer={groupByCustomer}

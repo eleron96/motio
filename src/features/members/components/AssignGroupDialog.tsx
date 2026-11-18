@@ -11,10 +11,14 @@ import {
 import { SearchInput } from '@/shared/ui/SearchInput';
 import { MobilePickerScreen, type MobilePickerOption } from '@/shared/ui/mobile-picker-screen';
 import { cn } from '@/shared/lib/classNames';
+import { ColorDot } from '@/shared/ui/color-dot';
+import { buildGroupMarkColorMap } from '@/shared/domain/groupColor';
 
 type GroupOption = {
   id: string;
   name: string;
+  color?: string | null;
+  createdAt?: string | null;
 };
 
 interface AssignGroupDialogProps {
@@ -56,6 +60,10 @@ export const AssignGroupDialog: React.FC<AssignGroupDialogProps> = ({
     return groups.filter((group) => group.name.toLowerCase().includes(query));
   }, [groups, search]);
 
+  // Every group of the workspace is in `groups`, which is what an automatic
+  // colour needs to come out the same as on the rest of the page.
+  const markColorById = useMemo(() => buildGroupMarkColorMap(groups), [groups]);
+
   const handleOpenChange = (next: boolean) => {
     if (!next) setSearch('');
     onOpenChange(next);
@@ -77,6 +85,7 @@ export const AssignGroupDialog: React.FC<AssignGroupDialogProps> = ({
     const options: MobilePickerOption[] = groups.map((group) => ({
       value: group.id,
       label: group.name,
+      leading: <ColorDot color={markColorById.get(group.id)} className="h-2.5 w-2.5" />,
       note: group.id === currentGroupId ? t`Current` : undefined,
     }));
 
@@ -140,6 +149,7 @@ export const AssignGroupDialog: React.FC<AssignGroupDialogProps> = ({
                         )}
                       >
                         <Check className={cn('h-4 w-4 shrink-0', isCurrent ? 'opacity-100' : 'opacity-0')} />
+                        <ColorDot color={markColorById.get(group.id)} />
                         <span className="min-w-0 flex-1 truncate">{group.name}</span>
                         {isCurrent && (
                           <span className="shrink-0 text-xs text-muted-foreground">{t`Current`}</span>

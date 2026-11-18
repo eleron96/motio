@@ -87,6 +87,7 @@ export const ProjectsDesktopSidebar: React.FC<ProjectsDesktopSidebarProps> = ({
         projects={visibleProjects}
         customerById={lists.customerById}
         memberGroupById={lists.memberGroupById}
+        groupMarkColorById={lists.groupMarkColorById}
         milestones={milestones}
         selectedProjectId={selectedProjectId}
         onSelectProject={(projectId) => {

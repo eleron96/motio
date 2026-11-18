@@ -86,6 +86,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
   const timeOff = usePlannerStore((state) => state.timeOff ?? NO_TIME_OFF);
   const timeOffDragPreview = usePlannerStore((state) => state.timeOffDragPreview ?? null);
   const projects = usePlannerStore((state) => state.projects);
+  const statuses = usePlannerStore((state) => state.statuses);
   const assignees = usePlannerStore((state) => state.assignees);
   const memberGroupAssignments = usePlannerStore((state) => state.memberGroupAssignments);
   const viewMode = usePlannerStore((state) => state.viewMode);
@@ -302,6 +303,7 @@ export const TimelineGrid: React.FC<TimelineGridProps> = ({
     assignees,
     activeFilteredAssignees,
     projects,
+    statuses,
     groupMode,
     myAssigneeId,
     assigneeGroupMap,

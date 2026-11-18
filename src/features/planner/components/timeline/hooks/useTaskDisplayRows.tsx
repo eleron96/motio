@@ -1,15 +1,16 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { format } from 'date-fns';
 import { t } from '@lingui/macro';
-import { Assignee, Filters, GroupMode, Project, Task } from '@/features/planner/types/planner';
+import { Assignee, Filters, GroupMode, Project, Status, Task } from '@/features/planner/types/planner';
 import { EMPTY_TIME_OFF_INDEX, timeOffMinLanes, timeOffReservedPeriods, type TimeOffIndex } from '@/features/planner/lib/timeOff';
-import type { RememberedLane, ReservedPeriod } from '@/features/planner/lib/taskLanes';
+import type { RememberedLane, ReservedPeriod, TaskStateRanks } from '@/features/planner/lib/taskLanes';
 import {
   buildTimelineDisplayRows,
   calculateTimelineRowHeights,
   groupTasksByTimelineRow,
   selectArchivedProjectIds,
   selectFilteredTasks,
+  selectTaskStateRanks,
   selectTimelineGroupItems,
   selectVisibleAssignees,
 } from '@/features/planner/lib/timelineSelectors';
@@ -27,6 +28,8 @@ interface UseTaskDisplayRowsParams {
   assignees: Assignee[];
   activeFilteredAssignees: Assignee[];
   projects: Project[];
+  /** Tells done and cancelled tasks from open ones: open bars are laid out above closed ones. */
+  statuses?: Status[];
   groupMode: GroupMode;
   myAssigneeId: string | null;
   assigneeGroupMap: Map<string, string>;
@@ -57,6 +60,7 @@ export const useTaskDisplayRows = ({
   assignees,
   activeFilteredAssignees,
   projects,
+  statuses,
   groupMode,
   myAssigneeId,
   assigneeGroupMap,
@@ -157,6 +161,14 @@ export const useTaskDisplayRows = ({
     return Object.keys(reserved).length > 0 ? reserved : undefined;
   }, [groupMode, timeOffIndex]);
 
+  // Kept while the ranks are the same: the statuses array is replaced by every
+  // workspace reload, and a new map would redo the layout for nothing.
+  const stateRanksRef = useRef<TaskStateRanks | undefined>(undefined);
+  const stateRanks = useMemo(() => {
+    stateRanksRef.current = statuses ? selectTaskStateRanks(statuses, stateRanksRef.current) : undefined;
+    return stateRanksRef.current;
+  }, [statuses]);
+
   const tasksByRow = useMemo(
     () => groupTasksByTimelineRow({
       filteredTasks,
@@ -167,9 +179,10 @@ export const useTaskDisplayRows = ({
       // Not a dependency either: the range alone changing (a scroll step)
       // must not redo the layout; it is read when the tasks change anyway.
       layoutRange: rangeStart && rangeEnd ? { startDate: rangeStart, endDate: rangeEnd } : undefined,
+      stateRanks,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the memory is read, not tracked (see above)
-    [filteredTasks, groupItems, groupMode, reservedLaneZeroByRow, layoutKey],
+    [filteredTasks, groupItems, groupMode, reservedLaneZeroByRow, layoutKey, stateRanks],
   );
 
   const effectiveMinRowHeight = groupMode === 'assignee' && geometry.tieredAvatars

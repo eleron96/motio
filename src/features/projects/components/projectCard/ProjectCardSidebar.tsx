@@ -12,7 +12,7 @@ import {
 } from '@/shared/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { ScrollArea } from '@/shared/ui/scroll-area';
-import { getMonogramColor } from '@/shared/lib/monogramColor';
+import { ColorDot } from '@/shared/ui/color-dot';
 import { buildProjectAccentVars } from '@/features/projects/lib/projectCard/projectAccent';
 import { countUpcomingMilestones } from '@/features/projects/lib/projectCard/countUpcomingMilestones';
 import styles from './projectCard.module.css';
@@ -27,6 +27,8 @@ interface ProjectCardSidebarProps {
   projects: Project[];
   customerById: Map<string, Customer>;
   memberGroupById: Map<string, MemberGroup>;
+  /** Dot colour per team — picked on the Team page, or automatic. */
+  groupMarkColorById: Map<string, string>;
   /** All milestones in the workspace; used to compute per-project counts. */
   milestones: Milestone[];
   selectedProjectId: string | null;
@@ -76,6 +78,7 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
   projects,
   customerById,
   memberGroupById,
+  groupMarkColorById,
   milestones,
   selectedProjectId,
   onSelectProject,
@@ -233,6 +236,9 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
                       checked={ownerGroupFilterIds.includes('none')}
                       onCheckedChange={() => onToggleOwnerGroupFilter('none')}
                     />
+                    {/* Room for the dot the named teams carry, so the labels
+                        stay in one column. */}
+                    <span aria-hidden="true" className="inline-block h-2 w-2 shrink-0" />
                     <span className="text-sm">{t`No team`}</span>
                   </label>
                   {memberGroups.length === 0 && (
@@ -244,6 +250,7 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
                         checked={ownerGroupFilterIds.includes(group.id)}
                         onCheckedChange={() => onToggleOwnerGroupFilter(group.id)}
                       />
+                      <ColorDot color={groupMarkColorById.get(group.id)} />
                       <span className="truncate text-sm">{group.name}</span>
                     </label>
                   ))}
@@ -327,7 +334,7 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
     const ownerGroup = project.ownerGroupId
       ? memberGroupById.get(project.ownerGroupId) ?? null
       : null;
-    const ownerColor = ownerGroup ? getMonogramColor(ownerGroup.id) : null;
+    const ownerColor = ownerGroup ? groupMarkColorById.get(ownerGroup.id) ?? null : null;
     const milestoneCount = milestoneCountByProject.get(project.id) ?? 0;
     const isTracked = trackedProjectIdSet.has(project.id);
 
@@ -368,11 +375,8 @@ export const ProjectCardSidebar: React.FC<ProjectCardSidebarProps> = ({
               {(ownerGroup || milestoneCount > 0 || project.status) && (
                 <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
                   {ownerGroup && (
-                    <span className="inline-flex min-w-0 items-center gap-1">
-                      <span
-                        className="h-1.5 w-1.5 flex-shrink-0 rounded-full"
-                        style={{ background: ownerColor ?? undefined }}
-                      />
+                    <span className="inline-flex min-w-0 items-center gap-1.5">
+                      <ColorDot color={ownerColor} />
                       <span className="truncate">{ownerGroup.name}</span>
                     </span>
                   )}

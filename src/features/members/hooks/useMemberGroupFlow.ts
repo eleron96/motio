@@ -94,6 +94,14 @@ export const useMemberGroupFlow = ({
     setGroupDeleteTarget(null);
   }, [groupDeleteTarget, handleDeleteGroup]);
 
+  // The phone's colour screen: which group it is open for. Only the id is kept,
+  // so the screen always shows the group as it is now, not as it was on tap.
+  const [groupColorTargetId, setGroupColorTargetId] = useState<string | null>(null);
+
+  const requestGroupColor = useCallback((group: { id: string }) => {
+    setGroupColorTargetId(group.id);
+  }, []);
+
   return {
     groupAssignTarget,
     setGroupAssignTarget,
@@ -109,6 +117,9 @@ export const useMemberGroupFlow = ({
     setGroupDeleteTarget,
     requestGroupDeletion,
     confirmGroupDeletion,
+    groupColorTargetId,
+    setGroupColorTargetId,
+    requestGroupColor,
   };
 };
 

@@ -256,16 +256,14 @@ msgid "{laterCount} later"
 msgstr "{laterCount} later"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
+#: src/features/projects/components/ProjectsMobileList.tsx
 msgid "{milestoneCount} milestone"
 msgstr "{milestoneCount} milestone"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
+#: src/features/projects/components/ProjectsMobileList.tsx
 msgid "{milestoneCount} milestones"
 msgstr "{milestoneCount} milestones"
-
-#: src/features/projects/components/ProjectsMobileList.tsx
-msgid "{milestoneCount} milestones ahead"
-msgstr "{milestoneCount} milestones ahead"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "{minutes} minutes"
@@ -1115,6 +1113,11 @@ msgstr "Auto"
 msgid "auto from history"
 msgstr "auto from history"
 
+#: src/features/members/components/GroupColorScreen.tsx
+#: src/features/members/components/MembersGroupPanel.tsx
+msgid "Automatic colour"
+msgstr "Automatic colour"
+
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Average per file: {size}"
 msgstr "Average per file: {size}"
@@ -1661,12 +1664,19 @@ msgstr "Code"
 msgid "Collapse"
 msgstr "Collapse"
 
+#: src/features/members/components/MembersMobileList.tsx
 #: src/features/projects/components/ProjectFormDialogs.tsx
 #: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Color"
 msgstr "Color"
 
+#: src/features/members/components/GroupColorScreen.tsx
+msgid "Colour {number}"
+msgstr "Colour {number}"
+
 #. placeholder {0}: person.name
+#. placeholder {0}: selectedGroup.name
+#: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/workspace/components/WorkspacePeopleColors.tsx
 msgid "Colour of {0}"
 msgstr "Colour of {0}"
@@ -3570,6 +3580,10 @@ msgstr "Group by customer"
 msgid "Group by group"
 msgstr "Group by group"
 
+#: src/features/members/components/GroupColorScreen.tsx
+msgid "Group colour"
+msgstr "Group colour"
+
 #: src/features/admin/components/AdminSignInChecks.tsx
 msgid "group mappers"
 msgstr "group mappers"
@@ -4505,6 +4519,10 @@ msgstr "Motio grew out of exactly this boring but very real problem."
 #: src/features/workspace/components/WorkspacePageHeader.tsx
 msgid "Motio home"
 msgstr "Motio home"
+
+#: src/features/members/components/GroupColorScreen.tsx
+msgid "Motio picks a colour no other group uses."
+msgstr "Motio picks a colour no other group uses."
 
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Mountains"

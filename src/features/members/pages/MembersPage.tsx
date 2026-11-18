@@ -54,6 +54,7 @@ const MembersPage = () => {
     fetchGroupMembers,
     createMemberGroup,
     updateMemberGroup,
+    setMemberGroupColor,
     deleteMemberGroup,
   } = usePlannerStore(useShallow((state) => ({
     assignees: state.assignees,
@@ -66,6 +67,7 @@ const MembersPage = () => {
     fetchGroupMembers: state.fetchGroupMembers,
     createMemberGroup: state.createMemberGroup,
     updateMemberGroup: state.updateMemberGroup,
+    setMemberGroupColor: state.setMemberGroupColor,
     deleteMemberGroup: state.deleteMemberGroup,
   })));
 
@@ -135,6 +137,9 @@ const MembersPage = () => {
     setEditingGroupName,
     selectedGroup,
     sortedGroups,
+    groupColorById,
+    groupMarkColorById,
+    handleSetGroupColor,
     handleCreateGroup,
     handleStartEditGroup,
     handleSaveGroupName,
@@ -148,6 +153,7 @@ const MembersPage = () => {
     fetchGroupMembers,
     createMemberGroup,
     updateMemberGroup,
+    setMemberGroupColor,
     deleteMemberGroup,
     assignMemberToGroup,
     mode,
@@ -191,6 +197,7 @@ const MembersPage = () => {
     openGroupMemberMoveDialog,
     requestGroupMemberRemoval,
     requestGroupDeletion,
+    requestGroupColor,
   } = groupFlow;
 
   useEffect(() => {
@@ -287,6 +294,7 @@ const MembersPage = () => {
       creatingGroup={creatingGroup}
       groupsLoading={groupsLoading}
       sortedGroups={sortedGroups}
+      groupMarkColorById={groupMarkColorById}
       selectedGroupId={selectedGroupId}
       onSelectGroup={setSelectedGroupId}
       onStartEditGroup={handleStartEditGroup}
@@ -306,6 +314,10 @@ const MembersPage = () => {
       onEditingGroupNameChange={setEditingGroupName}
       onCancelEdit={() => { setEditingGroupId(null); setEditingGroupName(''); }}
       onSaveGroupName={handleSaveGroupName}
+      groupColor={selectedGroupId ? groupColorById.get(selectedGroupId) ?? null : null}
+      onGroupColorChange={(color) => {
+        if (selectedGroupId) void handleSetGroupColor(selectedGroupId, color);
+      }}
       groupActionLoading={groupActionLoading}
       groupMembers={groupMembers}
       groupMembersLoading={groupMembersLoading}
@@ -382,6 +394,8 @@ const MembersPage = () => {
       handleStartEditGroup(group);
       setGroupDetailOpen(true);
     },
+    groupMarkColorById,
+    onChangeGroupColor: requestGroupColor,
     onDeleteGroup: requestGroupDeletion,
   };
 
@@ -457,6 +471,8 @@ const MembersPage = () => {
         groups={groups}
         loading={groupActionLoading}
         isMobile={isMobile}
+        groupColorById={groupColorById}
+        onSetGroupColor={(groupId, color) => void handleSetGroupColor(groupId, color)}
       />
     </>
   );

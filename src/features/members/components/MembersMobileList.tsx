@@ -4,6 +4,7 @@ import { MoreHorizontal } from 'lucide-react';
 import { Assignee } from '@/features/planner/types/planner';
 import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { cn } from '@/shared/lib/classNames';
+import { ColorDot } from '@/shared/ui/color-dot';
 import { MobileListGroup, MobileListRow } from '@/shared/ui/mobile-list';
 import { SearchInput } from '@/shared/ui/SearchInput';
 import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-control';
@@ -45,7 +46,11 @@ export interface MembersMobileListProps {
   groupsLoading: boolean;
   groupsError: string;
   onOpenGroup: (groupId: string) => void;
+  /** Dot colour per group — picked or automatic. */
+  groupMarkColorById: Map<string, string>;
   onRenameGroup: (group: GroupRecord) => void;
+  /** Opens the colour screen for the group. */
+  onChangeGroupColor: (group: GroupRecord) => void;
   onDeleteGroup: (group: GroupRecord) => void;
 }
 
@@ -85,7 +90,9 @@ export const MembersMobileList: React.FC<MembersMobileListProps> = ({
   groupsLoading,
   groupsError,
   onOpenGroup,
+  groupMarkColorById,
   onRenameGroup,
+  onChangeGroupColor,
   onDeleteGroup,
 }) => {
   const listingPeople = mode === 'tasks';
@@ -254,6 +261,9 @@ export const MembersMobileList: React.FC<MembersMobileListProps> = ({
                 {sortedGroups.map((group) => (
                   <div key={group.id} className="relative">
                     <MobileListRow
+                      leading={(
+                        <ColorDot color={groupMarkColorById.get(group.id)} className="h-2.5 w-2.5" />
+                      )}
                       title={group.name}
                       chevron
                       onClick={() => onOpenGroup(group.id)}
@@ -269,6 +279,12 @@ export const MembersMobileList: React.FC<MembersMobileListProps> = ({
                             disabled={groupActionLoading}
                           >
                             {t`Rename`}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onSelect={() => onChangeGroupColor(group)}
+                            disabled={groupActionLoading}
+                          >
+                            {t`Color`}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onSelect={() => onDeleteGroup(group)}

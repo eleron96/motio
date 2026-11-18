@@ -17,6 +17,7 @@ import {
 } from '@/features/planner/store/plannerStore.helpers';
 import { recordWorkspaceMemberActivity } from '@/infrastructure/workspace/memberActivityRepository';
 import { buildWorkspaceMemberActivityActorSnapshot } from '@/shared/domain/workspaceMemberActivity';
+import { readGroupColor } from '@/shared/domain/groupColor';
 import { buildBoardScope, mergeBoardLoad, pruneToWindow } from '@/shared/domain/taskLoadScopes';
 import { fetchBoardTasks } from '@/infrastructure/tasks/boardTasksRepository';
 
@@ -43,6 +44,7 @@ type WorkspaceActions = Pick<
   | 'fetchGroupMembers'
   | 'createMemberGroup'
   | 'updateMemberGroup'
+  | 'setMemberGroupColor'
   | 'deleteMemberGroup'
 >;
 
@@ -220,7 +222,7 @@ export const createWorkspaceActions = (
     const [groupsRes, membersRes] = await Promise.all([
       supabase
         .from('member_groups')
-        .select('id, name')
+        .select('id, name, color, created_at')
         .eq('workspace_id', workspaceId)
         .order('name', { ascending: true }),
       supabase
@@ -235,8 +237,10 @@ export const createWorkspaceActions = (
     }
 
     const memberGroups = (groupsRes.data ?? []).map((row) => ({
-      id: (row as { id: string }).id,
-      name: (row as { name: string }).name,
+      id: (row as MemberGroupRow).id,
+      name: (row as MemberGroupRow).name,
+      color: readGroupColor((row as MemberGroupRow).color),
+      createdAt: (row as MemberGroupRow).created_at ?? null,
     }));
     const memberGroupAssignments = (membersRes.data ?? []).map((row) => ({
       userId: (row as MemberGroupAssignmentRow).user_id,
@@ -285,7 +289,7 @@ export const createWorkspaceActions = (
   fetchMemberGroups: async (workspaceId) => {
     const { data, error } = await supabase
       .from('member_groups')
-      .select('id, name')
+      .select('id, name, color, created_at')
       .eq('workspace_id', workspaceId)
       .order('name', { ascending: true });
 
@@ -297,6 +301,8 @@ export const createWorkspaceActions = (
       groups: (data ?? []).map((row) => ({
         id: (row as MemberGroupRow).id,
         name: (row as MemberGroupRow).name,
+        color: readGroupColor((row as MemberGroupRow).color),
+      createdAt: (row as MemberGroupRow).created_at ?? null,
       })),
     };
   },
@@ -404,6 +410,25 @@ export const createWorkspaceActions = (
         console.error(logResult.error);
       }
     }
+    return {};
+  },
+
+  setMemberGroupColor: async (workspaceId, groupId, color) => {
+    // A plain UPDATE: the policy "workspace admins can update member groups"
+    // (0023) is the whole permission rule, and the column check (0191) rejects
+    // anything that is not #rrggbb.
+    const { error } = await supabase
+      .from('member_groups')
+      .update({ color: readGroupColor(color) })
+      .eq('id', groupId)
+      .eq('workspace_id', workspaceId);
+
+    if (error) {
+      console.error(error);
+      return { error: error.message };
+    }
+
+    await get().refreshMemberGroups();
     return {};
   },
 

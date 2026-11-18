@@ -161,6 +161,13 @@ export interface ProjectActivity {
 export interface MemberGroup {
   id: string;
   name: string;
+  /**
+   * The colour picked for the team (member_groups.color, 0191). Empty means
+   * "automatic": see shared/domain/groupColor.
+   */
+  color?: string | null;
+  /** When the team was created: the order automatic colours are handed out in. */
+  createdAt?: string | null;
 }
 
 export interface MemberGroupAssignment {

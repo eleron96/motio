@@ -36,6 +36,11 @@ Admins manage them on the **Groups** tab:
   **Remove from group** are in each person's menu.
 - A group can be renamed or deleted. Deleting it keeps the people, just without a
   group; their tasks are not affected.
+- Every group has a colour — the dot beside its name. Click the round swatch in front of
+  the open group's name to pick one of twenty; **Automatic colour** hands the choice back
+  to Motio, which gives the group a colour no other group has chosen. On a phone it is
+  **Color** in the group's menu. The same dot marks the group as the owner team in the
+  project list.
 
 ## Colours
 
