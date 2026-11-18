@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- Task reminders: pick "On the start day", "1 day before", "2 days before" or "1 week before" in the task card — at 9:00 that morning the assignees get a notification in the bell and, if they switched it on, a push.
+
 ## [0.10.79] - 2026-11-13
 ### Added
 - Connecting an AI assistant got simpler: the window with a new token and the API section show ready text for Claude Code, Codex, Gemini CLI and Kimi Code — with your address and token in it, just copy and paste.

@@ -9,6 +9,7 @@ import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSele
 import { RepeatPopoverField } from '@/features/planner/components/RepeatPopoverField';
 import { TagMultiSelect } from '@/features/planner/components/TagMultiSelect';
 import { TaskAssigneeField } from '@/features/planner/components/TaskAssigneeField';
+import { TaskReminderField } from '@/features/planner/components/TaskReminderField';
 import { getRepeatOccurrenceDate } from '@/features/planner/lib/taskFormRules';
 import { getMinEndDate } from '@/features/planner/lib/dateUtils';
 import type { UseTaskRepeatConfigResult } from '@/features/planner/hooks/useTaskRepeatConfig';
@@ -32,6 +33,7 @@ interface TaskDetailParametersProps {
   onUpdate: (field: keyof Task, value: Task[keyof Task]) => void;
   onStartDateChange: (value: string) => void;
   onEndDateChange: (value: string) => void;
+  onReminderChange: (daysBefore: number | null) => void;
   repeat: Pick<
     UseTaskRepeatConfigResult,
     | 'repeatCount'
@@ -47,7 +49,7 @@ interface TaskDetailParametersProps {
   >;
 }
 
-/** The right column of the task card: project, people, status, priority, type, dates, repeat and tags. */
+/** The right column of the task card: project, people, status, priority, type, dates, reminder, repeat and tags. */
 export const TaskDetailParameters: React.FC<TaskDetailParametersProps> = ({
   task,
   projectOptions,
@@ -66,6 +68,7 @@ export const TaskDetailParameters: React.FC<TaskDetailParametersProps> = ({
   onUpdate,
   onStartDateChange,
   onEndDateChange,
+  onReminderChange,
   repeat,
 }) => {
   const isReadOnly = !canEdit;
@@ -188,6 +191,15 @@ export const TaskDetailParameters: React.FC<TaskDetailParametersProps> = ({
           />
         </div>
       </div>
+
+      <TaskReminderField
+        value={task.reminderDaysBefore ?? null}
+        onChange={onReminderChange}
+        startDate={task.startDate}
+        assigneeCount={pickedAssigneeIds.length}
+        disabled={isReadOnly}
+        idPrefix="detail"
+      />
 
       <div className="space-y-1.5">
         <Label>{t`Repeat`}</Label>

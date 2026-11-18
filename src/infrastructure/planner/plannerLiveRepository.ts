@@ -30,6 +30,8 @@ const TASK_SELECT = [
   'description',
   'repeat_id',
   'repeat_ends',
+  'reminder_days_before',
+  'reminder_time_zone',
   'created_at',
   'updated_at',
 ].join(',');

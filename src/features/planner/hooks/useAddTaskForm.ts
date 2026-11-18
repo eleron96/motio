@@ -17,6 +17,8 @@ import {
   resolveAddTaskProjectValue,
   resolveRepeatValidationMessage,
 } from '@/features/planner/lib/taskFormRules';
+import { buildTaskReminderUpdate } from '@/shared/domain/taskReminder';
+import { getBrowserTimeZone } from '@/shared/lib/timeZone';
 import type { TaskPriority } from '@/features/planner/types/planner';
 
 export interface UseAddTaskFormOptions {
@@ -104,6 +106,7 @@ export const useAddTaskForm = ({
   const [statusId, setStatusId] = useState(defaultStatusId);
   const [typeId, setTypeId] = useState(taskTypes[0]?.id || '');
   const [priority, setPriority] = useState<TaskPriority | 'none'>('none');
+  const [reminderDaysBefore, setReminderDaysBefore] = useState<number | null>(null);
   const [startDate, setStartDate] = useState(initialStart);
   const [endDate, setEndDate] = useState(initialEnd);
   const [tagIds, setTagIds] = useState<string[]>([]);
@@ -301,6 +304,7 @@ export const useAddTaskForm = ({
       tagIds,
       description: description.trim() || null,
       repeatId: null,
+      ...buildTaskReminderUpdate(reminderDaysBefore, getBrowserTimeZone()),
     });
 
     if (!createdTask) {
@@ -363,6 +367,7 @@ export const useAddTaskForm = ({
     setStatusId(defaultStatusId);
     setTypeId(taskTypes[0]?.id || '');
     setPriority('none');
+    setReminderDaysBefore(null);
     setStartDate(defaultStart);
     setEndDate(defaultStart);
     setTagIds([]);
@@ -509,6 +514,8 @@ export const useAddTaskForm = ({
     setTypeId,
     priority,
     setPriority,
+    reminderDaysBefore,
+    setReminderDaysBefore,
     startDate,
     endDate,
     setEndDate,

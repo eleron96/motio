@@ -5,7 +5,9 @@ import { Button } from '@/shared/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/shared/ui/tooltip';
 import { cn } from '@/shared/lib/classNames';
 import { isExportNotification } from '@/infrastructure/notifications/inboxRepository';
-import { formatNotificationDate, roleLabel } from '@/features/auth/lib/inboxLabels';
+import { formatNotificationDate, reminderLabel, roleLabel } from '@/features/auth/lib/inboxLabels';
+import { useLocaleStore } from '@/shared/store/localeStore';
+import { useTodayKey } from '@/shared/hooks/useTodayKey';
 import type { InboxFeed } from '@/features/auth/hooks/useInboxFeed';
 
 interface InboxPanelProps {
@@ -32,6 +34,8 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ feed, variant = 'popover
     openingNotificationId,
   } = feed;
 
+  const locale = useLocaleStore((state) => state.locale);
+  const todayIso = useTodayKey();
   const isScreen = variant === 'screen';
   const actionsBusy = bulkTaskActionBusy || loading || openingNotificationId !== null || busyNotificationId !== null;
 
@@ -136,6 +140,8 @@ export const InboxPanel: React.FC<InboxPanelProps> = ({ feed, variant = 'popover
                     ? <>{actorLabel} {t`mentioned you in a comment`} · {notification.workspaceName}</>
                     : notification.type === 'task_updated'
                       ? <>{actorLabel} {t`updated a task`} · {notification.workspaceName}</>
+                      : notification.type === 'task_reminder'
+                        ? <>{reminderLabel(notification.taskStartDate, todayIso, locale)} · {notification.workspaceName}</>
                       : notification.type === 'export_ready'
                         ? <>{t`Open Account settings to download the file.`}</>
                         : notification.type === 'export_failed'

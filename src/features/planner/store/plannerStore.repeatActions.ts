@@ -143,6 +143,8 @@ export const createRepeatActions = (
       description: string | null;
       repeat_id: string;
       repeat_ends: string;
+      reminder_days_before: number | null;
+      reminder_time_zone: string | null;
     };
 
     const newTasks: InsertTask[] = [];
@@ -174,6 +176,9 @@ export const createRepeatActions = (
         description: task.description ?? null,
         repeat_id: repeatId,
         repeat_ends: options.ends,
+        // Every occurrence reminds the same way as the task it repeats.
+        reminder_days_before: task.reminderDaysBefore ?? null,
+        reminder_time_zone: task.reminderTimeZone ?? null,
       });
     }
 

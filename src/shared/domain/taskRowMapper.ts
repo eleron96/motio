@@ -1,4 +1,5 @@
 import { Task } from '@/features/planner/types/planner';
+import { normalizeReminderDaysBefore } from '@/shared/domain/taskReminder';
 
 export type TaskMappedRow = {
   id: string;
@@ -15,6 +16,8 @@ export type TaskMappedRow = {
   description: string | null | undefined;
   repeat_id: string | null;
   repeat_ends?: string | null;
+  reminder_days_before?: number | null;
+  reminder_time_zone?: string | null;
   created_at?: string;
   updated_at?: string;
 };
@@ -53,6 +56,8 @@ export const mapTaskRow = (row: TaskMappedRow): Task => ({
   description: row.description,
   repeatId: row.repeat_id ?? null,
   repeatEnds: normalizeRepeatEnds(row.repeat_ends),
+  reminderDaysBefore: normalizeReminderDaysBefore(row.reminder_days_before),
+  reminderTimeZone: row.reminder_time_zone ?? null,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
 });

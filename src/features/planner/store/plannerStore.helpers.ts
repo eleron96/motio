@@ -465,5 +465,7 @@ export const mapTaskUpdates = (updates: Partial<Task>) => {
   if ('tagIds' in updates) payload.tag_ids = updates.tagIds;
   if ('description' in updates) payload.description = updates.description;
   if ('repeatId' in updates) payload.repeat_id = updates.repeatId;
+  if ('reminderDaysBefore' in updates) payload.reminder_days_before = updates.reminderDaysBefore ?? null;
+  if ('reminderTimeZone' in updates) payload.reminder_time_zone = updates.reminderTimeZone ?? null;
   return payload;
 };

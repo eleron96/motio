@@ -20,6 +20,10 @@ interface PushCopy {
   updatedHeading: string;
   updatedBy: (actor: string, title: string) => string;
   updated: (title: string) => string;
+  reminderHeading: string;
+  reminderToday: (title: string) => string;
+  reminderTomorrow: (title: string) => string;
+  reminderOn: (title: string, date: string) => string;
 }
 
 const COPY: Record<PushLocale, PushCopy> = {
@@ -36,6 +40,10 @@ const COPY: Record<PushLocale, PushCopy> = {
     updatedHeading: "Задача изменилась",
     updatedBy: (actor, title) => `${actor} изменил(а) задачу: ${title}`,
     updated: (title) => `Изменена задача: ${title}`,
+    reminderHeading: "Напоминание о задаче",
+    reminderToday: (title) => `Сегодня: ${title}`,
+    reminderTomorrow: (title) => `Завтра: ${title}`,
+    reminderOn: (title, date) => `${title} — начало ${date}`,
   },
   en: {
     testTitle: "Motio — test notification",
@@ -50,6 +58,10 @@ const COPY: Record<PushLocale, PushCopy> = {
     updatedHeading: "Task updated",
     updatedBy: (actor, title) => `${actor} updated: ${title}`,
     updated: (title) => `Updated: ${title}`,
+    reminderHeading: "Task reminder",
+    reminderToday: (title) => `Today: ${title}`,
+    reminderTomorrow: (title) => `Tomorrow: ${title}`,
+    reminderOn: (title, date) => `${title} — starts ${date}`,
   },
   de: {
     testTitle: "Motio – Testbenachrichtigung",
@@ -64,6 +76,10 @@ const COPY: Record<PushLocale, PushCopy> = {
     updatedHeading: "Aufgabe geändert",
     updatedBy: (actor, title) => `${actor} hat geändert: ${title}`,
     updated: (title) => `Geändert: ${title}`,
+    reminderHeading: "Erinnerung an eine Aufgabe",
+    reminderToday: (title) => `Heute: ${title}`,
+    reminderTomorrow: (title) => `Morgen: ${title}`,
+    reminderOn: (title, date) => `${title} – Beginn am ${date}`,
   },
 };
 
@@ -89,14 +105,32 @@ export const renderTestPush = (locale: PushLocale, appUrl: string): PushContent 
 export type NotificationPushType =
   | "task_assigned"
   | "comment_mention"
-  | "task_updated";
+  | "task_updated"
+  | "task_reminder";
 
 export interface NotificationPushInput {
   type: NotificationPushType;
   actorName: string | null;
   taskTitle: string;
   commentPreview: string | null;
+  /** Reminders only: the task's first day (YYYY-MM-DD) and how far ahead it was when the reminder fired. */
+  taskStartDate?: string | null;
+  reminderDaysBefore?: number | null;
 }
+
+const DATE_LOCALES: Record<PushLocale, string> = { ru: "ru-RU", en: "en-US", de: "de-DE" };
+
+/** "25 ноября" / "November 25" / "25. November" for a YYYY-MM-DD date; empty when it is not a date. */
+export const formatPushDate = (locale: PushLocale, isoDate: string | null | undefined): string => {
+  if (!isoDate || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) return "";
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(DATE_LOCALES[locale], {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+  }).format(date);
+};
 
 export interface PushLink {
   taskId: string | null;
@@ -148,6 +182,16 @@ export const renderNotificationPush = (
       heading = copy.updatedHeading;
       body = actor ? copy.updatedBy(actor, title) : copy.updated(title);
       break;
+    case "task_reminder": {
+      // The reminder fired at 09:00 of the recipient's day, so "days before"
+      // is exactly how far the start is for them: 0 = today, 1 = tomorrow.
+      const date = formatPushDate(locale, input.taskStartDate);
+      heading = copy.reminderHeading;
+      if (input.reminderDaysBefore === 0) body = copy.reminderToday(title);
+      else if (input.reminderDaysBefore === 1) body = copy.reminderTomorrow(title);
+      else body = date ? copy.reminderOn(title, date) : title;
+      break;
+    }
   }
 
   return {

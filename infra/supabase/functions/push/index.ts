@@ -32,6 +32,7 @@ const PREF_KEY_BY_TYPE: Record<string, string> = {
   task_assigned: "push_on_assignment",
   comment_mention: "push_on_mention",
   task_updated: "push_on_task_change",
+  task_reminder: "push_on_reminder",
 };
 
 const jsonResponse = (body: Record<string, unknown>, status = 200) =>
@@ -128,7 +129,9 @@ interface ClaimedNotification {
   workspace_id: string | null;
   task_id: string | null;
   task_title_snapshot: string;
+  task_start_date_snapshot: string | null;
   comment_preview: string | null;
+  reminder_days_before: number | null;
 }
 
 interface RecipientProfile {
@@ -236,6 +239,8 @@ const handleFlush = async () => {
         actorName,
         taskTitle: row.task_title_snapshot,
         commentPreview: row.comment_preview,
+        taskStartDate: row.task_start_date_snapshot,
+        reminderDaysBefore: row.reminder_days_before,
       },
       { taskId: row.task_id, workspaceId: row.workspace_id },
       appUrl,

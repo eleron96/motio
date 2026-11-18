@@ -27,6 +27,7 @@ for a year (the latest entry of a task stays longer, for as long as the task exi
 | **Priority** | high, medium, low or none |
 | **Type** | what kind of work it is: a task, a meeting, a review… The list is the workspace's own. |
 | **Start date**, **End date** | the days the task takes. The end cannot be earlier than the start. |
+| **Reminder** | see [Reminders](#reminders) |
 | **Repeat** | see [Repeating tasks](#repeating-tasks) |
 | **Tags** | free labels for filtering |
 
@@ -79,6 +80,26 @@ An open card stays live: subtasks and comments added by others appear as they ar
 added. On a computer you can also see what a teammate is typing right now — a subtask, a
 comment, the description — shown semi-transparent with their name. This is on at
 motio.nikog.net; on a company server the administrator decides.
+
+## Reminders
+
+**Reminder** tells the task's assignees that it is about to start. Choose when:
+**On the start day**, **1 day before**, **2 days before** or **1 week before**. At 9:00
+in the morning of that day — each person's own morning — every assignee gets a
+notification in the [bell](./notifications.md#the-bell) and, if they have it switched on,
+a [push](./notifications.md#push-notifications).
+
+- The reminder counts from the task's first day. Move the task and the reminder moves
+  with it.
+- It goes to the assignees who have a Motio account, whoever set it. A task with nobody
+  on it reminds nobody.
+- A task in a status that counts as done or cancelled is not reminded about.
+- A moment that has already passed cannot be chosen, and a reminder that is more than
+  three hours late is not sent.
+- In a repeating series a reminder is a change like any other: Motio asks whether it
+  applies to this repeat, this and following, or all of them.
+
+**No reminder** switches it off. Editors and admins set reminders; viewers see them.
 
 ## Repeating tasks
 

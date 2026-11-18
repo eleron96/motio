@@ -101,6 +101,13 @@ The notification bell reads through the `inbox_list` database function (migratio
 0166, one PostgREST call); `notifications` only changes them (read, unread,
 delete).
 
+Task reminders (migration 0190) need no function of their own: a task stores "N days
+before the start" (`tasks.reminder_days_before`), and every minute backup-service calls
+`fire_task_reminders()`, which writes a `task_reminder` notification for each assignee
+whose clock shows 09:00–12:00 of the reminder day (`profiles.time_zone`, written by the
+client on load; the zone saved with the reminder stands in until then). The push flush
+that follows delivers them like any other notification.
+
 ### `api`
 
 The workspace API — other systems read a workspace and import absences —

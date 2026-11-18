@@ -4,6 +4,9 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 vi.mock('@lingui/macro', () => ({
+  plural: (value: number, forms: { one: string; other: string }) => (
+    (value === 1 ? forms.one : forms.other).replace('#', String(value))
+  ),
   t: (strings: TemplateStringsArray, ...values: unknown[]) => (
     strings.reduce((acc, str, index) => acc + str + (values[index] ?? ''), '')
   ),

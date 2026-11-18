@@ -29,10 +29,12 @@ export const AccountNotificationsSection: React.FC<AccountNotificationsSectionPr
     pushEnabled,
     pushOnAssignment,
     pushOnMention,
+    pushOnReminder,
     pushOnTaskChange,
     pushSupported,
     setPushOnAssignment,
     setPushOnMention,
+    setPushOnReminder,
     setPushOnTaskChange,
     updatePushEventPref,
     user,
@@ -131,6 +133,18 @@ export const AccountNotificationsSection: React.FC<AccountNotificationsSectionPr
                   id="push-task-change"
                   checked={pushOnTaskChange}
                   onCheckedChange={(checked) => updatePushEventPref('push_on_task_change', checked, setPushOnTaskChange, pushOnTaskChange)}
+                  disabled={pushBusy}
+                />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <Label htmlFor="push-reminder" className="cursor-pointer text-sm font-normal">
+                  {t`A task reminder is due`}
+                </Label>
+                <Switch
+                  size={switchSize}
+                  id="push-reminder"
+                  checked={pushOnReminder}
+                  onCheckedChange={(checked) => updatePushEventPref('push_on_reminder', checked, setPushOnReminder, pushOnReminder)}
                   disabled={pushBusy}
                 />
               </div>

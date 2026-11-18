@@ -25,6 +25,8 @@ import { useTaskDraftPresence } from '@/features/planner/hooks/useTaskDraftPrese
 import { useSerialFieldWrite } from '@/features/planner/hooks/useSerialFieldWrite';
 import { isTaskLiveDraftsEnabled } from '@/shared/lib/featureFlags';
 import { hasTaskUpdates } from '@/shared/domain/taskUpdates';
+import { buildTaskReminderUpdate } from '@/shared/domain/taskReminder';
+import { getBrowserTimeZone } from '@/shared/lib/timeZone';
 import { rowNamesByUserId } from '@/features/planner/lib/personRowNames';
 import { formatTaskTimestamps } from '@/features/planner/lib/taskTimestamps';
 import { clampTaskDates } from '@/features/planner/lib/dateUtils';
@@ -301,6 +303,10 @@ export const TaskDetailPanel: React.FC = () => {
 
   const handleUpdate = (field: keyof Task, value: Task[keyof Task]) => requestTaskUpdate({ [field]: value } as Partial<Task>);
 
+  const handleReminderChange = (daysBefore: number | null) => (
+    requestTaskUpdate(buildTaskReminderUpdate(daysBefore, getBrowserTimeZone()))
+  );
+
   // Dates must keep end >= start. Moving the start past the end drags the end
   // with it; the end itself can never be set before the start.
   const handleStartDateChange = (value: string) => {
@@ -488,6 +494,7 @@ export const TaskDetailPanel: React.FC = () => {
           onUpdate={handleUpdate}
           onStartDateChange={handleStartDateChange}
           onEndDateChange={handleEndDateChange}
+          onReminderChange={handleReminderChange}
           repeat={repeat}
         />
       </div>

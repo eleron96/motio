@@ -21,6 +21,8 @@ const BOARD_TASK_COLUMNS = [
   'tag_ids',
   'repeat_id',
   'repeat_ends',
+  'reminder_days_before',
+  'reminder_time_zone',
   'created_at',
   'updated_at',
 ].join(',');

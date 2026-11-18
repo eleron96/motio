@@ -4,6 +4,8 @@ import { invokeFunction } from '@/shared/lib/invokeFunction';
 import { useLocaleStore } from '@/shared/store/localeStore';
 import { useAccentColorStore } from '@/shared/store/accentColorStore';
 import { isSupportedLocale } from '@/shared/lib/locale';
+import { getBrowserTimeZone } from '@/shared/lib/timeZone';
+import { isDemoRoute } from '@/features/demo/hooks/useIsDemo';
 import { clearPendingLocale, getPendingLocale } from '@/features/auth/lib/pendingLocale';
 import { workspaceSyncService } from '@/application/workspace/workspaceSyncService';
 import type {
@@ -50,7 +52,7 @@ export const createProfileActions = (
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('display_name, locale, avatar_url, status, purge_after, preferences, welcome_email_sent_at')
+      .select('display_name, locale, avatar_url, status, purge_after, preferences, welcome_email_sent_at, time_zone')
       .eq('id', user.id)
       .single();
 
@@ -85,6 +87,19 @@ export const createProfileActions = (
     useAccentColorStore
       .getState()
       .setAccentFromProfile((data?.preferences ?? null) as Record<string, unknown> | null);
+
+    // Task reminders arrive at 09:00 on the person's own clock (migration
+    // 0190), so the profile follows the time zone of the browser in use.
+    const browserTimeZone = getBrowserTimeZone();
+    if (browserTimeZone && browserTimeZone !== data?.time_zone && !isDemoRoute()) {
+      void supabase
+        .from('profiles')
+        .update({ time_zone: browserTimeZone })
+        .eq('id', user.id)
+        .then(({ error: timeZoneError }) => {
+          if (timeZoneError) console.error(timeZoneError);
+        });
+    }
 
     if (pendingLocale) {
       useLocaleStore.getState().setLocale(pendingLocale);

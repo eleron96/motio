@@ -1,9 +1,12 @@
 import React from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import type { Task } from '@/features/planner/types/planner';
 
 vi.mock('@lingui/macro', () => ({
+  plural: (value: number, forms: { one: string; other: string }) => (
+    (value === 1 ? forms.one : forms.other).replace('#', String(value))
+  ),
   t: (input: TemplateStringsArray | { message?: string }, ...values: unknown[]) => (
     Array.isArray(input)
       ? input.reduce((acc: string, str, index) => acc + str + (values[index] ?? ''), '')
@@ -113,8 +116,11 @@ vi.mock('@/infrastructure/tasks/openTaskLiveChannel', () => ({
 }));
 
 vi.mock('@/features/planner/store/plannerStore', () => ({
-  usePlannerStore: (selector?: (state: typeof mocks.plannerState) => unknown) => (
-    typeof selector === 'function' ? selector(mocks.plannerState) : mocks.plannerState
+  usePlannerStore: Object.assign(
+    (selector?: (state: typeof mocks.plannerState) => unknown) => (
+      typeof selector === 'function' ? selector(mocks.plannerState) : mocks.plannerState
+    ),
+    { getState: () => mocks.plannerState },
   ),
 }));
 
@@ -257,5 +263,39 @@ describe('TaskDetailPanel on mobile', () => {
     const done = screen.getByRole('button', { name: 'Done' });
     expect(created.compareDocumentPosition(updated) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(updated.compareDocumentPosition(done) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+  it('sets a reminder for the assignees from the full-screen list', () => {
+    // Far ahead, so no reminder moment is in the past.
+    mocks.plannerState.tasks = [{ ...baseTask, startDate: '2099-01-10', endDate: '2099-01-10' }];
+    render(<TaskDetailPanel />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reminder' }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Reminder' })).getByText('1 day before'));
+
+    // The zone of whoever sets the reminder is saved with it.
+    expect(mocks.plannerState.updateTask).toHaveBeenCalledWith(
+      'task-1',
+      { reminderDaysBefore: 1, reminderTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+      'single',
+    );
+  });
+
+  it('asks which repeats a reminder applies to when the task is part of a series', () => {
+    mocks.plannerState.tasks = [
+      { ...baseTask, repeatId: 'repeat-1', startDate: '2099-01-10', endDate: '2099-01-10' },
+      { ...baseTask, id: 'task-2', repeatId: 'repeat-1', startDate: '2099-01-17', endDate: '2099-01-17' },
+    ];
+    render(<TaskDetailPanel />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reminder' }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Reminder' })).getByText('On the start day'));
+
+    expect(mocks.plannerState.updateTask).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId('apply-following'));
+    expect(mocks.plannerState.updateTask).toHaveBeenCalledWith(
+      'task-1',
+      { reminderDaysBefore: 0, reminderTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+      'following',
+    );
   });
 });

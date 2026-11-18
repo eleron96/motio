@@ -223,6 +223,10 @@ msgstr "{customersCount} Kunden"
 msgid "{days, plural, one {# day} other {# days}}"
 msgstr "{days, plural, one {# Tag} other {# Tage}}"
 
+#: src/features/planner/components/TaskReminderField.tsx
+msgid "{daysBefore, plural, one {# day before} other {# days before}}"
+msgstr "{daysBefore, plural, one {# Tag vorher} other {# Tage vorher}}"
+
 #: src/features/planner/components/timeline/TimelineSearchOverlay.tsx
 msgid "{earlierCount} earlier"
 msgstr "{earlierCount} früher"
@@ -405,6 +409,10 @@ msgstr "1 Kommentar"
 msgid "1 selected"
 msgstr "1 ausgewählt"
 
+#: src/features/planner/components/TaskReminderField.tsx
+msgid "1 week before"
+msgstr "1 Woche vorher"
+
 #: src/features/workspace/components/WorkspaceHeatmapShares.tsx
 msgid "100% is a full working day. Someone who plans but takes no tasks counts 0%, a part-timer 50%. Only the heatmap uses this."
 msgstr "100 % sind ein voller Arbeitstag. Wer plant, aber selbst keine Aufgaben übernimmt, zählt 0 %, eine Teilzeitkraft 50 %. Nur die Auslastungskarte verwendet diesen Wert."
@@ -469,6 +477,10 @@ msgstr "Eine Unteraufgabe kann höchstens {MAX_SUBTASK_IMAGES} Bilder haben."
 #: src/features/auth/components/AccountNotificationsSection.tsx
 msgid "A task is assigned to me"
 msgstr "Mir wird eine Aufgabe zugewiesen"
+
+#: src/features/auth/components/AccountNotificationsSection.tsx
+msgid "A task reminder is due"
+msgstr "Eine Aufgabenerinnerung ist fällig"
 
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "A workspace can have at most 10 active tokens. Revoke one you no longer use."
@@ -643,6 +655,10 @@ msgstr "Neue Aufgabe"
 #: src/features/dashboard/components/WorkloadHeatmapMobile.tsx
 msgid "Add active assignees to see the workload gradient. Milestones are still shown."
 msgstr "Fügen Sie aktive Zuständige hinzu, um den Auslastungsverlauf zu sehen. Meilensteine werden trotzdem angezeigt."
+
+#: src/features/planner/components/TaskReminderField.tsx
+msgid "Add an assignee: the reminder goes to the people on the task."
+msgstr "Fügen Sie Zuständige hinzu: Die Erinnerung geht an die Zuständigen der Aufgabe."
 
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
 #: src/features/projects/components/projectCard/CustomerBlock.tsx
@@ -1062,6 +1078,10 @@ msgstr "hat Sie einer Aufgabe zugewiesen"
 #: src/features/projects/components/ProjectTaskDetailsDialog.tsx
 msgid "Assignees"
 msgstr "Zuständig"
+
+#: src/features/planner/components/TaskReminderField.tsx
+msgid "Assignees get a notification on {dateLabel} at 9:00 AM."
+msgstr "Die Zuständigen werden am {dateLabel} um 9:00 Uhr benachrichtigt."
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
 #: src/features/admin/components/AnnouncementFields.tsx
@@ -5073,6 +5093,11 @@ msgstr "Für die ausgewählte Zielgruppe sind keine Empfänger vorhanden."
 msgid "No regions found."
 msgstr "Keine Regionen gefunden."
 
+#: src/features/planner/components/TaskReminderField.tsx
+#: src/features/planner/components/TaskReminderField.tsx
+msgid "No reminder"
+msgstr "Keine Erinnerung"
+
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
@@ -5359,6 +5384,10 @@ msgstr "Montags öffnete ich drei verschiedene Tabs, um eine einfache Frage zu b
 #: src/features/planner/components/timeline/MobileCalendarLegendScreen.tsx
 msgid "On the calendar"
 msgstr "Im Kalender"
+
+#: src/features/planner/components/TaskReminderField.tsx
+msgid "On the start day"
+msgstr "Am Starttag"
 
 #: src/features/admin/pages/AdminSettingsPage.tsx
 msgid "On through {env}=true in .env. Change it there."
@@ -6049,6 +6078,28 @@ msgstr "Release 2.0"
 #: src/features/workspace/lib/starterTemplates/softwareTemplate.ts
 msgid "Release notes"
 msgstr "Versionshinweise"
+
+#: src/features/auth/lib/inboxLabels.ts
+#: src/features/planner/components/TaskReminderField.tsx
+#: src/features/planner/components/TaskReminderField.tsx
+msgid "Reminder"
+msgstr "Erinnerung"
+
+#: src/features/auth/lib/inboxLabels.ts
+msgid "Reminder: started on {dateLabel}"
+msgstr "Erinnerung: begann am {dateLabel}"
+
+#: src/features/auth/lib/inboxLabels.ts
+msgid "Reminder: starts on {dateLabel}"
+msgstr "Erinnerung: beginnt am {dateLabel}"
+
+#: src/features/auth/lib/inboxLabels.ts
+msgid "Reminder: starts today"
+msgstr "Erinnerung: beginnt heute"
+
+#: src/features/auth/lib/inboxLabels.ts
+msgid "Reminder: starts tomorrow"
+msgstr "Erinnerung: beginnt morgen"
 
 #: src/features/admin/components/AdminWorkspaceMembersDialog.tsx
 #: src/features/admin/components/AdminWorkspaceMembersDialog.tsx
@@ -7789,6 +7840,10 @@ msgstr "Diese SERVICE-Mitteilung geht an {0} aktive Nutzer – unabhängig von i
 #: src/features/planner/components/PushDeepLink.tsx
 msgid "This task has been deleted."
 msgstr "Diese Aufgabe wurde gelöscht."
+
+#: src/features/planner/components/TaskReminderField.tsx
+msgid "This time has already passed, so no reminder will be sent."
+msgstr "Dieser Zeitpunkt ist bereits vorbei, es wird keine Erinnerung gesendet."
 
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "this week"
