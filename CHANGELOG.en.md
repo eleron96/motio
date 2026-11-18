@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.82] - 2026-11-18
 ### Added
 - Groups now have a colour. An admin picks it on the Team page, and a dot in that colour marks the owner team in the project list — on a computer and on a phone.
 
