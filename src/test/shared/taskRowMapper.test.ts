@@ -39,6 +39,8 @@ describe('taskRowMapper', () => {
       description: 'desc',
       repeatId: null,
       repeatEnds: null,
+      reminderDaysBefore: null,
+      reminderTimeZone: null,
     });
   });
 

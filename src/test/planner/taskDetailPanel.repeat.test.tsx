@@ -9,6 +9,9 @@ vi.mock('@/features/planner/hooks/useTaskAttribution', () => ({
 }));
 
 vi.mock('@lingui/macro', () => ({
+  plural: (value: number, forms: { one: string; other: string }) => (
+    (value === 1 ? forms.one : forms.other).replace('#', String(value))
+  ),
   t: (input: TemplateStringsArray | { message?: string }, ...values: unknown[]) => (
     Array.isArray(input)
       ? input.reduce((acc: string, str, index) => acc + str + (values[index] ?? ''), '')

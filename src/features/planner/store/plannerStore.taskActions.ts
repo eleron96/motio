@@ -80,6 +80,8 @@ export const createTaskActions = (
         tag_ids: task.tagIds,
         description: task.description,
         repeat_id: task.repeatId,
+        reminder_days_before: task.reminderDaysBefore ?? null,
+        reminder_time_zone: task.reminderTimeZone ?? null,
       })
       .select('*')
       .single();
@@ -435,6 +437,8 @@ export const createTaskActions = (
       tagIds: [...task.tagIds],
       description: task.description ?? null,
       repeatId: null,
+      reminderDaysBefore: task.reminderDaysBefore ?? null,
+      reminderTimeZone: task.reminderTimeZone ?? null,
     });
     if (!duplicate) get().reportTaskWriteFailure('save', 'duplicateTask', null);
   },

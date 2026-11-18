@@ -24,6 +24,14 @@ export interface Task {
    * (and for partial fetches) — the task panel then infers the mode from rows.
    */
   repeatEnds?: 'never' | 'on' | 'after' | null;
+  /**
+   * Reminder for the assignees: how many days before the start it is sent
+   * (0 = on the start day); null/undefined = no reminder. See
+   * `shared/domain/taskReminder.ts`.
+   */
+  reminderDaysBefore?: number | null;
+  /** IANA time zone of whoever set the reminder; written together with it. */
+  reminderTimeZone?: string | null;
   /** ISO timestamps; optional because older fixtures/partial fetches may omit them. */
   createdAt?: string;
   updatedAt?: string;

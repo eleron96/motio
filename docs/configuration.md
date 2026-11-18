@@ -283,7 +283,7 @@ backup-service runs every scheduled job with `node-cron`. Defaults:
 | Variable | Default | Job |
 |---|---|---|
 | `BACKUP_CRON` | `0 3 * * *` | daily database, storage and Keycloak backup |
-| `PUSH_TICK_CRON` | `*/1 * * * *` | send queued push notifications |
+| `PUSH_TICK_CRON` | `*/1 * * * *` | write the task reminders that are due (`fire_task_reminders`, migration 0190), then send queued push notifications |
 | `BROADCAST_TICK_CRON` | `*/1 * * * *` | send scheduled email broadcasts |
 | `EXPORT_WORKER_CRON` | `*/5 * * * *` | build requested data exports |
 | `EXPORT_CLEANUP_CRON` | `0 5 * * *` | remove expired exports (`EXPORT_CLEANUP_BATCH_LIMIT` per run, `100`) |

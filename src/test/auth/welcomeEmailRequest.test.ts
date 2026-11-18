@@ -65,6 +65,9 @@ const baseProfile = {
   status: 'ACTIVE',
   purge_after: null,
   preferences: {},
+  // Same as this machine's zone, so fetchProfile has no time zone to write
+  // (that write is covered by profileTimeZoneSync.test.ts).
+  time_zone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 };
 
 // The module-level "already requested" latch lives in authStore, so each test

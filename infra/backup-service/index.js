@@ -26,6 +26,7 @@ const {
   tickTaskHistoryPurge,
   tickBroadcast,
   tickPush,
+  tickTaskReminders,
 } = require('./accountDeletionCron');
 
 const execFileAsync = promisify(execFile);
@@ -1015,6 +1016,10 @@ if (ACCOUNT_DELETION_CRON_ENABLED) {
   });
 
   cron.schedule(PUSH_TICK_CRON, async () => {
+    // Reminders first: the ones that fall due this minute go out as pushes in
+    // the same tick. A failure of either step must not stop the other.
+    try { await tickTaskReminders(cronCtx()); }
+    catch (_err) { /* уже залогировано внутри */ }
     try { await tickPush(cronCtx()); }
     catch (_err) { /* уже залогировано внутри */ }
   });

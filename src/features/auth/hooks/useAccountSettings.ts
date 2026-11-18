@@ -78,6 +78,7 @@ export const useAccountSettings = (open: boolean) => {
   const [pushOnAssignment, setPushOnAssignment] = useState(true);
   const [pushOnMention, setPushOnMention] = useState(true);
   const [pushOnTaskChange, setPushOnTaskChange] = useState(true);
+  const [pushOnReminder, setPushOnReminder] = useState(true);
   const [weekViewEnabled, setWeekViewEnabled] = useState(false);
   const [weekNumbersEnabled, setWeekNumbersEnabled] = useState(false);
   const [boardViewEnabled, setBoardViewEnabled] = useState(false);
@@ -122,6 +123,7 @@ export const useAccountSettings = (open: boolean) => {
         setPushOnAssignment(prefs.push_on_assignment !== false);
         setPushOnMention(prefs.push_on_mention !== false);
         setPushOnTaskChange(prefs.push_on_task_change !== false);
+        setPushOnReminder(prefs.push_on_reminder !== false);
         // The toggle reflects THIS browser: on only when permission is granted
         // and an active push subscription actually exists here.
         const deviceSubscribed = getNotificationPermission() === 'granted'
@@ -263,7 +265,7 @@ export const useAccountSettings = (open: boolean) => {
   };
 
   const updatePushEventPref = async (
-    key: 'push_on_assignment' | 'push_on_mention' | 'push_on_task_change',
+    key: 'push_on_assignment' | 'push_on_mention' | 'push_on_task_change' | 'push_on_reminder',
     checked: boolean,
     setLocal: (value: boolean) => void,
     previous: boolean,
@@ -385,6 +387,8 @@ export const useAccountSettings = (open: boolean) => {
     setPushOnMention,
     pushOnTaskChange,
     setPushOnTaskChange,
+    pushOnReminder,
+    setPushOnReminder,
     weekViewEnabled,
     setWeekViewEnabled,
     weekNumbersEnabled,

@@ -10,6 +10,7 @@ menu under your avatar, which shows the unread count.
 | someone assigns a task to you |
 | someone mentions you in a comment with **@** |
 | someone changes or deletes a task of yours |
+| a [reminder](./tasks.md#reminders) set on a task of yours is due |
 | your data export is ready, or has failed |
 
 Invitations to other workspaces appear in the same list under **Invites**, with
@@ -21,8 +22,9 @@ its notifications as read. Each has **Mark as read** / **Mark as unread** and
 
 To keep the list calm, several changes to one task by the same person within a couple
 of minutes arrive as one notification, and a change to a whole repeating series is one
-notification too. Motio doesn't send deadline reminders: the
-[morning brief](#the-morning-brief) does that job once a day.
+notification too. Motio doesn't remind you about every deadline on its own: the
+[morning brief](#the-morning-brief) does that job once a day, and a
+[reminder](./tasks.md#reminders) comes only for a task somebody set one on.
 
 ## Push notifications
 
@@ -31,7 +33,8 @@ Push notifications reach you even when Motio isn't open.
 1. **Account settings → Notifications → Browser notifications**, switch it on and allow
    notifications when the browser asks.
 2. Choose what you want to hear about: **A task is assigned to me**,
-   **I'm mentioned in a comment**, **One of my tasks changes**.
+   **I'm mentioned in a comment**, **One of my tasks changes**,
+   **A task reminder is due**.
 
 Clicking a push opens the task. Push is set up per browser and device, so switch it on
 on each computer and phone you use.

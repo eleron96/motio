@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { tickHealthCheck, tickTaskHistoryPurge } = require('./accountDeletionCron');
+const { tickHealthCheck, tickTaskHistoryPurge, tickTaskReminders } = require('./accountDeletionCron');
 
 const NOW = new Date('2026-10-11T22:15:00Z');
 const hoursAgo = (hours) => new Date(NOW.getTime() - hours * 60 * 60 * 1000).toISOString();
@@ -465,4 +465,34 @@ test('a failed task history purge is reported and rethrown', async () => {
   await assert.rejects(tickTaskHistoryPurge(ctx), /db is down/);
   assert.equal(reported.length, 1);
   assert.equal(reported[0].options.tags.job, 'task-history-purge');
+});
+
+test('task reminders ask the database once a tick and report how many fired', async () => {
+  const queries = [];
+  const ctx = {
+    supabaseUrl: 'http://supabase.example',
+    serviceRoleKey: 'test-key',
+    pool: { query: async (sql) => { queries.push(sql); return { rows: [{ fired: 2 }] }; } },
+    logger: { log() {}, warn() {}, error() {} },
+  };
+  assert.deepEqual(await tickTaskReminders(ctx), { fired: 2 });
+  assert.deepEqual(queries, ['select public.fire_task_reminders() as fired']);
+});
+
+test('a failing task reminder tick is reported only after three failures in a row', async () => {
+  const reported = [];
+  const ctx = {
+    supabaseUrl: 'http://supabase.example',
+    serviceRoleKey: 'test-key',
+    pool: { query: async () => { throw new Error('db is down'); } },
+    captureException: (error, options) => reported.push({ error, options }),
+    failureStreaks: new Map(),
+    logger: { log() {}, warn() {}, error() {} },
+  };
+  await assert.rejects(tickTaskReminders(ctx), /db is down/);
+  await assert.rejects(tickTaskReminders(ctx), /db is down/);
+  assert.equal(reported.length, 0);
+  await assert.rejects(tickTaskReminders(ctx), /db is down/);
+  assert.equal(reported.length, 1);
+  assert.equal(reported[0].options.tags.job, 'task-reminders');
 });

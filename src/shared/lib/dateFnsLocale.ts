@@ -15,6 +15,14 @@ export const formatTimeAgo = (isoDate: string, locale: Locale): string => (
   formatDistanceToNow(parseISO(isoDate), { addSuffix: true, locale: resolveDateFnsLocale(locale) })
 );
 
+/**
+ * A calendar day as day and month in the interface language:
+ * "November 24" / "24 ноября" / "24. November".
+ */
+export const formatDayAndMonth = (isoDate: string, locale: Locale): string => (
+  new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' }).format(parseISO(isoDate))
+);
+
 const RU_WEEKDAY_SHORT_BY_INDEX: Record<number, string> = {
   0: 'Вс',
   1: 'Пн',

@@ -14,6 +14,7 @@ import { ComposerEyebrow } from '@/features/planner/components/ComposerEyebrow';
 import { MobileAssigneeField } from '@/features/planner/components/MobileAssigneeField';
 import { RepeatPopoverField } from '@/features/planner/components/RepeatPopoverField';
 import { TagMultiSelect } from '@/features/planner/components/TagMultiSelect';
+import { TaskReminderField } from '@/features/planner/components/TaskReminderField';
 import { TaskProjectSelect } from '@/features/planner/components/TaskProjectSelect';
 import { clampTaskDates, getMinEndDate } from '@/features/planner/lib/dateUtils';
 import { getRepeatOccurrenceDate } from '@/features/planner/lib/taskFormRules';
@@ -27,7 +28,7 @@ interface AddTaskParametersProps {
   lockProject: boolean;
 }
 
-/** The right column of the add-task dialog: project, people, status, priority, type, dates, repeat and tags. */
+/** The right column of the add-task dialog: project, people, status, priority, type, dates, reminder, repeat and tags. */
 export const AddTaskParameters: React.FC<AddTaskParametersProps> = ({ form, isMobile, lockProject }) => {
   const {
     statuses,
@@ -48,6 +49,8 @@ export const AddTaskParameters: React.FC<AddTaskParametersProps> = ({ form, isMo
     setTypeId,
     priority,
     setPriority,
+    reminderDaysBefore,
+    setReminderDaysBefore,
     startDate,
     endDate,
     setEndDate,
@@ -251,6 +254,17 @@ export const AddTaskParameters: React.FC<AddTaskParametersProps> = ({ form, isMo
           />
         </div>
       </div>
+
+      <TaskReminderField
+        value={reminderDaysBefore}
+        onChange={(daysBefore) => {
+          markChanged();
+          setReminderDaysBefore(daysBefore);
+        }}
+        startDate={startDate}
+        assigneeCount={assigneeIds.length}
+        idPrefix="new"
+      />
 
       <div className="space-y-1.5">
         <Label>{t`Repeat`}</Label>

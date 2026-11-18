@@ -26,6 +26,7 @@ const EXPORT_BUCKET = 'user-exports';
 // still shows up within minutes); any other job is reported on first failure.
 const REPORT_AFTER_FAILED_TICKS = {
   'push-flush': 3, // every minute
+  'task-reminders': 3, // every minute
   'broadcast-tick': 3, // every minute
   'data-export-generate': 2, // every 5 minutes
 };
@@ -317,6 +318,25 @@ const tickTaskHistoryPurge = async (rawCtx) => {
   }
 };
 
+// Task reminders (migration 0190): writes the bell notifications that are due
+// this minute. The push flush that follows delivers them.
+const tickTaskReminders = async (rawCtx) => {
+  const ctx = buildCtx(rawCtx);
+  try {
+    const { rows } = await ctx.pool.query('select public.fire_task_reminders() as fired');
+    const fired = Number(rows[0]?.fired ?? 0);
+    resetTickFailures(ctx, 'task-reminders');
+    if (fired > 0) {
+      ctx.logger.log(`[task reminders] fired ${fired} reminder(s)`);
+    }
+    return { fired };
+  } catch (error) {
+    ctx.logger.error(`[task reminders] failed: ${error.message}`);
+    reportTickFailure(ctx, 'task-reminders', error);
+    throw error;
+  }
+};
+
 module.exports = {
   tickAccountPurge,
   tickDataExportWorker,
@@ -325,6 +345,7 @@ module.exports = {
   tickBroadcast,
   tickPush,
   tickTaskHistoryPurge,
+  tickTaskReminders,
   // exported for tests
   deleteExpiredExportFile,
   postFunction,

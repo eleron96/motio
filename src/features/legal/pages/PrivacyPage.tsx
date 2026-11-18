@@ -3,8 +3,8 @@ import { useLocaleStore } from '@/shared/store/localeStore';
 
 const CONTACT = 'inbox@nikog.net';
 const SITE = 'motio.nikog.net';
-const UPDATED_EN = 'October 27, 2026';
-const UPDATED_RU = '27 октября 2026 г.';
+const UPDATED_EN = 'November 18, 2026';
+const UPDATED_RU = '18 ноября 2026 г.';
 
 function PrivacyContentEn() {
   return (
@@ -28,7 +28,7 @@ function PrivacyContentEn() {
         <li>Display name</li>
         <li>Profile photo (avatar) — optional, uploaded by the user</li>
         <li>Activity data within your workspace (tasks, comments, assignments)</li>
-        <li>Interface preferences (language, settings)</li>
+        <li>Interface preferences (language, time zone, settings)</li>
         <li>Browser push subscription — only if you turn on notifications</li>
         <li>
           Usage statistics: once a day, the type of device (phone, tablet or computer),
@@ -175,7 +175,7 @@ function PrivacyContentRu() {
         <li>Имя пользователя (отображаемое имя)</li>
         <li>Фотография профиля (аватар) — по желанию пользователя</li>
         <li>Данные активности в рабочем пространстве (задачи, комментарии, назначения)</li>
-        <li>Настройки интерфейса (язык, предпочтения)</li>
+        <li>Настройки интерфейса (язык, часовой пояс, предпочтения)</li>
         <li>Подписка на уведомления браузера — только если вы их включили</li>
         <li>
           Статистика использования: раз в день — тип устройства (телефон, планшет или
