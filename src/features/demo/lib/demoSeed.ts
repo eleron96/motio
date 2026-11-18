@@ -327,6 +327,37 @@ export const DEMO_SEED_PROJECT_CUSTOMER: Record<string, string> = {
   "11111111-0000-0000-0000-000000000006": "88888888-0000-0000-0000-000000000005"  // Customer Onboarding → Umbrella
 };
 
+export interface DemoSeedGroup {
+  id: string;
+  name: string;
+  /** A PERSON_PRESET_COLORS value, or null to show what an automatic colour looks like. */
+  color: string | null;
+}
+
+// Teams (the Groups tab of the Team page). Three carry a picked colour and one
+// is left on automatic, so the project list shows both.
+export const DEMO_SEED_GROUPS: DemoSeedGroup[] = [
+  {"id":"dddddddd-0000-0000-0000-000000000001","name":"Product","color":"#6fbfe2"},
+  {"id":"dddddddd-0000-0000-0000-000000000002","name":"Platform","color":"#a86ce5"},
+  {"id":"dddddddd-0000-0000-0000-000000000003","name":"Growth","color":"#deb373"},
+  {"id":"dddddddd-0000-0000-0000-000000000004","name":"Client Services","color":null}
+];
+
+// project_id → owner team. A few projects stay without one on purpose.
+export const DEMO_SEED_PROJECT_OWNER_GROUP: Record<string, string> = {
+  "11111111-0000-0000-0000-000000000001": "dddddddd-0000-0000-0000-000000000001", // Website Relaunch → Product
+  "11111111-0000-0000-0000-000000000002": "dddddddd-0000-0000-0000-000000000001", // Mobile Sprint → Product
+  "11111111-0000-0000-0000-000000000007": "dddddddd-0000-0000-0000-000000000001", // Analytics Dashboard → Product
+  "11111111-0000-0000-0000-000000000003": "dddddddd-0000-0000-0000-000000000002", // Internal Automation → Platform
+  "11111111-0000-0000-0000-000000000010": "dddddddd-0000-0000-0000-000000000002", // DevOps Pipeline → Platform
+  "11111111-0000-0000-0000-000000000012": "dddddddd-0000-0000-0000-000000000002", // Data Migration → Platform
+  "11111111-0000-0000-0000-000000000008": "dddddddd-0000-0000-0000-000000000003", // Marketing Hub → Growth
+  "11111111-0000-0000-0000-000000000009": "dddddddd-0000-0000-0000-000000000003", // Brand Refresh → Growth
+  "11111111-0000-0000-0000-000000000011": "dddddddd-0000-0000-0000-000000000003", // Growth Experiments → Growth
+  "11111111-0000-0000-0000-000000000005": "dddddddd-0000-0000-0000-000000000004", // Support Desk → Client Services
+  "11111111-0000-0000-0000-000000000006": "dddddddd-0000-0000-0000-000000000004"  // Customer Onboarding → Client Services
+};
+
 export const DEMO_SEED_CUSTOMER_CONTACTS: DemoSeedCustomerContact[] = [
   {"id":"99999999-0000-0000-0000-000000000001","customer_id":"88888888-0000-0000-0000-000000000001","name":"Olivia Grant","role":"Head of Marketing","email":"olivia.grant@northwind.example","phone":"+1 202 555 0148","company":"Northwind Trading","tag":"Decision maker","position":0},
   {"id":"99999999-0000-0000-0000-000000000002","customer_id":"88888888-0000-0000-0000-000000000001","name":"James Whitfield","role":"Brand Manager","email":"james.w@northwind.example","phone":null,"company":"Northwind Trading","tag":"Day-to-day","position":1},

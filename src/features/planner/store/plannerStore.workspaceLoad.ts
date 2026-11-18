@@ -3,6 +3,7 @@ import { supabase } from '@/shared/lib/supabaseClient';
 import { getAdminUserId } from '@/shared/lib/adminConfig';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { normalizeAssigneeIds } from '@/shared/domain/taskRowMapper';
+import { readGroupColor } from '@/shared/domain/groupColor';
 import { fetchTaskCommentCountsInWindow } from '@/infrastructure/tasks/taskCommentsRepository';
 import type {
   PlannerGetState,
@@ -205,7 +206,7 @@ export const loadFullWorkspaceData = async (
     .order('created_at', { ascending: false });
   const memberGroupsQuery = supabase
     .from('member_groups')
-    .select('id, name')
+    .select('id, name, color, created_at')
     .eq('workspace_id', workspaceId);
   const memberAssignmentsQuery = supabase
     .from('workspace_members')
@@ -342,6 +343,8 @@ export const loadFullWorkspaceData = async (
     .map((row) => ({
       id: (row as MemberGroupRow).id,
       name: (row as MemberGroupRow).name,
+      color: readGroupColor((row as MemberGroupRow).color),
+      createdAt: (row as MemberGroupRow).created_at ?? null,
     }))
     .sort((left, right) => left.name.localeCompare(right.name));
 

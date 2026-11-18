@@ -2,8 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { t } from '@lingui/macro';
 import type { WorkspaceRole } from '@/features/auth/store/authStore';
 import { filterAndSortByName } from '@/features/members/lib/memberSelectors';
+import { buildGroupColorMap, toGroupMarkColor } from '@/shared/domain/groupColor';
 
-type MemberGroup = { id: string; name: string };
+type MemberGroup = { id: string; name: string; color?: string | null; createdAt?: string | null };
 
 type GroupMember = {
   userId: string;
@@ -19,6 +20,7 @@ interface UseMemberGroupsInput {
   fetchGroupMembers: (workspaceId: string, groupId: string) => Promise<{ members: GroupMember[]; error?: string }>;
   createMemberGroup: (workspaceId: string, name: string) => Promise<{ groupId?: string; error?: string }>;
   updateMemberGroup: (workspaceId: string, groupId: string, name: string) => Promise<{ error?: string }>;
+  setMemberGroupColor: (workspaceId: string, groupId: string, color: string | null) => Promise<{ error?: string }>;
   deleteMemberGroup: (workspaceId: string, groupId: string) => Promise<{ error?: string }>;
   assignMemberToGroup: (userId: string, groupId: string | null) => Promise<{ error?: string }>;
   mode: string;
@@ -31,6 +33,7 @@ export function useMemberGroups({
   fetchGroupMembers,
   createMemberGroup,
   updateMemberGroup,
+  setMemberGroupColor,
   deleteMemberGroup,
   assignMemberToGroup,
   mode,
@@ -127,6 +130,16 @@ export function useMemberGroups({
     [groupSearch, groupSort, groups],
   );
 
+  // Every group's colour in effect — picked or automatic. Built from the whole
+  // list, not the searched one: an automatic colour depends on all the groups.
+  const groupColorById = useMemo(() => buildGroupColorMap(groups), [groups]);
+  // The same colours in the tone a dot is drawn in.
+  const groupMarkColorById = useMemo(() => {
+    const marks = new Map<string, string>();
+    groupColorById.forEach((color, id) => marks.set(id, toGroupMarkColor(color)));
+    return marks;
+  }, [groupColorById]);
+
   const handleCreateGroup = useCallback(async () => {
     if (!currentWorkspaceId || !isAdmin) return;
     const trimmedName = newGroupName.trim();
@@ -170,6 +183,20 @@ export function useMemberGroups({
     setEditingGroupName('');
     setGroupActionLoading(false);
   }, [currentWorkspaceId, editingGroupId, editingGroupName, fetchGroups, isAdmin, updateMemberGroup]);
+
+  const handleSetGroupColor = useCallback(async (groupId: string, color: string | null) => {
+    if (!currentWorkspaceId || !isAdmin) return;
+    setGroupActionLoading(true);
+    setGroupsError('');
+    const result = await setMemberGroupColor(currentWorkspaceId, groupId, color);
+    if (result.error) {
+      setGroupsError(result.error);
+      setGroupActionLoading(false);
+      return;
+    }
+    await fetchGroups();
+    setGroupActionLoading(false);
+  }, [currentWorkspaceId, fetchGroups, isAdmin, setMemberGroupColor]);
 
   // Asking happens in the UI (a dialog the app draws), not here: a browser
   // `confirm` blocks the page and looks nothing like the rest of the product.
@@ -246,6 +273,9 @@ export function useMemberGroups({
     setEditingGroupName,
     selectedGroup,
     sortedGroups,
+    groupColorById,
+    groupMarkColorById,
+    handleSetGroupColor,
     handleCreateGroup,
     handleStartEditGroup,
     handleSaveGroupName,

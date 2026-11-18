@@ -24,7 +24,9 @@ a support rota. Every task belongs to one project and takes its colour on the ti
 | **Owner team** | the group responsible for it (optional) |
 
 The list on the left can be searched, sorted, grouped by customer and filtered by
-customer or owner team.
+customer or owner team. Under each project's name, a dot in the owner team's colour
+stands beside the team's name, so projects of one team are easy to spot; the colour is
+chosen on the [Team page](./team.md#groups).
 
 ### The project card
 

@@ -7,6 +7,9 @@ import { PlannerGroup, PlannerGroupMember } from '@/features/planner/store/plann
 import { AvailableGroupMember, buildAvailableGroupMembers } from '@/features/members/lib/memberSelectors';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
+import { ColorDot } from '@/shared/ui/color-dot';
+import { ColorPicker } from '@/shared/ui/color-picker';
+import { GROUP_PRESET_COLORS, hasOwnGroupColor, toGroupMarkColor } from '@/shared/domain/groupColor';
 import { Input } from '@/shared/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { Switch } from '@/shared/ui/switch';
@@ -37,6 +40,10 @@ interface MembersGroupPanelProps {
   onEditingGroupNameChange: (name: string) => void;
   onCancelEdit: () => void;
   onSaveGroupName: () => void;
+  /** Colour in effect for the open group — picked or automatic. */
+  groupColor: string | null;
+  /** `null` hands the group back to the automatic colour. */
+  onGroupColorChange: (color: string | null) => void;
   groupActionLoading: boolean;
   groupMembers: PlannerGroupMember[];
   groupMembersLoading: boolean;
@@ -64,6 +71,8 @@ export const MembersGroupPanel: React.FC<MembersGroupPanelProps> = ({
   onEditingGroupNameChange,
   onCancelEdit,
   onSaveGroupName,
+  groupColor,
+  onGroupColorChange,
   groupActionLoading,
   groupMembers,
   groupMembersLoading,
@@ -151,6 +160,28 @@ export const MembersGroupPanel: React.FC<MembersGroupPanelProps> = ({
             ) : (
               <div className="flex items-center gap-3">
                 {/* The group's name is the screen's title on a phone. */}
+                {/* The colour sits in front of the name it belongs to. An admin's
+                    swatch opens the palette; everyone else sees a plain dot. A
+                    phone recolours from the group's menu, on a screen of its
+                    own. */}
+                {!isMobile && groupColor && (
+                  isAdmin ? (
+                    <ColorPicker
+                      value={groupColor}
+                      presets={GROUP_PRESET_COLORS}
+                      allowCustom={false}
+                      swatchColor={toGroupMarkColor}
+                      align="start"
+                      disabled={groupActionLoading}
+                      aria-label={t`Colour of ${selectedGroup.name}`}
+                      onChange={(color) => onGroupColorChange(color)}
+                      onReset={hasOwnGroupColor(selectedGroup) ? () => onGroupColorChange(null) : undefined}
+                      resetLabel={t`Automatic colour`}
+                    />
+                  ) : (
+                    <ColorDot color={toGroupMarkColor(groupColor)} className="h-3 w-3" />
+                  )
+                )}
                 {!isMobile && (
                   <div className="text-lg font-semibold">{selectedGroup.name}</div>
                 )}

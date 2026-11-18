@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { t } from '@lingui/macro';
 import { MoreHorizontal, SlidersHorizontal, Star } from 'lucide-react';
-import type { Customer, Milestone, Project } from '@/features/planner/types/planner';
+import type { Customer, MemberGroup, Milestone, Project } from '@/features/planner/types/planner';
+import { ColorDot } from '@/shared/ui/color-dot';
 import { countUpcomingMilestones } from '@/features/projects/lib/projectCard/countUpcomingMilestones';
 import { formatProjectLabel } from '@/shared/lib/projectLabels';
 import { Badge } from '@/shared/ui/badge';
@@ -19,6 +20,9 @@ import {
 interface ProjectsMobileListProps {
   projects: Project[];
   customerById: Map<string, Customer>;
+  memberGroupById: Map<string, MemberGroup>;
+  /** Dot colour per team — picked on the Team page, or automatic. */
+  groupMarkColorById: Map<string, string>;
   milestones: Milestone[];
   trackedProjectIdSet: Set<string>;
   canEdit: boolean;
@@ -45,6 +49,8 @@ interface ProjectsMobileListProps {
 export const ProjectsMobileList: React.FC<ProjectsMobileListProps> = ({
   projects,
   customerById,
+  memberGroupById,
+  groupMarkColorById,
   milestones,
   trackedProjectIdSet,
   canEdit,
@@ -105,10 +111,17 @@ export const ProjectsMobileList: React.FC<ProjectsMobileListProps> = ({
               const customer = project.customerId ? customerById.get(project.customerId) : null;
               const milestoneCount = milestoneCountByProject.get(project.id) ?? 0;
               const isTracked = trackedProjectIdSet.has(project.id);
-              const subtitleParts = [
-                customer?.name ?? t`No customer`,
-                milestoneCount > 0 ? t`${milestoneCount} milestones ahead` : null,
-              ].filter(Boolean);
+              const ownerGroup = project.ownerGroupId
+                ? memberGroupById.get(project.ownerGroupId) ?? null
+                : null;
+              const customerLabel = customer?.name ?? t`No customer`;
+              // The short count the desktop list uses: the long form pushed
+              // the number itself off the end of the line.
+              const milestonesLabel = milestoneCount === 0
+                ? null
+                : milestoneCount === 1
+                  ? t`${milestoneCount} milestone`
+                  : t`${milestoneCount} milestones`;
 
               return (
                 <div key={project.id} className="relative">
@@ -121,7 +134,24 @@ export const ProjectsMobileList: React.FC<ProjectsMobileListProps> = ({
                       />
                     )}
                     title={formatProjectLabel(project.name, project.code)}
-                    subtitle={subtitleParts.join(' · ')}
+                    subtitle={(
+                      // The team leads, so its dots line up down the list and
+                      // one team's projects can be picked out at a glance.
+                      <>
+                        {ownerGroup && (
+                          <>
+                            <ColorDot
+                              color={groupMarkColorById.get(ownerGroup.id)}
+                              className="mr-1.5 align-middle"
+                            />
+                            {ownerGroup.name}
+                            {' · '}
+                          </>
+                        )}
+                        {customerLabel}
+                        {milestonesLabel && ` · ${milestonesLabel}`}
+                      </>
+                    )}
                     value={isTracked ? (
                       <Star className="h-4 w-4 fill-amber-400 text-amber-500" aria-label={t`Tracked`} />
                     ) : undefined}

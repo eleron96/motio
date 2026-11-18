@@ -41,7 +41,9 @@ const renderScreen = (overrides: Partial<React.ComponentProps<typeof MembersMobi
     groupsLoading: false,
     groupsError: '',
     onOpenGroup: vi.fn(),
+    groupMarkColorById: new Map([['g1', 'hsl(198, 55%, 45%)'], ['g2', 'hsl(36, 55%, 45%)']]),
     onRenameGroup: vi.fn(),
+    onChangeGroupColor: vi.fn(),
     onDeleteGroup: vi.fn(),
     ...overrides,
   };
@@ -166,5 +168,34 @@ describe('MembersMobileList', () => {
 
     await user.click(within(menu).getByRole('menuitem', { name: 'Delete' }));
     expect(props.onDeleteGroup).toHaveBeenCalledWith({ id: 'g1', name: 'Backend' });
+  });
+
+  it('leads a group\'s row with a dot in the group\'s colour', () => {
+    renderScreen({ mode: 'groups' });
+
+    const dot = rowOf('Backend').querySelector('[data-color-dot]');
+    expect(dot).toHaveStyle({ backgroundColor: 'hsl(198, 55%, 45%)' });
+    // Decoration: the name beside it already says which group this is.
+    expect(dot).toHaveAttribute('aria-hidden', 'true');
+    expect(rowOf('Frontend').querySelector('[data-color-dot]'))
+      .toHaveStyle({ backgroundColor: 'hsl(36, 55%, 45%)' });
+  });
+
+  it('opens the colour screen from a group\'s menu', async () => {
+    const user = userEvent.setup();
+    const { props } = renderScreen({ mode: 'groups' });
+
+    await user.click(screen.getAllByRole('button', { name: 'Group actions' })[1]);
+    await user.click(await screen.findByRole('menuitem', { name: 'Color' }));
+
+    expect(props.onChangeGroupColor).toHaveBeenCalledWith({ id: 'g2', name: 'Frontend' });
+  });
+
+  it('keeps the group menu away from people who cannot manage groups', () => {
+    renderScreen({ mode: 'groups', isAdmin: false });
+
+    expect(screen.queryByRole('button', { name: 'Group actions' })).not.toBeInTheDocument();
+    // The colour itself is for everyone to see.
+    expect(rowOf('Backend').querySelector('[data-color-dot]')).not.toBeNull();
   });
 });

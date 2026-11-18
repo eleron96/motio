@@ -256,16 +256,14 @@ msgid "{laterCount} later"
 msgstr "ещё {laterCount} позже"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
+#: src/features/projects/components/ProjectsMobileList.tsx
 msgid "{milestoneCount} milestone"
 msgstr "{milestoneCount} веха"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
+#: src/features/projects/components/ProjectsMobileList.tsx
 msgid "{milestoneCount} milestones"
 msgstr "{milestoneCount} вех"
-
-#: src/features/projects/components/ProjectsMobileList.tsx
-msgid "{milestoneCount} milestones ahead"
-msgstr "вех впереди: {milestoneCount}"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "{minutes} minutes"
@@ -1115,6 +1113,11 @@ msgstr "Авто"
 msgid "auto from history"
 msgstr "авто по истории"
 
+#: src/features/members/components/GroupColorScreen.tsx
+#: src/features/members/components/MembersGroupPanel.tsx
+msgid "Automatic colour"
+msgstr "Автоматический цвет"
+
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Average per file: {size}"
 msgstr "В среднем на файл: {size}"
@@ -1661,12 +1664,19 @@ msgstr "Код"
 msgid "Collapse"
 msgstr "Свернуть"
 
+#: src/features/members/components/MembersMobileList.tsx
 #: src/features/projects/components/ProjectFormDialogs.tsx
 #: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Color"
 msgstr "Цвет"
 
+#: src/features/members/components/GroupColorScreen.tsx
+msgid "Colour {number}"
+msgstr "Цвет {number}"
+
 #. placeholder {0}: person.name
+#. placeholder {0}: selectedGroup.name
+#: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/workspace/components/WorkspacePeopleColors.tsx
 msgid "Colour of {0}"
 msgstr "Цвет: {0}"
@@ -3570,6 +3580,10 @@ msgstr "Группировать по клиенту"
 msgid "Group by group"
 msgstr "Группировать по группе"
 
+#: src/features/members/components/GroupColorScreen.tsx
+msgid "Group colour"
+msgstr "Цвет группы"
+
 #: src/features/admin/components/AdminSignInChecks.tsx
 msgid "group mappers"
 msgstr "мапперов групп"
@@ -4505,6 +4519,10 @@ msgstr "Motio вырос именно из этой скучной, но оче�
 #: src/features/workspace/components/WorkspacePageHeader.tsx
 msgid "Motio home"
 msgstr "На главную Motio"
+
+#: src/features/members/components/GroupColorScreen.tsx
+msgid "Motio picks a colour no other group uses."
+msgstr "Motio подберёт цвет, не занятый другими группами."
 
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Mountains"

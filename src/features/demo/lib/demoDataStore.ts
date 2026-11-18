@@ -20,6 +20,8 @@ import {
   DEMO_SEED_CUSTOMER_CONTACTS,
   DEMO_SEED_PROJECT_MEMBERS,
   DEMO_SEED_PROJECT_CUSTOMER,
+  DEMO_SEED_GROUPS,
+  DEMO_SEED_PROJECT_OWNER_GROUP,
   DEMO_SEED_DASHBOARDS,
   buildDemoDashboardLayouts,
 } from './demoSeed';
@@ -41,7 +43,8 @@ interface PersistedState {
   // may have persisted a jitter-drifted layout before the store no-op guard.
   // v5: dashboards reshaped to mirror prod widget mix (assignee-centric).
   // v6: time_off table. v7: overlapping time off, so the calendar shows a pie.
-  schemaVersion: 9;
+  // v10: teams (member_groups with colours) and each project's owner team.
+  schemaVersion: 10;
   lastActivityAt: number;
   user: { id: string; email: string; display_name: string };
   workspaceId: string;
@@ -140,7 +143,7 @@ const buildFreshState = (): DemoStore => {
       archived: false,
       archived_at: null,
       status: null,
-      owner_group_id: null,
+      owner_group_id: DEMO_SEED_PROJECT_OWNER_GROUP[p.id] ?? null,
       created_at: nowIso,
     })),
     statuses: DEMO_SEED_STATUSES.map((s) => ({
@@ -279,7 +282,13 @@ const buildFreshState = (): DemoStore => {
     project_activity: [],
     // Tables read by the app but not seeded — empty arrays prevent
     // "table 'foo' not found" errors in the mock client.
-    member_groups: [],
+    member_groups: DEMO_SEED_GROUPS.map((g) => ({
+      id: g.id,
+      workspace_id: workspaceId,
+      name: g.name,
+      color: g.color,
+      created_at: nowIso,
+    })),
     member_group_assignments: [],
     project_tracking: [],
     user_workspace_templates: [],
@@ -310,7 +319,7 @@ const loadPersisted = (): DemoStore | null => {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as PersistedState;
-    if (parsed.schemaVersion !== 9) return null;
+    if (parsed.schemaVersion !== 10) return null;
     if (Date.now() - parsed.lastActivityAt > TTL_MS) return null;
     return {
       user: parsed.user,
@@ -326,7 +335,7 @@ const loadPersisted = (): DemoStore | null => {
 const persist = (store: DemoStore): void => {
   if (!isBrowser) return;
   const payload: PersistedState = {
-    schemaVersion: 9,
+    schemaVersion: 10,
     lastActivityAt: store.lastActivityAt,
     user: store.user,
     workspaceId: store.workspaceId,

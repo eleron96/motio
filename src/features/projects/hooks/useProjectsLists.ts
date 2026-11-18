@@ -14,6 +14,7 @@ import {
 import { useProjectsFilter } from '@/features/projects/hooks/useProjectsFilter';
 import type { ProjectsViewPreferences } from '@/features/projects/hooks/useProjectsViewPreferences';
 import type { Project } from '@/features/planner/types/planner';
+import { buildGroupMarkColorMap } from '@/shared/domain/groupColor';
 
 interface UseProjectsListsOptions {
   preferences: ProjectsViewPreferences;
@@ -71,6 +72,11 @@ export const useProjectsLists = ({ preferences, dateLocale }: UseProjectsListsOp
   );
   const memberGroupById = useMemo(
     () => new Map(memberGroups.map((group) => [group.id, group])),
+    [memberGroups],
+  );
+  // The dot a team is marked with — its picked colour, or an automatic one.
+  const groupMarkColorById = useMemo(
+    () => buildGroupMarkColorMap(memberGroups),
     [memberGroups],
   );
   const projectById = useMemo(
@@ -180,6 +186,7 @@ export const useProjectsLists = ({ preferences, dateLocale }: UseProjectsListsOp
     archivedProjects,
     customerById,
     memberGroupById,
+    groupMarkColorById,
     projectById,
     sortedCustomers,
     filteredCustomers,

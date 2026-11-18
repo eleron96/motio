@@ -17,6 +17,7 @@ import { SegmentedControl, SegmentedControlItem } from '@/shared/ui/segmented-co
 import { SelectableListItem } from '@/shared/ui/selectable-list-item';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { cn } from '@/shared/lib/classNames';
+import { ColorDot } from '@/shared/ui/color-dot';
 
 type Mode = 'tasks' | 'groups';
 type Tab = 'active' | 'disabled';
@@ -69,6 +70,8 @@ type MembersSidebarProps = {
   creatingGroup: boolean;
   groupsLoading: boolean;
   sortedGroups: GroupRecord[];
+  /** Dot colour per group — picked or automatic. */
+  groupMarkColorById: Map<string, string>;
   selectedGroupId: string | null;
   onSelectGroup: (groupId: string) => void;
   onStartEditGroup: (group: GroupRecord) => void;
@@ -111,6 +114,7 @@ export const MembersSidebar = ({
   creatingGroup,
   groupsLoading,
   sortedGroups,
+  groupMarkColorById,
   selectedGroupId,
   onSelectGroup,
   onStartEditGroup,
@@ -392,7 +396,10 @@ export const MembersSidebar = ({
                         onClick={() => onSelectGroup(group.id)}
                         onContextMenu={() => onSelectGroup(group.id)}
                       >
-                        <div className="text-sm font-medium leading-snug break-words line-clamp-2">{group.name}</div>
+                        <div className="flex items-start gap-2">
+                          <ColorDot color={groupMarkColorById.get(group.id)} className="mt-[0.4rem]" />
+                          <div className="min-w-0 text-sm font-medium leading-snug break-words line-clamp-2">{group.name}</div>
+                        </div>
                       </SelectableListItem>
                     </ContextMenuTrigger>
                     <ContextMenuContent>

@@ -13,7 +13,7 @@
 // reshuffle the automatic ones — the alternative is two people sharing a colour.
 
 import { PERSON_PRESET_COLORS } from '@/shared/lib/colors';
-import { isPersonColor } from '@/shared/lib/personColor';
+import { assignPaletteColors } from '@/shared/domain/paletteColors';
 import type { Assignee, TimeOff } from '@/features/planner/types/planner';
 
 /**
@@ -41,37 +41,12 @@ const hashToPaletteIndex = (value: string): number => {
 /**
  * Colour per person: the one picked in workspace settings if there is one,
  * otherwise the next unclaimed colour by position in the id-sorted list of
- * people, wrapping around once a workspace outgrows the palette.
+ * people, wrapping around once a workspace outgrows the palette. The rule itself
+ * is shared with team colours: shared/domain/paletteColors.
  */
 export const buildPersonColorMap = (
   people: Array<{ id: string; color?: string | null }>,
-): Map<string, string> => {
-  const ordered = [...people].sort((left, right) => left.id.localeCompare(right.id));
-
-  // Colours somebody chose are off the table for the automatic hand-out —
-  // otherwise a teammate could be handed the exact colour another person picked,
-  // and the two would be indistinguishable everywhere. If a workspace picked all
-  // of them, the pool falls back to the full palette rather than running dry.
-  const taken = new Set(
-    ordered
-      .map((person) => (isPersonColor(person.color) ? person.color.toLowerCase() : null))
-      .filter((color): color is string => color !== null),
-  );
-  const available = TIME_OFF_PALETTE.filter((color) => !taken.has(color.toLowerCase()));
-  const pool = available.length > 0 ? available : TIME_OFF_PALETTE;
-
-  const colors = new Map<string, string>();
-  let autoIndex = 0;
-  ordered.forEach((person) => {
-    if (isPersonColor(person.color)) {
-      colors.set(person.id, person.color);
-      return;
-    }
-    colors.set(person.id, pool[autoIndex % pool.length]);
-    autoIndex += 1;
-  });
-  return colors;
-};
+): Map<string, string> => assignPaletteColors(people, TIME_OFF_PALETTE);
 
 /**
  * The calendar's view of the same mapping. Dashboard charts call

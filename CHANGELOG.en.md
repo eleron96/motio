@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- Groups now have a colour. An admin picks it on the Team page, and a dot in that colour marks the owner team in the project list — on a computer and on a phone.
+
 ### Changed
 - On the timeline open tasks lie above closed ones: of two tasks of the same length the one still to do is higher, then the done one, and a cancelled one is the lowest. A task you close stays where it is and moves down the next time you open the timeline.
 

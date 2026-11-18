@@ -7,6 +7,7 @@ import { Switch } from '@/shared/ui/switch';
 import { MobileScreenShell } from '@/shared/ui/mobile-screen-shell';
 import { MobileListGroup, MobileListRow } from '@/shared/ui/mobile-list';
 import { cn } from '@/shared/lib/classNames';
+import { ColorDot } from '@/shared/ui/color-dot';
 
 interface ProjectsMobileFiltersScreenProps {
   open: boolean;
@@ -15,6 +16,8 @@ interface ProjectsMobileFiltersScreenProps {
   customerFilterIds: string[];
   onToggleCustomer: (customerId: string) => void;
   memberGroups: MemberGroup[];
+  /** Dot colour per team — picked or automatic. */
+  groupMarkColorById: Map<string, string>;
   ownerGroupFilterIds: string[];
   onToggleOwnerGroup: (groupId: string) => void;
   groupByCustomer: boolean;
@@ -40,6 +43,7 @@ export const ProjectsMobileFiltersScreen: React.FC<ProjectsMobileFiltersScreenPr
   customerFilterIds,
   onToggleCustomer,
   memberGroups,
+  groupMarkColorById,
   ownerGroupFilterIds,
   onToggleOwnerGroup,
   groupByCustomer,
@@ -124,6 +128,7 @@ export const ProjectsMobileFiltersScreen: React.FC<ProjectsMobileFiltersScreenPr
             return (
               <MobileListRow
                 key={group.id}
+                leading={<ColorDot color={groupMarkColorById.get(group.id)} className="h-2.5 w-2.5" />}
                 title={group.name}
                 right={tick(checked)}
                 selected={checked}

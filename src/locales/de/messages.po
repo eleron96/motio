@@ -256,16 +256,14 @@ msgid "{laterCount} later"
 msgstr "{laterCount} später"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
+#: src/features/projects/components/ProjectsMobileList.tsx
 msgid "{milestoneCount} milestone"
 msgstr "{milestoneCount} Meilenstein"
 
 #: src/features/projects/components/projectCard/ProjectCardSidebar.tsx
+#: src/features/projects/components/ProjectsMobileList.tsx
 msgid "{milestoneCount} milestones"
 msgstr "{milestoneCount} Meilensteine"
-
-#: src/features/projects/components/ProjectsMobileList.tsx
-msgid "{milestoneCount} milestones ahead"
-msgstr "{milestoneCount} Meilensteine stehen an"
 
 #: src/features/auth/components/DataExportButton.tsx
 msgid "{minutes} minutes"
@@ -1115,6 +1113,11 @@ msgstr "Automatisch"
 msgid "auto from history"
 msgstr "automatisch aus dem Verlauf"
 
+#: src/features/members/components/GroupColorScreen.tsx
+#: src/features/members/components/MembersGroupPanel.tsx
+msgid "Automatic colour"
+msgstr "Automatische Farbe"
+
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Average per file: {size}"
 msgstr "Durchschnitt pro Datei: {size}"
@@ -1661,12 +1664,19 @@ msgstr "Kürzel"
 msgid "Collapse"
 msgstr "Einklappen"
 
+#: src/features/members/components/MembersMobileList.tsx
 #: src/features/projects/components/ProjectFormDialogs.tsx
 #: src/features/projects/components/ProjectFormDialogs.tsx
 msgid "Color"
 msgstr "Farbe"
 
+#: src/features/members/components/GroupColorScreen.tsx
+msgid "Colour {number}"
+msgstr "Farbe {number}"
+
 #. placeholder {0}: person.name
+#. placeholder {0}: selectedGroup.name
+#: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/workspace/components/WorkspacePeopleColors.tsx
 msgid "Colour of {0}"
 msgstr "Farbe von {0}"
@@ -3570,6 +3580,10 @@ msgstr "Nach Kunde gruppieren"
 msgid "Group by group"
 msgstr "Nach Gruppe gruppieren"
 
+#: src/features/members/components/GroupColorScreen.tsx
+msgid "Group colour"
+msgstr "Gruppenfarbe"
+
 #: src/features/admin/components/AdminSignInChecks.tsx
 msgid "group mappers"
 msgstr "Gruppen-Mapper"
@@ -4505,6 +4519,10 @@ msgstr "Motio ist genau aus diesem langweiligen, aber sehr realen Problem entsta
 #: src/features/workspace/components/WorkspacePageHeader.tsx
 msgid "Motio home"
 msgstr "Motio-Startseite"
+
+#: src/features/members/components/GroupColorScreen.tsx
+msgid "Motio picks a colour no other group uses."
+msgstr "Motio wählt eine Farbe, die keine andere Gruppe verwendet."
 
 #: src/features/planner/lib/timeOffMotifs.ts
 msgid "Mountains"
