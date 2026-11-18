@@ -52,6 +52,214 @@ describe('calculateTaskLanes — lane assignment', () => {
   });
 });
 
+/** Empty places with a bar under them: what reads as a hole in the stack. */
+const countHoles = (rows: TaskWithLane[]): number => {
+  const days = new Set<string>();
+  rows.forEach((row) => {
+    for (let time = Date.parse(row.startDate); time <= Date.parse(row.endDate); time += 86_400_000) {
+      days.add(new Date(time).toISOString().slice(0, 10));
+    }
+  });
+  let holes = 0;
+  days.forEach((day) => {
+    const lanes = rows.filter((row) => row.startDate <= day && row.endDate >= day).map((row) => row.lane);
+    holes += Math.max(...lanes) + 1 - lanes.length;
+  });
+  return holes;
+};
+
+describe('calculateTaskLanes — the longest bar first, like Tetris', () => {
+  const day = (date: number) => `2026-11-${String(date).padStart(2, '0')}`;
+  const span = (id: string, from: number, to: number, overrides: Partial<Task> = {}) => (
+    makeTask({ id, startDate: day(from), endDate: day(to), ...overrides })
+  );
+  const lanesOfIds = (rows: TaskWithLane[], ids: string[]) => ids.map((id) => byId(rows, id).lane);
+
+  it('puts a long task that starts on a busy day on top, not under the stack', () => {
+    // The first screenshot: the long bar sat in lane 3 for days after the
+    // one-day tasks of its first day were gone, with three empty lanes above it.
+    const result = calculateTaskLanes([
+      span('x1', 9, 9), span('x2', 9, 9), span('x3', 9, 9),
+      span('long', 9, 13),
+      span('a1', 12, 12), span('a2', 12, 12), span('a3', 12, 12),
+      span('b1', 13, 13), span('c1', 14, 14),
+    ]);
+
+    expect(byId(result, 'long').lane).toBe(0);
+    expect(lanesOfIds(result, ['x1', 'x2', 'x3'])).toEqual([1, 2, 3]);
+    expect(lanesOfIds(result, ['a1', 'a2', 'a3', 'b1', 'c1'])).toEqual([1, 2, 3, 1, 0]);
+    expect(countHoles(result)).toBe(0);
+    expect(getMaxLanes(result)).toBe(4);
+  });
+
+  it('puts a long task on top even when shorter ones started before it', () => {
+    const result = calculateTaskLanes([
+      span('x1', 6, 9), span('x2', 6, 9), span('x3', 6, 9),
+      span('long', 9, 13),
+      span('a1', 12, 12), span('a2', 12, 12), span('a3', 12, 12),
+      span('b1', 13, 13),
+    ]);
+
+    expect(byId(result, 'long').lane).toBe(0);
+    expect(lanesOfIds(result, ['a1', 'a2', 'a3', 'b1'])).toEqual([1, 2, 3, 1]);
+    expect(getMaxLanes(result)).toBe(4);
+  });
+
+  it('lets one-day tasks fill the room under the longer ones', () => {
+    // The second screenshot: a two-day task hung in lane 5 under a long bar
+    // that had already ended, with two empty lanes above it on its second day.
+    const result = calculateTaskLanes([
+      span('y1', 9, 9), span('y2', 9, 9), span('y3', 9, 9), span('y4', 9, 9),
+      span('long', 9, 12),
+      span('a1', 12, 12), span('a2', 12, 12), span('a3', 12, 12), span('a4', 12, 12),
+      span('two', 12, 13),
+      span('b1', 13, 13), span('b2', 13, 13), span('b3', 13, 13),
+      span('c1', 14, 14), span('c2', 14, 14), span('c3', 14, 14),
+    ]);
+
+    expect(lanesOfIds(result, ['long', 'two'])).toEqual([0, 1]);
+    expect(lanesOfIds(result, ['a1', 'a2', 'a3', 'a4'])).toEqual([2, 3, 4, 5]);
+    expect(lanesOfIds(result, ['b1', 'b2', 'b3'])).toEqual([0, 2, 3]);
+    expect(lanesOfIds(result, ['c1', 'c2', 'c3'])).toEqual([0, 1, 2]);
+    expect(countHoles(result)).toBe(0);
+    expect(getMaxLanes(result)).toBe(6);
+  });
+
+  it('puts the task with a priority above one of the same length', () => {
+    const plain = span('plain', 9, 10);
+    const urgent = span('urgent', 9, 10, { priority: 'low' });
+
+    [[plain, urgent], [urgent, plain]].forEach((order) => {
+      const result = calculateTaskLanes(order);
+      expect(lanesOfIds(result, ['urgent', 'plain'])).toEqual([0, 1]);
+    });
+  });
+
+  it('orders priorities high, medium, low, none', () => {
+    const result = calculateTaskLanes([
+      span('none', 9, 9),
+      span('low', 9, 9, { priority: 'low' }),
+      span('high', 9, 9, { priority: 'high' }),
+      span('medium', 9, 9, { priority: 'medium' }),
+    ]);
+
+    expect(lanesOfIds(result, ['high', 'medium', 'low', 'none'])).toEqual([0, 1, 2, 3]);
+  });
+
+  it('lets the length decide before the priority', () => {
+    const result = calculateTaskLanes([
+      span('urgent', 9, 9, { priority: 'high' }),
+      span('longer', 9, 10),
+    ]);
+
+    expect(lanesOfIds(result, ['longer', 'urgent'])).toEqual([0, 1]);
+  });
+
+  it('puts the earlier of two equal tasks first', () => {
+    const result = calculateTaskLanes([span('later', 10, 11), span('earlier', 9, 10)]);
+
+    expect(lanesOfIds(result, ['earlier', 'later'])).toEqual([0, 1]);
+  });
+
+  it('returns the bars by start, then by end, whatever order they were placed in', () => {
+    const result = calculateTaskLanes([span('c', 10, 10), span('b', 9, 13), span('a', 9, 9)]);
+
+    expect(result.map((task) => task.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('packs the row by start when the longest-first order would make it taller', () => {
+    // Longest first: "a" and "d" take lane 0, "b" lane 1, and "c" touches all
+    // three — a third lane on a row whose busiest day has two tasks.
+    const result = calculateTaskLanes([span('a', 7, 11), span('b', 3, 6), span('c', 6, 9), span('d', 1, 4)]);
+
+    expect(getMaxLanes(result)).toBe(2);
+    expect(lanesOfIds(result, ['d', 'b', 'c', 'a'])).toEqual([0, 1, 0, 1]);
+  });
+
+  it('packs the row by start when that leaves fewer holes', () => {
+    // A few long bars following one another. Longest first, "c" and "b" take
+    // lanes 0 and 1 and "a" hangs in lane 1 for eight days with nothing above.
+    const result = calculateTaskLanes([
+      span('a', 1, 9), span('b', 11, 23), span('c', 9, 21), span('d', 11, 19), span('e', 13, 19),
+    ]);
+
+    expect(lanesOfIds(result, ['a', 'c', 'b', 'd', 'e'])).toEqual([0, 1, 0, 2, 3]);
+    expect(countHoles(result)).toBe(1);
+  });
+
+  it('never lays a row out worse than the order used before: by start, the shorter first', () => {
+    let seed = 5;
+    const random = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+    const dayAt = (offset: number) => new Date(Date.UTC(2026, 1, 1 + offset)).toISOString().slice(0, 10);
+    const packedAsBefore = (tasks: Task[]): TaskWithLane[] => {
+      const placed: TaskWithLane[] = [];
+      [...tasks]
+        .sort((a, b) => a.startDate.localeCompare(b.startDate) || a.endDate.localeCompare(b.endDate))
+        .forEach((task) => {
+          let lane = 0;
+          const taken = (bar: TaskWithLane) => bar.lane === lane && bar.startDate <= task.endDate && task.startDate <= bar.endDate;
+          while (placed.some(taken)) lane += 1;
+          placed.push({ ...task, lane });
+        });
+      return placed;
+    };
+    // From rows of many one-day tasks to rows of a few long bars.
+    const mixes = [{ perDay: 3, oneDay: 0.65, longest: 12 }, { perDay: 1, oneDay: 0.2, longest: 25 }, { perDay: 0.2, oneDay: 0.1, longest: 30 }];
+    mixes.forEach((mix) => {
+      for (let round = 0; round < 40; round += 1) {
+        const tasks: Task[] = [];
+        for (let offset = 0; offset < 40; offset += 1) {
+          const count = Math.floor(random() * (mix.perDay * 2 + 1));
+          for (let index = 0; index < count; index += 1) {
+            const length = random() < mix.oneDay ? 0 : 1 + Math.floor(random() * mix.longest);
+            tasks.push(makeTask({ id: `t${offset}-${index}`, startDate: dayAt(offset), endDate: dayAt(offset + length) }));
+          }
+        }
+        if (tasks.length === 0) continue;
+        const result = calculateTaskLanes(tasks);
+        const before = packedAsBefore(tasks);
+
+        expect(getMaxLanes(result)).toBeLessThanOrEqual(getMaxLanes(before));
+        expect(countHoles(result)).toBeLessThanOrEqual(countHoles(before));
+      }
+    });
+  });
+
+  it('is never taller than the busiest day and leaves no bar that could rise', () => {
+    let seed = 23;
+    const random = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+    const dayAt = (offset: number) => new Date(Date.UTC(2026, 1, 1 + offset)).toISOString().slice(0, 10);
+    const priorities = [null, null, null, 'low', 'medium', 'high'] as const;
+    for (let round = 0; round < 60; round += 1) {
+      const tasks = Array.from({ length: 40 }, (_, index) => {
+        const start = Math.floor(random() * 30);
+        const length = random() < 0.6 ? 0 : Math.floor(random() * 12);
+        return makeTask({
+          id: `t${index}`,
+          startDate: dayAt(start),
+          endDate: dayAt(start + length),
+          priority: priorities[Math.floor(random() * priorities.length)],
+        });
+      });
+      const result = calculateTaskLanes(tasks);
+
+      const busiestDay = Math.max(...Array.from({ length: 45 }, (_, offset) => (
+        tasks.filter((task) => task.startDate <= dayAt(offset) && task.endDate >= dayAt(offset)).length
+      )));
+      expect(getMaxLanes(result)).toBe(busiestDay);
+
+      result.forEach((bar) => {
+        for (let lane = 0; lane < bar.lane; lane += 1) {
+          const blocked = result.some((other) => (
+            other.lane === lane && other.startDate <= bar.endDate && bar.startDate <= other.endDate
+          ));
+          expect(blocked, `${bar.id} could rise to lane ${lane}`).toBe(true);
+        }
+      });
+    }
+  });
+});
+
 describe('calculateTaskLanes — lane 0 reserved for a time-off bar', () => {
   // The vacation in the screenshot that started this: Aug 10-23.
   const vacation = [{ startDate: '2026-08-10', endDate: '2026-08-23' }];
@@ -180,17 +388,17 @@ describe('calculateTaskLanes — keeping lanes from the last layout', () => {
   )));
 
   it('keeps every lane when an earlier task leaves (the window moved right)', () => {
-    // Packed from scratch without "early", "late" would drop from lane 2 to
-    // lane 1 and every bar after it would shuffle.
-    const early = makeTask({ id: 'early', startDate: '2026-02-01', endDate: '2026-02-10' });
+    const early = makeTask({ id: 'early', startDate: '2026-02-01', endDate: '2026-02-20' });
     const a = makeTask({ id: 'a', startDate: '2026-02-05', endDate: '2026-02-12' });
-    const b = makeTask({ id: 'b', startDate: '2026-02-08', endDate: '2026-02-14' });
-    const late = makeTask({ id: 'late', startDate: '2026-02-11', endDate: '2026-02-20' });
-    const before = calculateTaskLanes([early, a, b, late]);
+    const b = makeTask({ id: 'b', startDate: '2026-02-13', endDate: '2026-02-25' });
+    const before = calculateTaskLanes([early, a, b]);
+    expect(['early', 'a', 'b'].map((id) => byId(before, id).lane)).toEqual([0, 1, 1]);
+    // Packed from scratch without "early", both would rise to lane 0.
+    expect(calculateTaskLanes([a, b]).map((task) => task.lane)).toEqual([0, 0]);
 
-    const after = calculateTaskLanes([a, b, late], [], lanesOf(before));
+    const after = calculateTaskLanes([a, b], [], lanesOf(before));
 
-    ['a', 'b', 'late'].forEach((id) => expect(byId(after, id).lane, id).toBe(byId(before, id).lane));
+    ['a', 'b'].forEach((id) => expect(byId(after, id).lane, id).toBe(1));
     expect(overlapsInLane(after)).toBe(false);
   });
 
@@ -324,6 +532,33 @@ describe('calculateTaskLanes — keeping lanes from the last layout', () => {
     const after = calculateTaskLanes([{ ...kept, title: 'Renamed' }], [], previous);
 
     expect(byId(after, 'kept').lane).toBe(2);
+  });
+
+  it('places the tasks that arrive longest first, around the bars already laid out', () => {
+    const kept = makeTask({ id: 'kept', startDate: '2026-02-20', endDate: '2026-02-20' });
+    const previous = new Map([['kept', { lane: 0, startDate: kept.startDate, endDate: kept.endDate }]]);
+    const short = makeTask({ id: 'short', startDate: '2026-02-10', endDate: '2026-02-10' });
+    const long = makeTask({ id: 'long', startDate: '2026-02-10', endDate: '2026-02-14' });
+    const urgent = makeTask({ id: 'urgent', startDate: '2026-02-10', endDate: '2026-02-10', priority: 'high' });
+
+    const after = calculateTaskLanes([short, urgent, long, kept], [], previous);
+
+    expect(['long', 'urgent', 'short'].map((id) => byId(after, id).lane)).toEqual([0, 1, 2]);
+    expect(byId(after, 'kept').lane).toBe(0);
+  });
+
+  it('does not move a bar when only its priority changed', () => {
+    const top = makeTask({ id: 'top', startDate: '2026-02-10', endDate: '2026-02-10' });
+    const bottom = makeTask({ id: 'bottom', startDate: '2026-02-10', endDate: '2026-02-10' });
+    const before = calculateTaskLanes([top, bottom]);
+    expect(byId(before, 'bottom').lane).toBe(1);
+
+    const after = calculateTaskLanes([top, { ...bottom, priority: 'high' }], [], lanesOf(before));
+
+    expect(byId(after, 'top').lane).toBe(0);
+    expect(byId(after, 'bottom').lane).toBe(1);
+    // Laid out afresh (the page reopened, the filters changed) it goes on top.
+    expect(byId(calculateTaskLanes([top, { ...bottom, priority: 'high' }]), 'bottom').lane).toBe(0);
   });
 
   it('keeps a task out of lane 0 where a time-off bar holds it', () => {

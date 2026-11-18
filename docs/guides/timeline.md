@@ -13,7 +13,8 @@ stripes is today.
 - **A grey Day off bar** — the person is away.
 
 Tasks that overlap in time stack up inside the row, so a row three bars deep means three
-things at once. Hover a bar for its project, assignees and repeat; click it to
+things at once. Longer tasks lie on top and shorter ones fill the room under them; of two
+tasks of the same length the one with the higher priority is higher. Hover a bar for its project, assignees and repeat; click it to
 [open the task](./tasks.md).
 
 ## Views
