@@ -123,6 +123,10 @@ remote_release_env=""
 if [[ -n "${NEXT_VERSION:-}" ]]; then
   remote_release_env="NEXT_VERSION=$(printf '%q' "$NEXT_VERSION") "
 fi
+# PULL_IMAGES=1: also fetch the newest build of every image (prod-compose.sh).
+if [[ "${PULL_IMAGES:-}" == "1" ]]; then
+  remote_release_env+="PULL_IMAGES=1 "
+fi
 
 # motio-caddy binds a single file (/opt/new_toggl/infra/caddy/Caddyfile -> /etc/caddy/Caddyfile).
 # Plain rsync replaces the file via rename, which breaks that bind mount until the container restarts.

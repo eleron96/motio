@@ -353,6 +353,21 @@ fi
 
 export COMPOSE_MENU=0
 
+# PULL_IMAGES=1 make deploy: fetch the newest build of every image before anything
+# starts. A few images follow a version line (keycloak:26.8, caddy:2.11,
+# nginx:1.30-alpine, postgres:15-alpine, liquibase:4.27); a deploy never pulls, so on
+# this server they stay at the build that was current when they were first fetched.
+# Keycloak changes its database on start: read docs/operations.md, "Upgrading a
+# bundled image", before using this. The web image's base is pulled as well, but a
+# failure there only warns (that registry is not always reachable from the server).
+if [[ "$(normalize_bool "${PULL_IMAGES:-false}")" == "true" ]]; then
+  echo "PULL_IMAGES: pulling service images..."
+  docker compose -f "$compose_file" --env-file "$env_file" pull --ignore-buildable --quiet
+  for base_image in $(grep -hE '^FROM ' infra/web/Dockerfile infra/backup-service/Dockerfile | awk '{print $2}' | sort -u); do
+    docker pull --quiet "$base_image" >/dev/null || echo "Warning: could not pull $base_image; the build uses the copy already here." >&2
+  done
+fi
+
 # Snapshot the database and uploaded files BEFORE anything new starts: GoTrue,
 # Storage and Realtime migrate their schemas on start, some one-way, so the
 # pre-migration dump further down is already taken after them.
