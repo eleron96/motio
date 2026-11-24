@@ -19,8 +19,12 @@ const RICH_TEXT_TAGS = [
   'img',
 ];
 
+// DOMPurify's own pattern narrowed to http(s) and mailto. The hyphen before
+// `:` is escaped on purpose (an unescaped `.-:` is a range that also covers digits
+// and `/`, which rejected relative paths like `img/x.png`), and the scheme
+// must end in `:` (without it `httpfoo:` passed as http).
 const RICH_TEXT_URI_REGEXP =
-  /^(?:(?:https?|mailto)|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i;
+  /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i;
 
 const TASK_DESCRIPTION_ATTRS = ['src', 'alt', 'style', 'width', 'height'];
 

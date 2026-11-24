@@ -318,16 +318,20 @@ pool.on('error', (error) => {
 const app = express();
 app.use(express.json({ limit: '1mb' }));
 
-const withCors = (req, res) => {
-  const origin = CORS_ORIGIN === '*' ? (req.headers.origin || '*') : CORS_ORIGIN;
-  res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
+const withCors = (res) => {
+  // The service is called with a bearer token, never with cookies, so the
+  // wildcard needs no credentials: echoing any caller's origin together with
+  // `Allow-Credentials` would be an open door the day a cookie appears.
+  res.setHeader('Access-Control-Allow-Origin', CORS_ORIGIN);
+  if (CORS_ORIGIN !== '*') {
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'authorization, content-type, x-backup-name');
 };
 
 app.use((req, res, next) => {
-  withCors(req, res);
+  withCors(res);
   if (req.method === 'OPTIONS') {
     res.status(204).end();
     return;
