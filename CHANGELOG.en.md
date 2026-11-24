@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.83] - 2026-11-24
 ### Added
 - People can be added to the timeline without an invitation: a workspace admin types a name on the Team page, gives the person tasks and time off, and can invite them later — the row with all its tasks becomes theirs. The server administrator turns this on in Admin → Settings → People without an account; it is off by default.
 
