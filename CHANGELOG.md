@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.85] - 2026-11-24
 ### Changed
 - Обновлены служебные компоненты: oauth2-proxy 7.15.6 с исправлениями безопасности.
 
