@@ -4773,8 +4773,14 @@ msgstr "Nächste Seite"
 msgid "Nina Clarke"
 msgstr "Lea Hoffmann"
 
+#: src/features/planner/components/AddTaskParameters.tsx
+#: src/features/planner/components/TaskAssigneeField.tsx
+msgid "no account"
+msgstr "kein Konto"
+
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
+#: src/features/planner/components/MobileAssigneeField.tsx
 msgid "No account"
 msgstr "Kein Konto"
 

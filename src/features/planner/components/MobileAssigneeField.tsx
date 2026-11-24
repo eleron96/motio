@@ -5,6 +5,7 @@ import { cn } from '@/shared/lib/classNames';
 import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { MobilePickerScreen, type MobilePickerOption } from '@/shared/ui/mobile-picker-screen';
+import { useAccountlessMark } from '@/features/planner/hooks/useAccountlessMark';
 
 /** Sentinel row that clears the selection instead of adding to it. */
 const UNASSIGNED = '__unassigned__';
@@ -14,6 +15,7 @@ interface AssigneeOption {
   name: string;
   userId?: string | null;
   avatar?: string | null;
+  isSample?: boolean;
 }
 
 interface MobileAssigneeFieldProps {
@@ -40,12 +42,14 @@ export const MobileAssigneeField: React.FC<MobileAssigneeFieldProps> = ({
   emptyLabel,
 }) => {
   const [open, setOpen] = React.useState(false);
+  const hasNoAccount = useAccountlessMark();
 
   const options: MobilePickerOption[] = [
     { value: UNASSIGNED, label: t`Unassigned`, searchText: '' },
     ...assignees.map((assignee) => ({
       value: assignee.id,
       label: assignee.name,
+      subtitle: hasNoAccount(assignee) ? t`No account` : undefined,
       searchText: assignee.name,
       leading: (
         <PersonAvatar

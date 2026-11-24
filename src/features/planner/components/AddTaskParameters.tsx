@@ -12,6 +12,7 @@ import { getPersonMonogram } from '@/shared/domain/personName';
 import { formatStatusLabel } from '@/shared/lib/statusLabels';
 import { ComposerEyebrow } from '@/features/planner/components/ComposerEyebrow';
 import { MobileAssigneeField } from '@/features/planner/components/MobileAssigneeField';
+import { useAccountlessMark } from '@/features/planner/hooks/useAccountlessMark';
 import { RepeatPopoverField } from '@/features/planner/components/RepeatPopoverField';
 import { TagMultiSelect } from '@/features/planner/components/TagMultiSelect';
 import { TaskReminderField } from '@/features/planner/components/TaskReminderField';
@@ -30,6 +31,7 @@ interface AddTaskParametersProps {
 
 /** The right column of the add-task dialog: project, people, status, priority, type, dates, reminder, repeat and tags. */
 export const AddTaskParameters: React.FC<AddTaskParametersProps> = ({ form, isMobile, lockProject }) => {
+  const hasNoAccount = useAccountlessMark();
   const {
     statuses,
     taskTypes,
@@ -162,7 +164,13 @@ export const AddTaskParameters: React.FC<AddTaskParametersProps> = ({ form, isMo
                         colorSeed={assignee.userId ?? assignee.id}
                         size="xs"
                       />
-                      <span className="text-sm truncate">{assignee.name}</span>
+                      {/* Only the name gives way in a narrow list: the mark stays readable. */}
+                      <span className="flex min-w-0 items-baseline gap-1 text-sm">
+                        <span className="truncate">{assignee.name}</span>
+                        {hasNoAccount(assignee) && (
+                          <span className="shrink-0 text-[10px] text-muted-foreground">({t`no account`})</span>
+                        )}
+                      </span>
                     </button>
                   ))}
                 </div>

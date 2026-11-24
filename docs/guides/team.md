@@ -34,7 +34,8 @@ if you like.
 - The person gets a row on the timeline, like everyone else. You can give them tasks
   and time off, and they count in the workload heatmap.
 - They cannot sign in and get no notifications. In the list they are marked
-  **No account**.
+  **No account**, and the list of assignees in a task shows the same mark beside the
+  name.
 - **Edit**, **Disable** and **Enable** are in the person's menu. A disabled person
   moves to the **Disabled** tab with their tasks.
 - People without an account cannot be put into a group.
