@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.87] - 2026-11-24
 ### Added
 - In a task's list of assignees, people added without an account carry a “no account” mark.
 

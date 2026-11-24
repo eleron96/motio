@@ -7,6 +7,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.87] - 2026-11-24
 ### Added
 - В списке исполнителей задачи люди, добавленные без аккаунта, отмечены пометкой «без аккаунта».
 
