@@ -63,7 +63,7 @@ export const createCatalogActions = (
 ): CatalogActions => ({
   addAssignee: async (assignee) => {
     const workspaceId = get().workspaceId;
-    if (!workspaceId) return;
+    if (!workspaceId) return { error: 'Workspace not selected.' };
 
     const { data, error } = await supabase
       .from('assignees')
@@ -79,10 +79,14 @@ export const createCatalogActions = (
 
     if (error || !data) {
       console.error(error);
-      return;
+      return { error: error?.message ?? 'Failed to add the person.' };
     }
 
-    set((state) => ({ assignees: [...state.assignees, mapAssigneeRow(data as AssigneeRow)] }));
+    const added = mapAssigneeRow(data as AssigneeRow);
+    set((state) => ({
+      assignees: [...state.assignees, added].sort((left, right) => left.name.localeCompare(right.name)),
+    }));
+    return { assigneeId: added.id };
   },
 
   updateAssignee: async (id, updates) => {

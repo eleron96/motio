@@ -71,6 +71,11 @@ export const serverSettingText = (key: string): { title: string; description: st
         title: t`Calendar periods in dashboards`,
         description: t`Widgets can also show this or next calendar week or month, not only the last day, week or month.`,
       };
+    case 'people.withoutAccount':
+      return {
+        title: t`People without an account`,
+        description: t`Workspace admins add people to the timeline by name, without inviting them. Such a person can be given tasks and time off but sees nothing; an invitation sent from their row later hands them the same row with everything on it.`,
+      };
     default:
       return { title: key, description: '' };
   }

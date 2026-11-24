@@ -101,6 +101,8 @@ export interface Assignee {
   timeOffMotif?: TimeOffMotifId;
   userId?: string | null;
   isActive: boolean;
+  /** One of the made-up colleagues a new workspace starts with (0144). */
+  isSample?: boolean;
   /** Phase 4: optional contact info shown in the project-card Team popup. */
   email: string | null;
   phone: string | null;

@@ -1,3 +1,5 @@
+import { isAssigneeRowListed } from '@/shared/domain/accountlessPeople';
+import { useInstanceSettingsStore } from '@/shared/store/instanceSettingsStore';
 import { addYears, format, parseISO } from 'date-fns';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { getAdminUserId } from '@/shared/lib/adminConfig';
@@ -191,7 +193,7 @@ export const loadFullWorkspaceData = async (
     .order('created_at', { ascending: true });
   const assigneesQuery = supabase
     .from('assignees')
-    .select('id, workspace_id, name, user_id, is_active, email, phone, color')
+    .select('id, workspace_id, name, user_id, is_active, email, phone, color, is_sample')
     .eq('workspace_id', workspaceId);
   const projectMembersQuery = supabase
     .from('project_members')
@@ -323,10 +325,14 @@ export const loadFullWorkspaceData = async (
   for (const row of (memberAssignmentsRes.data ?? []) as unknown as Array<{ user_id: string; profiles?: AssigneeProfileRow | null }>) {
     if (row.profiles) memberProfileBits.set(row.user_id, readAssigneeProfileBits(row.profiles));
   }
+  const accountlessPeopleEnabled = useInstanceSettingsStore.getState().values['people.withoutAccount'];
   const assignees = assigneeRows
     .filter((row) => {
       if (adminUserId && row.user_id === adminUserId) return false;
-      return row.user_id !== null || taskAssigneeIds.has(row.id);
+      return isAssigneeRowListed(
+        { userId: row.user_id, hasLoadedTask: taskAssigneeIds.has(row.id) },
+        { accountlessPeopleEnabled },
+      );
     })
     .sort((left, right) => left.name.localeCompare(right.name))
     .map(mapAssigneeRow)

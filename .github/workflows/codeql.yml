@@ -1,0 +1,64 @@
+name: CodeQL
+
+# Static analysis of our own code for security mistakes: user input reaching
+# SQL, HTML, a request address or a redirect, and unsafe workflow definitions.
+# Findings land in the repository's Security tab → Code scanning. A report,
+# not a gate: the run goes red only when the analysis itself breaks.
+on:
+  push:
+    branches:
+      - main
+      - codex/main-current
+    paths-ignore:
+      - 'docs/**'
+      - 'docs-site/**'
+      - '**/*.md'
+      - 'src/locales/**'
+  schedule:
+    - cron: '0 5 * * 3'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+          - javascript-typescript
+          - actions
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+          # security-extended adds lower-confidence queries on top of the
+          # default set; drop back to the default if the noise outweighs it.
+          queries: security-extended
+          config: |
+            paths-ignore:
+              - '**/*.test.ts'
+              - '**/*.test.tsx'
+              - src/test
+              - tests
+              - e2e
+              - src/locales
+
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}

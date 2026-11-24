@@ -26,6 +26,7 @@ People get a change the next time they open Motio.
 | `workspaces.closures` | workspace admins add days off for everyone (company closures) |
 | `dashboards.transfer` | dashboards can be duplicated, exported to a file and imported |
 | `dashboards.calendarPeriods` | dashboard widgets can show this or next calendar week or month |
+| `people.withoutAccount` | workspace admins add people to the timeline by name, without inviting them, and can invite them later from the same row ([Team](https://eleron96.github.io/motio/guide/team#people-without-an-account)) |
 
 The same from the command line:
 

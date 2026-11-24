@@ -61,6 +61,9 @@ const inviteRequestSchema = z.discriminatedUnion("action", [
     email: z.string().email(),
     role: inviteRoleSchema.optional(),
     groupId: z.string().nullable().optional(),
+    // A person added to the timeline by name: the invitation hands them that
+    // row when it is accepted (0192).
+    assigneeId: z.string().uuid().nullable().optional(),
   }).strict(),
   z.object({
     action: z.literal(INVITE_ACTIONS.ACCEPT),
@@ -367,6 +370,26 @@ const handleCreateInvite = async (
     }
   }
 
+  const assigneeId = payload.assigneeId?.trim() || null;
+  if (assigneeId) {
+    const { data: personRow, error: personRowError } = await supabaseAdmin
+      .from("assignees")
+      .select("id, user_id, is_sample")
+      .eq("id", assigneeId)
+      .eq("workspace_id", workspaceId)
+      .maybeSingle();
+
+    if (personRowError || !personRow) {
+      return jsonResponse({ error: "Person not found." }, 400);
+    }
+    if (personRow.user_id || personRow.is_sample) {
+      return jsonResponse({ error: "This person cannot be invited from their row." }, 400);
+    }
+  }
+  // Only an invitation sent from a person's row names one; a plain invitation
+  // to the same email leaves an earlier link as it is.
+  const personLink = assigneeId ? { assignee_id: assigneeId } : {};
+
   const canSendEmail = await resolveRealmCanSendEmail();
   const invitee = await resolveInvitee(email, canSendEmail);
   if ("error" in invitee) {
@@ -432,6 +455,7 @@ const handleCreateInvite = async (
         group_id: groupId,
         invited_by: authUser.id,
         expires_at: expiresAt,
+        ...personLink,
       })
       .eq("id", existingInvite.id);
 
@@ -450,6 +474,7 @@ const handleCreateInvite = async (
         group_id: groupId,
         invited_by: authUser.id,
         expires_at: expiresAt,
+        ...personLink,
       })
       .select("token")
       .single();
@@ -478,6 +503,7 @@ const handleCreateInvite = async (
           group_id: groupId,
           invited_by: authUser.id,
           expires_at: expiresAt,
+          ...personLink,
         })
         .eq("id", racedInvite.id);
 

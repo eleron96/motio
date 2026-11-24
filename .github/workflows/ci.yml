@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+# Every job only reads the repository; nothing here needs to write to it.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -39,7 +43,7 @@ jobs:
 
       # Edge Functions live outside tsconfig.app.json. Deno 2.1.4 = the version
       # inside supabase/edge-runtime v1.77.4. Ratchet: fails only on new errors.
-      - uses: denoland/setup-deno@v2
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
         with:
           deno-version: v2.1.4
 

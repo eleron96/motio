@@ -24,6 +24,30 @@ Editors and admins can tick several tasks and delete them at once.
 Inviting people, roles and access are managed in
 [workspace settings](./workspaces.md#members-and-access), not here.
 
+## People without an account
+
+Sometimes you want a person on the timeline before they use Motio, or you plan a
+small team on your own. If the administrator of your Motio server has switched this on,
+workspace admins see **Add person** on the Team page: type a name, and email and phone
+if you like.
+
+- The person gets a row on the timeline, like everyone else. You can give them tasks
+  and time off, and they count in the workload heatmap.
+- They cannot sign in and get no notifications. In the list they are marked
+  **No account**.
+- **Edit**, **Disable** and **Enable** are in the person's menu. A disabled person
+  moves to the **Disabled** tab with their tasks.
+- People without an account cannot be put into a group.
+
+When the person is ready to join, choose **Invite to Motio** in their menu and enter
+their email and role. Once they accept, the row becomes theirs with every task and day
+off already on it: nothing has to be moved by hand. If the invitation is cancelled, the
+row stays as it was.
+
+The same works for things that are not people: a van, a meeting room, a crew. Add a row
+named **Van 2**, put its jobs on the timeline as tasks, and mark a repair as time off.
+Motio treats it like a person, so it counts in the workload heatmap too.
+
 ## Groups
 
 Groups are departments or disciplines — Design, Engineering, Support. A person is in one

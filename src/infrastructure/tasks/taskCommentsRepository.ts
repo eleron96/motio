@@ -27,14 +27,22 @@ export const COMMENT_MAX_PLAIN_LENGTH = 1000;
 
 export const sanitizeCommentHtml = sanitizeCommentRichText;
 
+// Comment HTML is parsed here only to be read, never shown. A <template> keeps
+// the parsed nodes inert (a detached <div> would still load images and run
+// their `onerror`), and the sanitizer runs first so that stored HTML written
+// past the client cannot reach the parser as is.
+const parseCommentHtml = (html: string): DocumentFragment => {
+  const template = document.createElement('template');
+  template.innerHTML = sanitizeCommentRichText(html);
+  return template.content;
+};
+
 /**
  * Returns the plain-text character count (strips HTML tags).
  */
 export const getCommentPlainLength = (html: string): number => {
   if (typeof window === 'undefined') return html.length;
-  const tmp = document.createElement('div');
-  tmp.innerHTML = html;
-  return (tmp.textContent ?? tmp.innerText ?? '').replace(/\u00a0/g, ' ').trim().length;
+  return (parseCommentHtml(html).textContent ?? '').replace(/\u00a0/g, ' ').trim().length;
 };
 
 /**
@@ -43,10 +51,8 @@ export const getCommentPlainLength = (html: string): number => {
  */
 export const extractMentionedUserIds = (html: string): string[] => {
   if (typeof window === 'undefined') return [];
-  const tmp = document.createElement('div');
-  tmp.innerHTML = html;
   const ids: string[] = [];
-  tmp.querySelectorAll('[data-mention-user-id]').forEach((el) => {
+  parseCommentHtml(html).querySelectorAll('[data-mention-user-id]').forEach((el) => {
     const id = el.getAttribute('data-mention-user-id');
     if (id && !ids.includes(id)) ids.push(id);
   });

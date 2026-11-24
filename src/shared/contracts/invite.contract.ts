@@ -9,6 +9,7 @@ const inviteCreateRequestSchema = z.object({
   email: z.string().email(),
   role: inviteRoleSchema,
   groupId: z.string().nullable().optional(),
+  assigneeId: z.string().uuid().nullable().optional(),
 }).strict();
 
 const inviteAcceptRequestSchema = z.object({

@@ -1,3 +1,5 @@
+import { isAssigneeRowListed } from '@/shared/domain/accountlessPeople';
+import { useInstanceSettingsStore } from '@/shared/store/instanceSettingsStore';
 import { supabase } from '@/shared/lib/supabaseClient';
 import { getAdminUserId } from '@/shared/lib/adminConfig';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -109,7 +111,7 @@ export const createWorkspaceActions = (
 
     const { data, error } = await supabase
       .from('assignees')
-      .select('id, workspace_id, name, user_id, is_active, email, phone, color')
+      .select('id, workspace_id, name, user_id, is_active, email, phone, color, is_sample')
       .eq('workspace_id', workspaceId);
 
     if (error) {
@@ -123,10 +125,14 @@ export const createWorkspaceActions = (
       get().tasks.flatMap((task) => task.assigneeIds),
     );
 
+    const accountlessPeopleEnabled = useInstanceSettingsStore.getState().values['people.withoutAccount'];
     const mappedAssignees = ((data ?? []) as AssigneeRow[])
       .filter((row) => {
         if (adminUserId && row.user_id === adminUserId) return false;
-        return row.user_id !== null || taskAssigneeIds.has(row.id);
+        return isAssigneeRowListed(
+          { userId: row.user_id, hasLoadedTask: taskAssigneeIds.has(row.id) },
+          { accountlessPeopleEnabled },
+        );
       })
       .sort((left, right) => left.name.localeCompare(right.name))
       .map(mapAssigneeRow);

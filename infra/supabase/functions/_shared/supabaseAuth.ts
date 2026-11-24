@@ -17,10 +17,16 @@ export interface RoleSnapshot {
 
 const makeRandomPassword = (length = 40) => {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*";
-  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  // Bytes above the last full multiple of the alphabet are thrown away:
+  // a plain `byte % length` would make the first characters slightly likelier.
+  const limit = 256 - (256 % alphabet.length);
   let result = "";
-  for (let index = 0; index < length; index += 1) {
-    result += alphabet[bytes[index] % alphabet.length];
+  while (result.length < length) {
+    for (const byte of crypto.getRandomValues(new Uint8Array(length))) {
+      if (byte < limit && result.length < length) {
+        result += alphabet[byte % alphabet.length];
+      }
+    }
   }
   return result;
 };

@@ -285,7 +285,7 @@ export interface PlannerStore extends PlannerState {
   deleteProjectActivity: (id: string) => Promise<MutationResult>;
   setProjectActivityPinned: (id: string, pinned: boolean) => Promise<MutationResult>;
 
-  addAssignee: (assignee: Omit<Assignee, 'id'>) => Promise<void>;
+  addAssignee: (assignee: Omit<Assignee, 'id'>) => Promise<{ error?: string; assigneeId?: string }>;
   updateAssignee: (id: string, updates: Partial<Assignee>) => Promise<MutationResult>;
   /** null resets the person back to the automatic calendar palette. */
   setAssigneeColor: (id: string, color: string | null) => Promise<MutationResult>;

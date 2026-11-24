@@ -22,6 +22,8 @@ interface TimelineSidebarRowProps {
     email: string | null;
     /** Colour picked in workspace settings; null keeps the id-hashed monogram. */
     color?: string | null;
+    /** Added by name, cannot sign in — the profile card says so. */
+    noAccount?: boolean;
   };
 }
 
@@ -93,7 +95,7 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
         {isMobileAssigneeTimeline ? (
           showAssigneeAvatar ? (
             (() => {
-              const { avatarUrl, userId, email, color } = getAvatarInfo(row.id);
+              const { avatarUrl, userId, email, color, noAccount } = getAvatarInfo(row.id);
               return (
                 <Popover>
                   <PopoverTrigger asChild>
@@ -121,6 +123,7 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
                       colorSeed={userId}
                       color={color}
                       initials={getMonogram(row.name)}
+                      noAccount={noAccount}
                     />
                   </PopoverContent>
                 </Popover>
@@ -130,7 +133,7 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
         ) : isAssignee ? (
           <>
             {showAssigneeAvatar ? (() => {
-              const { avatarUrl, userId, email, color } = getAvatarInfo(row.id);
+              const { avatarUrl, userId, email, color, noAccount } = getAvatarInfo(row.id);
               return (
                 <Popover>
                   <PopoverTrigger asChild>
@@ -157,6 +160,7 @@ const TimelineSidebarRowBase: React.FC<TimelineSidebarRowProps> = ({
                       colorSeed={userId}
                       color={color}
                       initials={getMonogram(row.name)}
+                      noAccount={noAccount}
                     />
                   </PopoverContent>
                 </Popover>

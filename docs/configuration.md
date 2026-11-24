@@ -337,6 +337,7 @@ make settings CONTOUR=testing [SET=key=on|off] [RESET=key]  # the owner's server
 | `workspaces.closures` | days off for the whole workspace (`workspace_closures`, 0179) |
 | `dashboards.transfer` | duplicate, export and import dashboards |
 | `dashboards.calendarPeriods` | widget periods: this or next calendar week or month |
+| `people.withoutAccount` | workspace admins add people to the timeline by name, without an account; an invitation sent from such a row hands it over when accepted (`workspace_invites.assignee_id`, 0192) |
 
 The server reads the table with a 30-second cache; whoami hands the app-side values
 to every signed-in person, so people get a change the next time they open Motio.

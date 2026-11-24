@@ -24,6 +24,18 @@ describe('sanitizeTaskRichText', () => {
     expect(sanitized).not.toContain('javascript:');
   });
 
+  it('drops other script schemes and unknown ones from img src', () => {
+    expect(sanitizeTaskRichText('<img src="vbscript:msgbox(1)">')).toBe('<img>');
+    expect(sanitizeTaskRichText('<img src="blob:https://a.example/1">')).toBe('<img>');
+    expect(sanitizeTaskRichText('<img src="httpfoo:bar()">')).toBe('<img>');
+  });
+
+  it('keeps the image addresses descriptions really use', () => {
+    for (const src of ['https://a.example/x.png', '/storage/x.png', 'img/x.png', 'data:image/png;base64,AAAA']) {
+      expect(sanitizeTaskRichText(`<img src="${src}">`)).toBe(`<img src="${src}">`);
+    }
+  });
+
   it('removes <iframe> embeds', () => {
     const sanitized = sanitizeTaskRichText('<iframe src="https://evil.example"></iframe>');
 

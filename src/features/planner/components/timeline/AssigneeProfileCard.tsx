@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { t } from '@lingui/macro';
 import { UserAvatar } from '@/shared/ui/UserAvatar';
 
 interface AssigneeProfileCardProps {
@@ -9,6 +10,8 @@ interface AssigneeProfileCardProps {
   /** Colour picked in workspace settings; null keeps the id-hashed monogram. */
   color?: string | null;
   initials: string;
+  /** Added by name, without an account (server setting people.withoutAccount). */
+  noAccount?: boolean;
 }
 
 /** Upper bound on a large desktop — beyond this the popover stops reading as a card. */
@@ -69,6 +72,7 @@ export const AssigneeProfileCard: React.FC<AssigneeProfileCardProps> = ({
   colorSeed,
   color,
   initials,
+  noAccount = false,
 }) => {
   const resolutionCap = useResolutionCap(avatarUrl);
   // A monogram is drawn text, so nothing blurs — it may take the full size.
@@ -104,6 +108,11 @@ export const AssigneeProfileCard: React.FC<AssigneeProfileCardProps> = ({
           >
             {email}
           </a>
+        )}
+        {noAccount && (
+          <span className="mt-1 text-xs text-muted-foreground">
+            {t`No account: this person does not see the timeline. A workspace admin can invite them on the Team page.`}
+          </span>
         )}
       </div>
     </div>

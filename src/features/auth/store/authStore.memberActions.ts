@@ -91,7 +91,7 @@ export const createMemberActions = (
       membersLoading: false,
     });
   },
-  inviteMember: async (email, role, groupId = null) => {
+  inviteMember: async (email, role, groupId = null, assigneeId = null) => {
     const workspaceId = get().currentWorkspaceId;
     if (!workspaceId) return { error: 'Workspace not selected.' };
 
@@ -109,6 +109,8 @@ export const createMemberActions = (
       email,
       role,
       groupId,
+      // Sent only from a person's row, so an older server never sees the field.
+      ...(assigneeId ? { assigneeId } : {}),
     });
     if (error) {
       // On any error path the gateway never returns `data`, so these fields are

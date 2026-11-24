@@ -80,6 +80,13 @@ export const INSTANCE_SETTINGS = [
     "client": true,
     "env": null,
     "description": "Dashboard widgets can show this or next calendar week or month"
+  },
+  {
+    "key": "people.withoutAccount",
+    "default": false,
+    "client": true,
+    "env": null,
+    "description": "Workspace admins can add people to the timeline by name, without an account"
   }
 ] as const;
 // registry:end
