@@ -140,8 +140,19 @@ const handleMailer = async (req: Request) => {
   switch (payload.action) {
     case "welcome":
       return handleWelcome(authResult.user.id);
-    case "smtpCheck":
+    case "smtpCheck": {
+      // Diagnostics for the instance owner only: the check opens a connection
+      // to the mail server and answers with its greeting or its error text.
+      const { data: superAdmin, error: superAdminError } = await supabaseAdmin
+        .from("super_admins")
+        .select("user_id")
+        .eq("user_id", authResult.user.id)
+        .maybeSingle();
+      if (superAdminError || !superAdmin) {
+        return jsonResponse({ error: "Forbidden" }, 403);
+      }
       return handleSmtpCheck();
+    }
     default:
       return jsonResponse({ error: "Unknown action" }, 400);
   }
