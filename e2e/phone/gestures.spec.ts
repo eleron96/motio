@@ -34,6 +34,11 @@ test("swiping along the header walks the sections, a short swipe does not", asyn
 
   await swipe(page, right, left);
   await expect(page).toHaveURL(/\/demo\/dashboard$/);
+  // The address changes at once, the header a moment later: the router holds the
+  // old screen until the section's code has arrived (a transition), and until
+  // then a swipe still counts from the old section. Wait for the pill, not the URL.
+  await expect(page.getByTestId("mobile-pill-nav").locator('[aria-current="page"]'))
+    .toHaveAttribute("href", /\/demo\/dashboard$/);
 
   await swipe(page, left, right);
   await expect(page).toHaveURL(/\/demo$/);
