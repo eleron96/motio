@@ -80,6 +80,24 @@ with the output of `install.sh status`), or see [Troubleshooting](./troubleshoot
 | `install.sh update` | yes | re-apply the current checkout, e.g. after a failed update you fixed |
 | `install.sh up` | no | after editing `.env`; also safe to run any time |
 
+## A maintenance page for your users
+
+If you would rather show people a page than an error while you work on the server,
+turn the maintenance page on first:
+
+```bash
+infra/scripts/selfhost-compose.sh exec caddy touch /data/motio-maintenance   # on
+infra/scripts/selfhost-compose.sh exec caddy rm -f /data/motio-maintenance   # off
+```
+
+While it is on, every request gets "Motio is being updated" (in English, Russian and
+German) with status `503`, and nothing reaches Motio itself. The page reloads on its
+own, so people are back as soon as you turn it off. It stays on across restarts until
+you remove the file, so remember the second command.
+
+It is Caddy that serves the page. In the moments when Caddy itself restarts, the
+browser shows its own connection error.
+
 ## How updates are tested
 
 Every week, and whenever the installer changes, the repository runs the real

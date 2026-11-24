@@ -488,6 +488,39 @@ visit. No rebuild, no restart.
 
 ---
 
+## Maintenance page
+
+For work that takes the services down for more than a moment — upgrading
+Keycloak, the database, the storage service — Caddy can answer every request to
+the site with a "Motio is being updated" page (English, Russian, German; it
+reloads itself every 30 seconds) and `503` with `Retry-After`. Nothing reaches
+the services behind it meanwhile.
+
+```bash
+make maintenance CONTOUR=testing             # is it on?
+make maintenance CONTOUR=testing STATE=on
+make maintenance CONTOUR=testing STATE=off
+make maintenance CONTOUR=prod STATE=on       # production: asks first
+```
+
+What to know:
+
+- The switch is a file, `/data/motio-maintenance`, in the Caddy container's data
+  volume. It survives a restart of Caddy and of the server, so the page stays
+  until `STATE=off`. Check with `make maintenance CONTOUR=…` after the work.
+- It needs Caddy running. While the whole server reboots there is nobody to
+  serve the page; people see a connection error for that minute.
+- A tab that is already open keeps showing the app until its next request fails.
+  For people who are working, announce the window with an in-app banner first
+  ([In-app announcements](#in-app-announcements)).
+- To check the services while the page is up, ask them from the server itself,
+  past Caddy: `docker exec infra-gateway-1 wget -qO- http://127.0.0.1:8080/health`
+  (the app itself: `docker exec motio-caddy wget -qO- http://web:80/`).
+- The page is in the `(maintenance)` snippet of all three Caddyfiles
+  (`infra/caddy/`); `src/test/smoke/maintenancePage.test.ts` keeps them the same.
+
+---
+
 ## Migrations (Liquibase)
 
 - SQL files: `infra/supabase/migrations/*.sql`
