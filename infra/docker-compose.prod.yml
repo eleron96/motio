@@ -344,7 +344,7 @@ services:
       - storage_data:/storage-blobs:ro
 
   storage:
-    image: supabase/storage-api:v1.81.0
+    image: supabase/storage-api:v1.98.6
     restart: unless-stopped
     deploy:
       resources:

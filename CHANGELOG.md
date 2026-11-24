@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed
+- Обновлено хранилище файлов (Supabase Storage 1.98.6) с исправлениями безопасности. Для своих серверов: обновление меняет служебные таблицы хранилища необратимо; install.sh update перед этим сам снимает полную копию, вернуться назад можно через install.sh rollback.
+
 ## [0.10.85] - 2026-11-24
 ### Changed
 - Обновлены служебные компоненты: oauth2-proxy 7.15.6 с исправлениями безопасности.

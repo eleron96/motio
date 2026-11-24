@@ -264,7 +264,7 @@ services:
       - ./backups:/backups
 
   storage:
-    image: supabase/storage-api:v1.81.0
+    image: supabase/storage-api:v1.98.6
     container_name: supabase-storage
     restart: unless-stopped
     depends_on:
