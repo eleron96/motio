@@ -197,6 +197,20 @@ vulnerabilities with a fix upstream in every image Motio runs. The table is on t
 run page (and an artifact). It never fails; upgrades go through a release
 ([Self-hosting → Security](self-hosting/security.md)).
 
+`.github/workflows/codeql.yml` runs GitHub's CodeQL on every push to `main` and
+`codex/main-current` (documentation-only pushes are skipped), every Wednesday and
+on demand: it reads the TypeScript and JavaScript of the app, the Edge Functions
+and the scripts, plus the workflow files, and looks for security mistakes — user
+input reaching SQL, HTML, a request address or a redirect. Findings are in the
+repository's **Security → Code scanning** tab (pick the branch in the filter);
+tests and locale catalogs are left out. The run does not fail on findings.
+
+Dependabot alerts are switched on in the repository settings (not by a file):
+GitHub compares `package-lock.json` and `docs-site/package-lock.json` with its
+advisory database and lists vulnerable packages under **Security → Dependabot**.
+Alerts only — no pull requests are opened, and there is no `dependabot.yml`.
+Packages the Edge Functions import as `npm:` have no lockfile and are not covered.
+
 #### Self-hosted upgrade test
 
 `.github/workflows/selfhost-upgrade.yml` runs `infra/scripts/selfhost-upgrade-test.sh`
