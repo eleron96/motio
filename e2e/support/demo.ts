@@ -90,8 +90,26 @@ export const boxOf = async (locator: Locator): Promise<Box> => {
 /**
  * The element's box once it stops moving — sheets and screens slide in, and a
  * gesture that starts mid-animation starts from the wrong place.
+ *
+ * Two equal measurements are not enough on their own: a slide-in that has been
+ * created but not painted yet (a busy page keeps it pending for longer than the
+ * gap between two measurements) sits perfectly still at its starting point. So
+ * first every finite animation on the element, around it or inside it has to
+ * finish, and only then is the box compared with itself.
  */
 export const settledBoxOf = async (locator: Locator): Promise<Box> => {
+  await locator.evaluate(async (element) => {
+    const touches = (animation: Animation) => {
+      const target = (animation.effect as KeyframeEffect | null)?.target;
+      return Boolean(target) && (target === element || target!.contains(element) || element.contains(target!));
+    };
+    // A spinner that never ends is not something to wait for.
+    const finite = (animation: Animation) => animation.effect?.getComputedTiming().endTime !== Infinity;
+    await Promise.all(
+      document.getAnimations().filter((animation) => touches(animation) && finite(animation))
+        .map((animation) => animation.finished.catch(() => undefined)),
+    );
+  });
   let previous = await boxOf(locator);
   await expect
     .poll(async () => {
