@@ -7,6 +7,47 @@
   }
 }
 
+# Maintenance page. While the file /data/motio-maintenance exists in this
+# container, every request gets the page below with 503 instead of going to the
+# services behind — so they can be stopped, upgraded and checked in peace.
+# Turn it on and off with infra/scripts/maintenance.sh (docs/operations.md,
+# "Maintenance page"). The page has no stylesheet block on purpose: `respond`
+# reads anything in curly braces as a placeholder.
+(maintenance) {
+  @maintenance file {
+    root /data
+    try_files /motio-maintenance
+  }
+  handle @maintenance {
+    header Retry-After "120"
+    header Cache-Control "no-store"
+    header Content-Type "text/html; charset=utf-8"
+    header -Content-Security-Policy
+    respond <<HTML
+      <!doctype html>
+      <html lang="en">
+      <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="robots" content="noindex">
+      <meta http-equiv="refresh" content="30">
+      <title>Motio — maintenance</title>
+      </head>
+      <body style="margin:0;background:#f7f8fa;color:#1c2330;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif">
+      <main style="max-width:34rem;margin:0 auto;padding:18vh 1.5rem 3rem;text-align:center">
+      <div style="font-size:2.5rem;line-height:1" aria-hidden="true">🛠</div>
+      <h1 style="margin:1.25rem 0 0.5rem;font-size:1.5rem;font-weight:600">Motio is being updated</h1>
+      <p style="margin:0;font-size:1rem;line-height:1.5;color:#4b5565">We will be back in a few minutes. Your data is safe, and this page reloads by itself.</p>
+      <hr style="margin:2rem auto;width:3rem;border:0;border-top:1px solid #d5dae2">
+      <p lang="ru" style="margin:0 0 0.75rem;font-size:0.95rem;line-height:1.5;color:#4b5565"><strong style="color:#1c2330">Обновляем Motio.</strong> Вернёмся через несколько минут. Данные в сохранности, страница обновится сама.</p>
+      <p lang="de" style="margin:0;font-size:0.95rem;line-height:1.5;color:#4b5565"><strong style="color:#1c2330">Motio wird aktualisiert.</strong> In wenigen Minuten sind wir zurück. Ihre Daten sind sicher, die Seite lädt sich von selbst neu.</p>
+      </main>
+      </body>
+      </html>
+      HTML 503
+  }
+}
+
 # The web container is recreated on every deploy. For the second it takes,
 # Caddy keeps retrying the connection instead of answering 502 at once —
 # uptime checks used to catch exactly that second as an incident.
@@ -34,6 +75,8 @@ http://test.motio.nikog.net {
 
   route {
     encode zstd gzip
+
+    import maintenance
 
     redir /realms /realms/timeline/account 302
     redir /realms/ /realms/timeline/account 302
