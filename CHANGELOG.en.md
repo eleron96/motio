@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.86] - 2026-11-24
+### Changed
+- The file storage service is updated (Supabase Storage 1.98.6) with security fixes. For self-hosted installs: the update changes the storage service's own tables one way; install.sh update takes a full backup set first, and install.sh rollback goes back to it.
+
 ## [0.10.85] - 2026-11-24
 ### Changed
 - Service components updated: oauth2-proxy 7.15.6 with security fixes.
