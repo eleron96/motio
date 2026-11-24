@@ -165,16 +165,12 @@ export KEYCLOAK_ADMIN_BASE_URL="http://127.0.0.1:8081/auth"
 mkdir -p /opt/keycloak-themes/timeline
 rsync -a --delete infra/keycloak/themes/timeline/ /opt/keycloak-themes/timeline/
 
-# PULL_IMAGES=1 make deploy-testing: fetch the newest build of every image first
-# (see prod-compose.sh). The shared Keycloak is not ours to pull: it belongs to
-# the neighbour's compose.
+# PULL_IMAGES=1 make deploy-testing: fetch the newest build of the images that
+# follow a version line (infra/scripts/pull-line-images.sh). The shared Keycloak is
+# not ours to pull: it belongs to the neighbour's compose.
 case "${PULL_IMAGES:-}" in
   1|true|TRUE|yes)
-    echo "PULL_IMAGES: pulling service images..."
-    $compose_cmd pull --ignore-buildable --quiet
-    for base_image in $(grep -hE '^FROM ' infra/web/Dockerfile infra/backup-service/Dockerfile | awk '{print $2}' | sort -u); do
-      docker pull --quiet "$base_image" >/dev/null || echo "Warning: could not pull $base_image; the build uses the copy already here." >&2
-    done
+    infra/scripts/pull-line-images.sh -f "$compose_file" -f "$testing_override" --env-file "$env_file"
     ;;
 esac
 
