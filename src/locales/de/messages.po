@@ -4615,7 +4615,6 @@ msgstr "Arbeitsbereich meines Teams"
 #: src/features/admin/components/AdminUserDialog.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminWorkspacesPage.tsx
-#: src/features/members/components/AccountlessPersonDialogs.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/ProjectsMobileFiltersScreen.tsx
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
@@ -4646,6 +4645,10 @@ msgstr "Der Name muss mindestens 2 Zeichen lang sein."
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Name must be at most {DISPLAY_NAME_MAX_LENGTH} characters."
 msgstr "Der Name darf höchstens {DISPLAY_NAME_MAX_LENGTH} Zeichen lang sein."
+
+#: src/features/members/components/AccountlessPersonDialogs.tsx
+msgid "Name on the timeline"
+msgstr "Name auf der Zeitachse"
 
 #: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx

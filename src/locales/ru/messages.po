@@ -4615,7 +4615,6 @@ msgstr "Рабочее пространство моей команды"
 #: src/features/admin/components/AdminUserDialog.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminWorkspacesPage.tsx
-#: src/features/members/components/AccountlessPersonDialogs.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/ProjectsMobileFiltersScreen.tsx
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
@@ -4646,6 +4645,10 @@ msgstr "Имя должно быть не короче 2 символов."
 #: src/features/workspace/components/RenamePurgedDialog.tsx
 msgid "Name must be at most {DISPLAY_NAME_MAX_LENGTH} characters."
 msgstr "Имя должно быть не длиннее {DISPLAY_NAME_MAX_LENGTH} символов."
+
+#: src/features/members/components/AccountlessPersonDialogs.tsx
+msgid "Name on the timeline"
+msgstr "Имя на таймлайне"
 
 #: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx

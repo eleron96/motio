@@ -60,7 +60,7 @@ export const AccountlessPersonDialogs = ({
               }}
             >
               <div className="space-y-1">
-                <Label htmlFor="accountless-name">{t`Name`}</Label>
+                <Label htmlFor="accountless-name">{t`Name on the timeline`}</Label>
                 <Input
                   id="accountless-name"
                   ref={nameInputRef}
