@@ -18,6 +18,8 @@ import { SelectableListItem } from '@/shared/ui/selectable-list-item';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { cn } from '@/shared/lib/classNames';
 import { ColorDot } from '@/shared/ui/color-dot';
+import { isAccountlessPerson } from '@/shared/domain/accountlessPeople';
+import type { AccountlessRowActions } from '@/features/members/lib/accountlessRowActions';
 
 type Mode = 'tasks' | 'groups';
 type Tab = 'active' | 'disabled';
@@ -76,6 +78,8 @@ type MembersSidebarProps = {
   onSelectGroup: (groupId: string) => void;
   onStartEditGroup: (group: GroupRecord) => void;
   onDeleteGroup: (group: GroupRecord) => void;
+  /** Present only while people without an account are switched on. */
+  accountless?: AccountlessRowActions;
 };
 
 export const MembersSidebar = ({
@@ -119,6 +123,7 @@ export const MembersSidebar = ({
   onSelectGroup,
   onStartEditGroup,
   onDeleteGroup,
+  accountless,
 }: MembersSidebarProps) => {
 
   const renderAssigneeRow = (assignee: Assignee, options: { showDisabledBadge?: boolean } = {}) => {
@@ -132,22 +137,38 @@ export const MembersSidebar = ({
     // With the list already bucketed by group, the caption would repeat the
     // heading right above it.
     const showGroupCaption = Boolean(userId) && memberGroupBy !== 'group';
+    const isAccountless = Boolean(accountless) && isAccountlessPerson(assignee);
+    const canManageAccountless = isAccountless && Boolean(accountless?.canManage);
+    const hasMenu = canManageGroup || canManageAccountless;
 
-    const menuItems = (
-      <>
-        <ContextMenuItem onSelect={() => onAssignAssigneeGroup(assignee)} disabled={groupActionLoading}>
-          {currentGroupId ? t`Change group` : t`Assign a group`}
-        </ContextMenuItem>
-        {currentGroupId && (
-          <ContextMenuItem
-            onSelect={() => onClearAssigneeGroup(assignee)}
-            disabled={groupActionLoading}
-            className="text-destructive focus:text-destructive"
-          >
-            {t`Remove from group`}
-          </ContextMenuItem>
-        )}
-      </>
+    // The same actions twice: the right-click menu and the "…" button.
+    const renderMenuItems = (Item: typeof ContextMenuItem | typeof DropdownMenuItem) => (
+      canManageAccountless && accountless ? (
+        <>
+          <Item onSelect={() => accountless.onEdit(assignee)}>{t`Edit`}</Item>
+          {assignee.isActive && (
+            <Item onSelect={() => accountless.onInvite(assignee)}>{t`Invite to Motio`}</Item>
+          )}
+          <Item onSelect={() => accountless.onSetActive(assignee, !assignee.isActive)}>
+            {assignee.isActive ? t`Disable` : t`Enable`}
+          </Item>
+        </>
+      ) : (
+        <>
+          <Item onSelect={() => onAssignAssigneeGroup(assignee)} disabled={groupActionLoading}>
+            {currentGroupId ? t`Change group` : t`Assign a group`}
+          </Item>
+          {currentGroupId && (
+            <Item
+              onSelect={() => onClearAssigneeGroup(assignee)}
+              disabled={groupActionLoading}
+              className="text-destructive focus:text-destructive"
+            >
+              {t`Remove from group`}
+            </Item>
+          )}
+        </>
+      )
     );
 
     const row = (
@@ -155,7 +176,7 @@ export const MembersSidebar = ({
         <SelectableListItem
           selected={selectedAssigneeId === assignee.id}
           onClick={() => onSelectAssignee(assignee.id)}
-          className={cn(canManageGroup && 'pr-11')}
+          className={cn(hasMenu && 'pr-11')}
         >
           <div className="flex items-center gap-2">
             <span className="min-w-0 flex-1">
@@ -165,6 +186,11 @@ export const MembersSidebar = ({
               {showGroupCaption && (
                 <span className="mt-0.5 block truncate text-xs text-muted-foreground">
                   {currentGroupName ?? t`No group`}
+                </span>
+              )}
+              {isAccountless && (
+                <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                  {t`No account`}
                 </span>
               )}
             </span>
@@ -179,7 +205,7 @@ export const MembersSidebar = ({
           </div>
         </SelectableListItem>
 
-        {canManageGroup && (
+        {hasMenu && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -194,36 +220,20 @@ export const MembersSidebar = ({
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onSelect={() => onAssignAssigneeGroup(assignee)}
-                disabled={groupActionLoading}
-              >
-                {currentGroupId ? t`Change group` : t`Assign a group`}
-              </DropdownMenuItem>
-              {currentGroupId && (
-                <DropdownMenuItem
-                  onSelect={() => onClearAssigneeGroup(assignee)}
-                  disabled={groupActionLoading}
-                  className="text-destructive focus:text-destructive"
-                >
-                  {t`Remove from group`}
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
+            <DropdownMenuContent align="end">{renderMenuItems(DropdownMenuItem)}</DropdownMenuContent>
           </DropdownMenu>
         )}
       </div>
     );
 
-    if (!canManageGroup) {
+    if (!hasMenu) {
       return <React.Fragment key={assignee.id}>{row}</React.Fragment>;
     }
 
     return (
       <ContextMenu key={assignee.id}>
         <ContextMenuTrigger asChild>{row}</ContextMenuTrigger>
-        <ContextMenuContent>{menuItems}</ContextMenuContent>
+        <ContextMenuContent>{renderMenuItems(ContextMenuItem)}</ContextMenuContent>
       </ContextMenu>
     );
   };

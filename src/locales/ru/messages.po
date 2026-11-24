@@ -609,6 +609,7 @@ msgstr "Действующие токены"
 msgid "Activity log"
 msgstr "Журнал"
 
+#: src/features/members/components/AccountlessPersonDialogs.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/projects/components/ContactsPeoplePanel.tsx
 #: src/features/projects/components/projectCard/AddContactForm.tsx
@@ -644,6 +645,10 @@ msgstr "Добавьте описание..."
 #: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
 msgid "Add a mapping"
 msgstr "Новое сопоставление"
+
+#: src/features/members/components/AccountlessPersonDialogs.tsx
+msgid "Add a person without an account"
+msgstr "Добавить человека без аккаунта"
 
 #: src/features/onboarding/components/MobileOnboardingCards.tsx
 msgid "Add a task"
@@ -711,6 +716,10 @@ msgstr "Добавить веху"
 #: src/features/projects/components/projectCard/ActivityBlock.tsx
 msgid "Add note"
 msgstr "Добавить заметку"
+
+#: src/features/members/pages/MembersPage.tsx
+msgid "Add person"
+msgstr "Добавить человека"
 
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
 #: src/features/projects/components/projectCard/ProjectCardHeader.tsx
@@ -1050,7 +1059,6 @@ msgstr "Назначить"
 #: src/features/members/components/AssignGroupDialog.tsx
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
-#: src/features/members/components/MembersSidebar.tsx
 msgid "Assign a group"
 msgstr "Назначить группу"
 
@@ -1321,6 +1329,8 @@ msgstr "Позвонить"
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/members/components/AccountlessPersonDialogs.tsx
+#: src/features/members/components/AccountlessPersonDialogs.tsx
 #: src/features/members/components/MemberGroupDialogs.tsx
 #: src/features/members/components/MemberGroupDialogs.tsx
 #: src/features/members/components/MembersDialogs.tsx
@@ -1412,7 +1422,6 @@ msgid "Change easter egg"
 msgstr "Сменить пасхалку"
 
 #: src/features/members/components/MembersMobileList.tsx
-#: src/features/members/components/MembersSidebar.tsx
 #: src/features/members/components/MembersSidebar.tsx
 msgid "Change group"
 msgstr "Сменить группу"
@@ -1875,6 +1884,10 @@ msgstr "Скопируйте токен сейчас"
 msgid "Copy, export and import dashboards"
 msgstr "Копирование, экспорт и импорт дашбордов"
 
+#: src/features/members/hooks/useAccountlessPeople.ts
+msgid "Could not add the person. Try again."
+msgstr "Не удалось добавить человека. Попробуйте ещё раз."
+
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Could not check access"
 msgstr "Не удалось проверить доступ"
@@ -1898,6 +1911,11 @@ msgstr "Не удалось загрузить журнал"
 #: src/features/admin/pages/AdminSettingsPage.tsx
 msgid "Could not load the settings"
 msgstr "Не удалось загрузить настройки"
+
+#: src/features/members/hooks/useAccountlessPeople.ts
+#: src/features/members/hooks/useAccountlessPeople.ts
+msgid "Could not save the changes. Try again."
+msgstr "Не удалось сохранить изменения. Попробуйте ещё раз."
 
 #. placeholder {0}: result.message
 #: src/features/admin/pages/AdminSystemPage.tsx
@@ -2529,6 +2547,11 @@ msgstr "Разработано <0>NIKO G.</0>"
 msgid "Details"
 msgstr "Подробнее"
 
+#: src/features/members/components/MembersMobileList.tsx
+#: src/features/members/components/MembersSidebar.tsx
+msgid "Disable"
+msgstr "Отключить"
+
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Disable member"
@@ -2805,6 +2828,8 @@ msgid "Easter eggs"
 msgstr "Пасхалки"
 
 #: src/features/admin/components/AdminAnnouncementForm.tsx
+#: src/features/members/components/MembersMobileList.tsx
+#: src/features/members/components/MembersSidebar.tsx
 #: src/features/planner/components/SubtasksSection.tsx
 #: src/features/planner/components/TaskCommentItem.tsx
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
@@ -2861,6 +2886,10 @@ msgstr "Редактировать веху"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 msgid "Edit name"
 msgstr "Редактировать имя"
+
+#: src/features/members/components/AccountlessPersonDialogs.tsx
+msgid "Edit person"
+msgstr "Изменить человека"
 
 #: src/features/auth/components/AvatarEditModal.tsx
 #: src/features/auth/components/AvatarWithEditButton.tsx
@@ -2930,10 +2959,15 @@ msgstr "Электрика"
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 #: src/features/admin/pages/AdminInvitationsPage.tsx
 #: src/features/admin/pages/AdminUsersPage.tsx
+#: src/features/members/components/AccountlessPersonDialogs.tsx
 #: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
 msgid "Email"
 msgstr "Email"
+
+#: src/features/members/components/AccountlessPersonDialogs.tsx
+msgid "Email (optional)"
+msgstr "Почта (необязательно)"
 
 #: src/features/admin/pages/AdminSystemPage.tsx
 msgid "Email (SMTP)"
@@ -2970,6 +3004,11 @@ msgstr "Пусто — висит, пока каждый не закроет с�
 msgid "Empty workspace"
 msgstr "Пустое пространство"
 
+#: src/features/members/components/MembersMobileList.tsx
+#: src/features/members/components/MembersSidebar.tsx
+msgid "Enable"
+msgstr "Включить"
+
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Enable member"
@@ -2995,6 +3034,10 @@ msgstr "Дата окончания ↑"
 #: src/features/members/components/MemberTasksPanel.tsx
 msgid "End date ↓"
 msgstr "Дата окончания ↓"
+
+#: src/features/members/hooks/useAccountlessPeople.ts
+msgid "Enter a valid email address."
+msgstr "Введите корректный адрес почты."
 
 #: src/features/admin/pages/AdminUsersPage.tsx
 msgid "Enter a valid user UUID."
@@ -3874,6 +3917,10 @@ msgstr "Недопустимое имя."
 msgid "Invitation created"
 msgstr "Приглашение создано"
 
+#: src/features/members/hooks/useAccountlessPeople.ts
+msgid "Invitation for {email} is waiting in Motio"
+msgstr "Приглашение для {email} ждёт в Motio"
+
 #: src/features/workspace/hooks/useCopyInviteLink.ts
 msgid "Invitation link copied"
 msgstr "Ссылка-приглашение скопирована"
@@ -3881,6 +3928,10 @@ msgstr "Ссылка-приглашение скопирована"
 #: src/features/workspace/components/InviteResultNotice.tsx
 msgid "Invitation sent"
 msgstr "Приглашение отправлено"
+
+#: src/features/members/hooks/useAccountlessPeople.ts
+msgid "Invitation sent to {email}"
+msgstr "Приглашение отправлено на {email}"
 
 #: src/features/admin/components/AdminLayout.tsx
 msgid "Invitations"
@@ -3890,6 +3941,15 @@ msgstr "Приглашения"
 msgid "Invitations nobody has answered yet, in every workspace. Only the invited address can accept one, so copying the link is safe; an expired one can no longer be accepted."
 msgstr "Приглашения без ответа во всех пространствах. Принять приглашение может только приглашённый адрес, поэтому ссылку копировать безопасно; просроченное принять уже нельзя."
 
+#: src/features/members/components/AccountlessPersonDialogs.tsx
+msgid "Invite"
+msgstr "Пригласить"
+
+#. placeholder {0}: inviteForm.name
+#: src/features/members/components/AccountlessPersonDialogs.tsx
+msgid "Invite {0}"
+msgstr "Пригласить: {0}"
+
 #: src/features/workspace/components/WorkspaceInviteSection.tsx
 msgid "Invite people and share access."
 msgstr "Приглашайте людей и делитесь доступом."
@@ -3897,6 +3957,11 @@ msgstr "Приглашайте людей и делитесь доступом."
 #: src/features/demo/components/DemoConversionModal.tsx
 msgid "Invite teammates after you sign up"
 msgstr "Приглашайте команду после регистрации"
+
+#: src/features/members/components/MembersMobileList.tsx
+#: src/features/members/components/MembersSidebar.tsx
+msgid "Invite to Motio"
+msgstr "Пригласить в Motio"
 
 #: src/features/auth/hooks/useInviteReactionToasts.ts
 msgid "Invite update"
@@ -4343,6 +4408,7 @@ msgstr "Участник"
 
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersMobileList.tsx
+#: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
 #: src/features/workspace/components/WorkspaceMemberRow.tsx
 msgid "Member actions"
@@ -4549,6 +4615,7 @@ msgstr "Рабочее пространство моей команды"
 #: src/features/admin/components/AdminUserDialog.tsx
 #: src/features/admin/pages/AdminBackupsPage.tsx
 #: src/features/admin/pages/AdminWorkspacesPage.tsx
+#: src/features/members/components/AccountlessPersonDialogs.tsx
 #: src/features/planner/components/timeline/MilestoneDialog.tsx
 #: src/features/projects/components/ProjectsMobileFiltersScreen.tsx
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
@@ -4702,6 +4769,15 @@ msgstr "Следующая страница"
 #: src/features/workspace/lib/starterTemplates/common.ts
 msgid "Nina Clarke"
 msgstr "Нина Орлова"
+
+#: src/features/members/components/MembersMobileList.tsx
+#: src/features/members/components/MembersSidebar.tsx
+msgid "No account"
+msgstr "Без аккаунта"
+
+#: src/features/planner/components/timeline/AssigneeProfileCard.tsx
+msgid "No account: this person does not see the timeline. A workspace admin can invite them on the Team page."
+msgstr "Без аккаунта: этот человек не видит таймлайн. Админ пространства может пригласить его на странице «Команда»."
 
 #: src/features/members/components/MembersGroupPanel.tsx
 msgid "No active members match the search."
@@ -5709,6 +5785,10 @@ msgstr "Разделы команды"
 msgid "People who got access only through this group lose it at their next visit."
 msgstr "Те, кто получил доступ только через эту группу, потеряют его при следующем входе."
 
+#: src/features/admin/lib/serverSettingLabels.ts
+msgid "People without an account"
+msgstr "Люди без аккаунта"
+
 #: src/features/workspace/components/WorkspaceApiTokensSection.tsx
 msgid "People, projects, tasks, milestones and absences. Changes nothing."
 msgstr "Люди, проекты, задачи, вехи и отсутствия. Ничего не меняет."
@@ -5740,6 +5820,10 @@ msgstr "Кто"
 #: src/features/projects/components/projectCard/TeamMobileSheets.tsx
 msgid "Phone"
 msgstr "Телефон"
+
+#: src/features/members/components/AccountlessPersonDialogs.tsx
+msgid "Phone (optional)"
+msgstr "Телефон (необязательно)"
 
 #: src/features/admin/pages/AdminEasterEggsPage.tsx
 msgid "Pick an egg and who it is for."
@@ -6152,7 +6236,6 @@ msgstr "Убрать примеры"
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/members/components/MembersMobileList.tsx
 #: src/features/members/components/MembersSidebar.tsx
-#: src/features/members/components/MembersSidebar.tsx
 msgid "Remove from group"
 msgstr "Удалить из группы"
 
@@ -6418,6 +6501,7 @@ msgstr "Интерьер ресторана на набережной"
 #: src/features/admin/pages/AdminGroupWorkspacesPage.tsx
 #: src/features/admin/pages/AdminInvitationsPage.tsx
 #: src/features/auth/components/InboxPanel.tsx
+#: src/features/members/components/AccountlessPersonDialogs.tsx
 #: src/features/projects/components/ContactDetailsMobileScreen.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
 #: src/features/projects/components/ContactsMobileFiltersScreen.tsx
@@ -6475,6 +6559,7 @@ msgstr "Шалфейный"
 #: src/features/auth/components/AccountSettingsDialog.tsx
 #: src/features/dashboard/components/DashboardManageDialogs.tsx
 #: src/features/dashboard/components/WidgetEditorDialog.tsx
+#: src/features/members/components/AccountlessPersonDialogs.tsx
 #: src/features/members/components/MembersGroupPanel.tsx
 #: src/features/planner/components/CommentEditor.tsx
 #: src/features/planner/components/TaskDetailDialogs.tsx
@@ -6842,6 +6927,10 @@ msgstr "Инструкция для своего сервера →"
 #: src/features/admin/pages/AdminBroadcastPage.tsx
 msgid "Send"
 msgstr "Отправить"
+
+#: src/features/members/components/AccountlessPersonDialogs.tsx
+msgid "Send invitation"
+msgstr "Отправить приглашение"
 
 #: src/features/workspace/components/WorkspaceInviteSection.tsx
 #: src/features/workspace/components/WorkspaceInvitesMobileScreen.tsx
@@ -7724,6 +7813,10 @@ msgstr "Эти участники выведены из задач проект�
 msgid "They end up without a group. Their tasks are not affected."
 msgstr "Человек остаётся без группы. На задачах это не отражается."
 
+#: src/features/members/components/AccountlessPersonDialogs.tsx
+msgid "They get a row on the timeline and can be given tasks and time off, but cannot sign in and get no notifications. You can invite them later, and they keep the row."
+msgstr "У человека появится строка на таймлайне, ему можно ставить задачи и отсутствия, но войти он не сможет и уведомлений не получит. Позже его можно пригласить, и строка останется за ним."
+
 #: src/features/workspace/components/WorkspaceMemberDetailScreen.tsx
 #: src/features/workspace/components/WorkspaceMembersPanel.tsx
 msgid "They keep their tasks and history but cannot open the workspace."
@@ -7814,6 +7907,10 @@ msgstr "Это имя зарезервировано."
 #: src/app/NotFoundPage.tsx
 msgid "This page does not exist. Return home or jump back to the timeline."
 msgstr "Такой страницы не существует. Вернитесь на главную или в таймлайн."
+
+#: src/features/members/hooks/useAccountlessPeople.ts
+msgid "This person already has access to the workspace."
+msgstr "У этого человека уже есть доступ к пространству."
 
 #: src/features/projects/pages/ProjectsPage.tsx
 msgid "this project"
@@ -8643,6 +8740,14 @@ msgstr "Если человек переходит в другую группу,
 msgid "When someone moves to another group, the role their group gave follows at their next sign-in, up or down. A role a workspace admin changed by hand stays, and so do people added by hand or by an invitation."
 msgstr "Если человек переходит в другую группу, роль, выданная группой, меняется при его следующем входе — вверх или вниз. Роль, изменённая админом пространства вручную, остаётся, как и люди, добавленные вручную или по приглашению."
 
+#: src/features/members/hooks/useAccountlessPeople.ts
+msgid "When they accept, the tasks and time off of {personName} become theirs."
+msgstr "Когда приглашение примут, задачи и отсутствия строки «{personName}» перейдут к этому человеку."
+
+#: src/features/members/components/AccountlessPersonDialogs.tsx
+msgid "When they accept, this row with its tasks and time off becomes theirs: they see the timeline and get notifications."
+msgstr "Когда человек примет приглашение, эта строка с задачами и отсутствиями станет его: он увидит таймлайн и начнёт получать уведомления."
+
 #: src/features/auth/components/ProfileSummary.tsx
 msgid "Where your tasks are"
 msgstr "Где ваши задачи"
@@ -8731,6 +8836,10 @@ msgstr "Рабочее пространство"
 #: src/features/admin/lib/serverSettingLabels.ts
 msgid "Workspace admins add company closures. They show like public holidays on the timeline, in the calendar and in the workload heatmap; nobody's time off changes."
 msgstr "Админы пространства добавляют дни закрытия компании. Они показываются как праздники — на таймлайне, в календаре и в тепловой карте; ничьи отсутствия не меняются."
+
+#: src/features/admin/lib/serverSettingLabels.ts
+msgid "Workspace admins add people to the timeline by name, without inviting them. Such a person can be given tasks and time off but sees nothing; an invitation sent from their row later hands them the same row with everything on it."
+msgstr "Админы пространств добавляют людей на таймлайн по имени, без приглашения. Такому человеку можно ставить задачи и отсутствия, но сам он ничего не видит; приглашение, отправленное позже из его строки, передаст ему ту же строку со всем, что на ней есть."
 
 #: src/features/admin/lib/serverSettingLabels.ts
 msgid "Workspace admins can make the timeline denser to fit more people on screen: smaller photos, lower rows. Each workspace chooses in its settings; phones stay as they are."

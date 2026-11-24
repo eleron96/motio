@@ -6,7 +6,7 @@ import { useAuthStore, WorkspaceRole } from '@/features/auth/store/authStore';
 import { useWorkspaceHeader } from '@/features/workspace/components/WorkspaceLayout';
 import { Button } from '@/shared/ui/button';
 import { t } from '@lingui/macro';
-import { Plus } from 'lucide-react';
+import { Plus, UserPlus } from 'lucide-react';
 import { MembersSidebar } from '@/features/members/components/MembersSidebar';
 import { MemberTasksPanel } from '@/features/members/components/MemberTasksPanel';
 import { MembersDialogs } from '@/features/members/components/MembersDialogs';
@@ -24,6 +24,9 @@ import { useMembersPageMode } from '@/features/members/hooks/useMembersPageMode'
 import { useMemberTasksView } from '@/features/members/hooks/useMemberTasksView';
 import { useMemberGroupFlow } from '@/features/members/hooks/useMemberGroupFlow';
 import { MemberGroupDialogs } from '@/features/members/components/MemberGroupDialogs';
+import { useAccountlessPeople } from '@/features/members/hooks/useAccountlessPeople';
+import { AccountlessPersonDialogs } from '@/features/members/components/AccountlessPersonDialogs';
+import type { AccountlessRowActions } from '@/features/members/lib/accountlessRowActions';
 
 const MembersPage = () => {
   usePageSeo({
@@ -105,6 +108,26 @@ const MembersPage = () => {
       loadWorkspaceData(currentWorkspaceId);
     }
   }, [currentWorkspaceId, loadWorkspaceData]);
+
+  const accountlessPeople = useAccountlessPeople({ isAdmin });
+  const {
+    enabled: accountlessEnabled,
+    canManage: canManageAccountless,
+    openAdd: openAddAccountless,
+    openEdit: openEditAccountless,
+    openInvite: openInviteAccountless,
+    setActive: setAccountlessActive,
+  } = accountlessPeople;
+  const accountlessRowActions = useMemo<AccountlessRowActions | undefined>(() => (
+    accountlessEnabled
+      ? {
+        canManage: canManageAccountless,
+        onEdit: openEditAccountless,
+        onInvite: openInviteAccountless,
+        onSetActive: (assignee, isActive) => void setAccountlessActive(assignee, isActive),
+      }
+      : undefined
+  ), [accountlessEnabled, canManageAccountless, openEditAccountless, openInviteAccountless, setAccountlessActive]);
 
   useMembersPageMode({
     mode,
@@ -299,6 +322,7 @@ const MembersPage = () => {
       onSelectGroup={setSelectedGroupId}
       onStartEditGroup={handleStartEditGroup}
       onDeleteGroup={requestGroupDeletion}
+      accountless={accountlessRowActions}
     />
   );
 
@@ -353,12 +377,21 @@ const MembersPage = () => {
           <Plus className="h-4 w-4" />
           {t`New group`}
         </Button>
+      ) : mode === 'tasks' && canManageAccountless ? (
+        <Button
+          size={isMobile ? 'default' : 'sm'}
+          className={isMobile ? MOBILE_FAB_BUTTON_CLASS : 'gap-2'}
+          onClick={openAddAccountless}
+        >
+          <UserPlus className="h-4 w-4" />
+          {t`Add person`}
+        </Button>
       ) : null,
       onOpenSettings: () => setShowSettings(true),
       onOpenAccountSettings: () => setShowAccountSettings(true),
       settingsDisabled: !canEdit,
     },
-    [mode, isAdmin, canEdit, isMobile],
+    [mode, isAdmin, canEdit, isMobile, canManageAccountless, openAddAccountless],
   );
 
   const mobileListProps: Omit<MembersMobileListProps, 'mode'> = {
@@ -397,6 +430,7 @@ const MembersPage = () => {
     groupMarkColorById,
     onChangeGroupColor: requestGroupColor,
     onDeleteGroup: requestGroupDeletion,
+    accountless: accountlessRowActions,
   };
 
   if (isSuperAdmin && workspacesLoaded && !hasWorkspaces) {
@@ -464,6 +498,18 @@ const MembersPage = () => {
             {renderGroupsPanel()}
           </MobileScreenShell>
         </>
+      )}
+
+      {accountlessEnabled && (
+        <AccountlessPersonDialogs
+          flow={accountlessPeople}
+          roleLabels={roleLabels}
+          isMobile={isMobile}
+          onSaved={(assigneeId) => {
+            setTab('active');
+            setSelectedAssigneeId(assigneeId);
+          }}
+        />
       )}
 
       <MemberGroupDialogs

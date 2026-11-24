@@ -2,16 +2,21 @@ import { useCallback } from 'react';
 import { usePersonColors } from '@/features/planner/hooks/usePersonColors';
 import type { WorkspaceMember } from '@/features/auth/store/authStore.contract';
 import type { Assignee } from '@/features/planner/types/planner';
+import { useInstanceSetting } from '@/shared/store/instanceSettingsStore';
+import { isAccountlessPerson } from '@/shared/domain/accountlessPeople';
 
 /** What the avatar of a people row is drawn from: photo, account, email and colour. */
 export const useAssigneeAvatarInfo = (assignees: Assignee[], members: WorkspaceMember[]) => {
   const personColors = usePersonColors();
+  const accountlessPeopleEnabled = useInstanceSetting('people.withoutAccount');
 
   return useCallback((rowId: string): {
     avatarUrl: string | null;
     userId: string;
     email: string | null;
     color: string | null;
+    /** Added by name, cannot sign in — the profile card says so. */
+    noAccount: boolean;
   } => {
     const assignee = assignees.find((a) => a.id === rowId);
     const userId = assignee?.userId ?? rowId;
@@ -25,6 +30,7 @@ export const useAssigneeAvatarInfo = (assignees: Assignee[], members: WorkspaceM
       // The colour in effect, not just a hand-picked one: an avatar has to match
       // the person's day-off circles and chart series either way.
       color: personColors.byAssigneeId.get(rowId) ?? null,
+      noAccount: accountlessPeopleEnabled && Boolean(assignee) && isAccountlessPerson(assignee!),
     };
-  }, [assignees, members, personColors]);
+  }, [accountlessPeopleEnabled, assignees, members, personColors]);
 };

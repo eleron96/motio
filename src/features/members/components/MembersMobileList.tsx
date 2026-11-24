@@ -1,3 +1,5 @@
+import { isAccountlessPerson } from '@/shared/domain/accountlessPeople';
+import type { AccountlessRowActions } from '@/features/members/lib/accountlessRowActions';
 import React from 'react';
 import { t } from '@lingui/macro';
 import { MoreHorizontal } from 'lucide-react';
@@ -52,6 +54,8 @@ export interface MembersMobileListProps {
   /** Opens the colour screen for the group. */
   onChangeGroupColor: (group: GroupRecord) => void;
   onDeleteGroup: (group: GroupRecord) => void;
+  /** Present only while people without an account are switched on. */
+  accountless?: AccountlessRowActions;
 }
 
 /**
@@ -94,6 +98,7 @@ export const MembersMobileList: React.FC<MembersMobileListProps> = ({
   onRenameGroup,
   onChangeGroupColor,
   onDeleteGroup,
+  accountless,
 }) => {
   const listingPeople = mode === 'tasks';
   const people = tab === 'active' ? activeVisibleAssignees : disabledVisibleAssignees;
@@ -187,6 +192,8 @@ export const MembersMobileList: React.FC<MembersMobileListProps> = ({
                   ? (groupNameById.get(currentGroupId) ?? null)
                   : null;
                 const count = memberTaskCountsDate ? (memberTaskCounts[assignee.id] ?? 0) : null;
+                const isAccountless = Boolean(accountless) && isAccountlessPerson(assignee);
+                const canManageAccountless = isAccountless && Boolean(accountless?.canManage);
 
                 return (
                   <div key={assignee.id} className="relative">
@@ -211,12 +218,33 @@ export const MembersMobileList: React.FC<MembersMobileListProps> = ({
                         </span>
                       )}
                       title={assignee.name}
-                      subtitle={userId ? (currentGroupName ?? t`No group`) : undefined}
+                      subtitle={userId ? (currentGroupName ?? t`No group`) : (isAccountless ? t`No account` : undefined)}
                       value={count !== null ? count : undefined}
                       chevron
                       onClick={() => onOpenAssignee(assignee.id)}
-                      className={canManageGroup ? 'pr-24' : undefined}
+                      className={canManageGroup || canManageAccountless ? 'pr-24' : undefined}
                     />
+                    {canManageAccountless && accountless && renderRowMenu(
+                      t`Member actions`,
+                      `assignee-actions-${assignee.id}`,
+                      (
+                        <>
+                          <DropdownMenuItem onSelect={() => accountless.onEdit(assignee)}>
+                            {t`Edit`}
+                          </DropdownMenuItem>
+                          {assignee.isActive && (
+                            <DropdownMenuItem onSelect={() => accountless.onInvite(assignee)}>
+                              {t`Invite to Motio`}
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            onSelect={() => accountless.onSetActive(assignee, !assignee.isActive)}
+                          >
+                            {assignee.isActive ? t`Disable` : t`Enable`}
+                          </DropdownMenuItem>
+                        </>
+                      ),
+                    )}
                     {canManageGroup && renderRowMenu(
                       t`Member actions`,
                       `assignee-actions-${assignee.id}`,

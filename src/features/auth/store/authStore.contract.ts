@@ -179,7 +179,9 @@ export interface AuthState {
   inviteMember: (
     email: string,
     role: WorkspaceRole,
-    groupId?: string | null
+    groupId?: string | null,
+    /** A person added by name: accepting hands them that timeline row. */
+    assigneeId?: string | null
   ) => Promise<{
     error?: string;
     actionLink?: string;
