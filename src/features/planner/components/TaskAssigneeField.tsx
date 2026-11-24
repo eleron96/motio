@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/shared/ui/popover';
 import { PersonAvatar } from '@/shared/components/PersonAvatar';
 import { getPersonMonogram } from '@/shared/domain/personName';
 import { MobileAssigneeField } from '@/features/planner/components/MobileAssigneeField';
+import { useAccountlessMark } from '@/features/planner/hooks/useAccountlessMark';
 import type { Assignee } from '@/features/planner/types/planner';
 
 interface TaskAssigneeFieldProps {
@@ -33,6 +34,7 @@ export const TaskAssigneeField: React.FC<TaskAssigneeFieldProps> = ({
   isMobile,
 }) => {
   const isReadOnly = !canEdit;
+  const hasNoAccount = useAccountlessMark();
   const selectableAssignees = useMemo(() => (
     filteredAssignees.filter(
       (assignee) => assignee.isActive || pickedAssigneeIds.includes(assignee.id),
@@ -134,10 +136,14 @@ export const TaskAssigneeField: React.FC<TaskAssigneeFieldProps> = ({
                       colorSeed={assignee.userId ?? assignee.id}
                       size="xs"
                     />
-                    <span className="text-sm truncate">
-                      {assignee.name}
+                    {/* Only the name gives way in a narrow list: the marks stay readable. */}
+                    <span className="flex min-w-0 items-baseline gap-1 text-sm">
+                      <span className="truncate">{assignee.name}</span>
                       {!assignee.isActive && (
-                        <span className="ml-1 text-[10px] text-muted-foreground">({t`disabled`})</span>
+                        <span className="shrink-0 text-[10px] text-muted-foreground">({t`disabled`})</span>
+                      )}
+                      {hasNoAccount(assignee) && (
+                        <span className="shrink-0 text-[10px] text-muted-foreground">({t`no account`})</span>
                       )}
                     </span>
                   </label>
