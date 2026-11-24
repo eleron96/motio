@@ -7,6 +7,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.10.85] - 2026-11-24
+### Changed
+- Service components updated: oauth2-proxy 7.15.6 with security fixes.
+
 ## [0.10.84] - 2026-11-24
 ### Added
 - For self-hosted installs: while you work on the server, people can be shown a “Motio is being updated” page instead of an error. How to turn it on and off is in the Updates page of the guide.

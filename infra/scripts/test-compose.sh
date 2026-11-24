@@ -165,6 +165,15 @@ export KEYCLOAK_ADMIN_BASE_URL="http://127.0.0.1:8081/auth"
 mkdir -p /opt/keycloak-themes/timeline
 rsync -a --delete infra/keycloak/themes/timeline/ /opt/keycloak-themes/timeline/
 
+# PULL_IMAGES=1 make deploy-testing: fetch the newest build of the images that
+# follow a version line (infra/scripts/pull-line-images.sh). The shared Keycloak is
+# not ours to pull: it belongs to the neighbour's compose.
+case "${PULL_IMAGES:-}" in
+  1|true|TRUE|yes)
+    infra/scripts/pull-line-images.sh -f "$compose_file" -f "$testing_override" --env-file "$env_file"
+    ;;
+esac
+
 # --- Once: move a PostgreSQL 15 database to 17 (a no-op otherwise) ---
 infra/scripts/pg-upgrade-17.sh "$env_file" "$compose_file" "$testing_override"
 

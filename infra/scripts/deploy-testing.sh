@@ -73,7 +73,12 @@ rsync -az --inplace \
   "${host}:${remote_dir}/infra/supabase/nginx.conf"
 
 # Run test-compose.sh on the remote server
-ssh "$host" "cd '${remote_dir}' && bash infra/scripts/test-compose.sh"
+# PULL_IMAGES=1: also fetch the newest build of every image (test-compose.sh).
+remote_pull_env=""
+if [[ "${PULL_IMAGES:-}" == "1" ]]; then
+  remote_pull_env="PULL_IMAGES=1 "
+fi
+ssh "$host" "cd '${remote_dir}' && ${remote_pull_env}bash infra/scripts/test-compose.sh"
 
 if [[ "${keycloak_theme_changed}" == "true" ]]; then
   # The test server's Keycloak is shared with ids-checker (its login blinks for

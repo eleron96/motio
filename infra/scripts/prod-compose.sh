@@ -353,6 +353,14 @@ fi
 
 export COMPOSE_MENU=0
 
+# PULL_IMAGES=1 make deploy: fetch the newest build of the images that follow a
+# version line before anything starts (infra/scripts/pull-line-images.sh). Keycloak
+# changes its database on start: read docs/operations.md, "Upgrading a bundled
+# image", before using this.
+if [[ "$(normalize_bool "${PULL_IMAGES:-false}")" == "true" ]]; then
+  infra/scripts/pull-line-images.sh -f "$compose_file" --env-file "$env_file"
+fi
+
 # Snapshot the database and uploaded files BEFORE anything new starts: GoTrue,
 # Storage and Realtime migrate their schemas on start, some one-way, so the
 # pre-migration dump further down is already taken after them.

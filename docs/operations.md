@@ -263,6 +263,16 @@ in `prod-compose.sh`, `test-compose.sh` and `install.sh`; `realm-smtp` in
 4. Change every reference (`git grep` the old tag: compose files, `infra/web/Dockerfile`,
    docs, AGENTS.md), deploy to testing and compare public routes, sign-in redirects
    and API answers with production.
+4a. Images that follow a version line (`keycloak:26.8`, `caddy:2.11`,
+   `nginx:1.30-alpine`, `postgres:15-alpine`, `liquibase:4.27`) keep the tag when a
+   patch comes out, and a deploy never pulls: on our servers they stay at the build
+   fetched first. `PULL_IMAGES=1 make deploy-testing` and `PULL_IMAGES=1 make deploy`
+   pull those images, and the base images of `web` and `backup`, before anything
+   starts (`infra/scripts/pull-line-images.sh`); the snapshot and the Keycloak dump
+   are taken as on any deploy. Docker Hub limits anonymous pulls per address and the
+   provider's shared IPv6 prefix is often out of them (`429 Too Many Requests`): an
+   official image it refuses is taken from `public.ecr.aws/docker/library` instead.
+   Self-hosted installs pull on every `install.sh update`.
 5. `motio-caddy` on production and testing runs outside compose: a new Caddy reaches
    them only by recreating the container (command above), keeping its volumes.
 6. Keycloak changes its database on start and cannot go back by image. Rehearse on a
