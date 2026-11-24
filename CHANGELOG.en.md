@@ -7,6 +7,9 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- In a task's list of assignees, people added without an account carry a “no account” mark.
+
 ## [0.10.86] - 2026-11-24
 ### Changed
 - The file storage service is updated (Supabase Storage 1.98.6) with security fixes. For self-hosted installs: the update changes the storage service's own tables one way; install.sh update takes a full backup set first, and install.sh rollback goes back to it.
